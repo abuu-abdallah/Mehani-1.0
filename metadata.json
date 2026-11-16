@@ -1,0 +1,8 @@
+{
+  "name": "Remix Mahara Sudan - Trade \u0026 Service Marketplace",
+  "description": "منصة مهارة - ربط العملاء بالحرفيين وأصحاب المهن الحرة في السودان مثل الخياطة، السباكة، الكهرباء، الحناء والتجميل، والمزيد.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

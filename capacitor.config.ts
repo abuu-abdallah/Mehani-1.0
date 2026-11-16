@@ -1,0 +1,36 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.mehani.sudan',
+  appName: 'Mehani | مهني',
+  webDir: 'dist',
+  server: {
+    url: 'https://mehani.gt.tc',
+    androidScheme: 'https',
+    cleartext: false,
+    errorPath: 'offline.html',
+    allowNavigation: ['mehani.gt.tc', '*.mehani.gt.tc'],
+  },
+  android: {
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 1400,
+      launchAutoHide: true,
+      backgroundColor: '#0f172a',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+    },
+    StatusBar: {
+      style: 'DARK',
+      backgroundColor: '#0f172a',
+      overlaysWebView: false,
+    },
+  },
+};
+
+export default config;
