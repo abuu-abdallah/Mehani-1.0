@@ -1018,7 +1018,7 @@ export const HomeScreen: React.FC = () => {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="WhatsApp Support"
-        className="fixed bottom-20 end-4 z-40 bg-emerald-600 hover:bg-emerald-500 text-white p-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/30 group cursor-pointer"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] end-4 z-40 bg-emerald-600 hover:bg-emerald-500 text-white p-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/30 group cursor-pointer"
         title={language === 'ar' ? 'الدعم الفني عبر واتساب (+249 991 877 454)' : 'WhatsApp Support (+249 991 877 454)'}
       >
         <MessageCircle className="w-6 h-6 fill-white" />

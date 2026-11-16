@@ -12306,6 +12306,38 @@ var AuthProvider = ({ children }) => {
 	(0, import_react.useEffect)(() => {
 		refreshFromServer();
 	}, [refreshFromServer]);
+	const isPollingRef = (0, import_react.useRef)(false);
+	(0, import_react.useEffect)(() => {
+		if (!currentUser || isGuest) return;
+		const safePoll = async () => {
+			if (isPollingRef.current) return;
+			if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+			if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+			isPollingRef.current = true;
+			try {
+				await refreshFromServer();
+			} finally {
+				isPollingRef.current = false;
+			}
+		};
+		const intervalId = window.setInterval(() => {
+			safePoll();
+		}, 12e3);
+		const handleVisibilityOrOnline = () => {
+			if (typeof document === "undefined" || document.visibilityState === "visible") safePoll();
+		};
+		window.addEventListener("online", handleVisibilityOrOnline);
+		document.addEventListener("visibilitychange", handleVisibilityOrOnline);
+		return () => {
+			window.clearInterval(intervalId);
+			window.removeEventListener("online", handleVisibilityOrOnline);
+			document.removeEventListener("visibilitychange", handleVisibilityOrOnline);
+		};
+	}, [
+		currentUser?.id,
+		isGuest,
+		refreshFromServer
+	]);
 	(0, import_react.useEffect)(() => {
 		if (!isRemoteApi) safeStorage.setJSON("mahara_users", allUsers);
 	}, [allUsers, isRemoteApi]);
@@ -14144,6 +14176,19 @@ var Banknote = createLucideIcon("banknote", [
 		key: "113zkx"
 	}]
 ]);
+/**
+* @license lucide-react v0.546.0 - ISC
+*
+* This source code is licensed under the ISC license.
+* See the LICENSE file in the root directory of this source tree.
+*/
+var Bell = createLucideIcon("bell", [["path", {
+	d: "M10.268 21a2 2 0 0 0 3.464 0",
+	key: "vwvbt9"
+}], ["path", {
+	d: "M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326",
+	key: "11g9vi"
+}]]);
 /**
 * @license lucide-react v0.546.0 - ISC
 *
@@ -17275,7 +17320,7 @@ var HomeScreen = () => {
 				target: "_blank",
 				rel: "noopener noreferrer",
 				"aria-label": "WhatsApp Support",
-				className: "fixed bottom-20 end-4 z-40 bg-emerald-600 hover:bg-emerald-500 text-white p-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/30 group cursor-pointer",
+				className: "fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] end-4 z-40 bg-emerald-600 hover:bg-emerald-500 text-white p-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/30 group cursor-pointer",
 				title: language === "ar" ? "الدعم الفني عبر واتساب (+249 991 877 454)" : "WhatsApp Support (+249 991 877 454)",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageCircle, { className: "w-6 h-6 fill-white" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 					className: "hidden sm:inline text-xs font-extrabold pe-1",
@@ -17849,7 +17894,7 @@ var ProviderDetailScreen = ({ providerId, onBack }) => {
 	const canViewContactDetails = currentUser?.role === "admin" || currentUser?.id === provider.id || clientHasPlacedRequest;
 	const whatsappUrl = `https://wa.me/${provider.phone.replace(/^0/, "249")}?text=${encodeURIComponent(`السلام عليكم يا ${provider.name}، تواصلت معك عبر منصة مهني بخصوص خدمات: ${provider.tradeTitleAr}`)}`;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "pb-28 max-w-3xl mx-auto px-4 pt-3 space-y-5",
+		className: "pb-44 sm:pb-36 max-w-3xl mx-auto px-4 pt-3 space-y-5",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "flex items-center justify-between",
@@ -18274,30 +18319,56 @@ var ProviderDetailScreen = ({ providerId, onBack }) => {
 				})()]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2.5",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: "w-4 h-4 text-amber-600 shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "space-y-0.5",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						className: "font-bold block",
-						children: language === "ar" ? "سياسة الإلغاء الشفافة للمنصة" : "Transparent Cancellation Policy"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: "text-[11px] text-amber-800 leading-relaxed",
-						children: t("clientCancellationNotice")
+				className: "p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-2.5",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-start gap-2.5",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: "w-4 h-4 text-amber-600 shrink-0 mt-0.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "space-y-0.5",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-bold block",
+							children: language === "ar" ? "سياسة الإلغاء الشفافة للمنصة" : "Transparent Cancellation Policy"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "text-[11px] text-amber-900 leading-relaxed",
+							children: t("clientCancellationNotice")
+						})]
 					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "pt-2 border-t border-amber-200/70 flex items-center gap-2 text-[11px] text-amber-900 font-medium",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "w-3.5 h-3.5 text-teal-700 shrink-0" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: t("scheduleAgreementNote") })]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "fixed bottom-16 inset-x-0 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 max-w-3xl mx-auto",
-				children: clientHasPlacedRequest ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "grid grid-cols-2 gap-2",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-						onClick: () => {
-							setSelectedProviderId(null);
-							setActiveTab("bookings");
-						},
-						className: "py-3 px-3 rounded-2xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "w-3.5 h-3.5 text-teal-300" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: language === "ar" ? "عرض طلباتي والاتصال" : "View Bookings & Call" })]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+				className: "fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] inset-x-0 bg-white border-t border-slate-200 z-30 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "max-w-3xl mx-auto px-4 py-2.5",
+					children: clientHasPlacedRequest ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid grid-cols-2 gap-2.5",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+							onClick: () => {
+								setSelectedProviderId(null);
+								setActiveTab("bookings");
+							},
+							className: "h-11 px-3 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap truncate",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "w-3.5 h-3.5 text-teal-300 shrink-0" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "truncate",
+								children: language === "ar" ? "طلباتي والاتصال" : "My Bookings & Call"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							onClick: () => {
+								if (isAtMaxCapacity) {
+									alert(t("capacityReached"));
+									return;
+								}
+								setBookingModalProvider(provider);
+							},
+							disabled: isAtMaxCapacity,
+							className: `h-11 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer whitespace-nowrap truncate ${isAtMaxCapacity ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]"}`,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "truncate",
+								children: isAtMaxCapacity ? language === "ar" ? "ممتلئ" : "Full" : t("requestService")
+							})
+						})]
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						onClick: () => {
 							if (isAtMaxCapacity) {
 								alert(t("capacityReached"));
@@ -18306,23 +18377,12 @@ var ProviderDetailScreen = ({ providerId, onBack }) => {
 							setBookingModalProvider(provider);
 						},
 						disabled: isAtMaxCapacity,
-						className: `py-3 px-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer ${isAtMaxCapacity ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]"}`,
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: isAtMaxCapacity ? language === "ar" ? "ممتلئ" : "Full" : t("requestService") })
-					})]
-				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
-					onClick: () => {
-						if (isAtMaxCapacity) {
-							alert(t("capacityReached"));
-							return;
-						}
-						setBookingModalProvider(provider);
-					},
-					disabled: isAtMaxCapacity,
-					className: `w-full py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer ${isAtMaxCapacity ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]"}`,
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: isAtMaxCapacity ? language === "ar" ? "المهني مشغول حالياً" : "Provider Currently Busy" : language === "ar" ? "طلب خدمة من قائمة المهني" : "Book a Service from Menu" }), !isAtMaxCapacity && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						className: "text-teal-200 font-normal text-xs",
-						children: ["· ", t("scheduleAgreementNote")]
-					})]
+						className: `w-full h-11 px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer whitespace-nowrap ${isAtMaxCapacity ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]"}`,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "truncate",
+							children: isAtMaxCapacity ? language === "ar" ? "المهني مشغول حالياً" : "Provider Currently Busy" : language === "ar" ? "طلب خدمة من قائمة المهني" : "Book a Service from Menu"
+						})
+					})
 				})
 			}),
 			activePhoto && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -26063,7 +26123,7 @@ var OfflineIndicator = () => {
 	const { language } = useLanguage();
 	if (isOnline) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "fixed bottom-20 start-4 z-50 flex items-center gap-2 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-slate-950 shadow-lg border border-amber-400",
+		className: "fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] start-4 z-50 flex items-center gap-2 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-slate-950 shadow-lg border border-amber-400",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WifiOff, { className: "w-4 h-4 shrink-0" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: language === "ar" ? "وضع عدم الاتصال — يتم عرض البيانات المحفوظة" : "Offline Mode — Showing cached content" })]
 	});
 };
@@ -26168,7 +26228,7 @@ var __vitePreload = function preload(baseModule, deps, importerUrl) {
 	});
 };
 // node_modules/@capacitor/app/dist/esm/index.js
-var App$1 = registerPlugin("App", { web: () => __vitePreload(() => import("./web-Bj6x1dx4.js").then((m) => new m.AppWeb()), []) });
+var App$1 = registerPlugin("App", { web: () => __vitePreload(() => import("./web-Sz25Kfzx.js").then((m) => new m.AppWeb()), []) });
 // node_modules/@capacitor/status-bar/dist/esm/definitions.js
 var Style;
 (function(Style) {
@@ -26219,30 +26279,623 @@ var Animation;
 })(Animation || (Animation = {}));
 // node_modules/@capacitor/status-bar/dist/esm/index.js
 var StatusBar = registerPlugin("StatusBar");
+// node_modules/@capacitor/local-notifications/dist/esm/definitions.js
+/**
+* Day of the week. Used for scheduling notifications on a particular weekday.
+*/
+var Weekday;
+(function(Weekday) {
+	Weekday[Weekday["Sunday"] = 1] = "Sunday";
+	Weekday[Weekday["Monday"] = 2] = "Monday";
+	Weekday[Weekday["Tuesday"] = 3] = "Tuesday";
+	Weekday[Weekday["Wednesday"] = 4] = "Wednesday";
+	Weekday[Weekday["Thursday"] = 5] = "Thursday";
+	Weekday[Weekday["Friday"] = 6] = "Friday";
+	Weekday[Weekday["Saturday"] = 7] = "Saturday";
+})(Weekday || (Weekday = {}));
+// node_modules/@capacitor/local-notifications/dist/esm/index.js
+var LocalNotifications = registerPlugin("LocalNotifications", { web: () => __vitePreload(() => import("./web-Cf7JnKQU.js").then((m) => new m.LocalNotificationsWeb()), []) });
+// src/services/nativeNotifications.ts
+var CHANNEL_MAP = {
+	urgent: {
+		id: "mehani_urgent_v1",
+		sound: "mehani_alert.wav"
+	},
+	booking: {
+		id: "mehani_booking_v1",
+		sound: "mehani_chime.wav"
+	},
+	success: {
+		id: "mehani_success_v1",
+		sound: "mehani_success.wav"
+	}
+};
+var NOTIFIED_KEYS_PREFIX = "mehani_notified_keys_";
+var channelsInitialized = false;
+var permissionRequested = false;
+var toastListeners = /* @__PURE__ */ new Set();
+function subscribeInAppNotificationToast(listener) {
+	toastListeners.add(listener);
+	return () => {
+		toastListeners.delete(listener);
+	};
+}
+function hashToInt32(input) {
+	let hash = 2166136261;
+	for (let i = 0; i < input.length; i++) {
+		hash ^= input.charCodeAt(i);
+		hash = Math.imul(hash, 16777619);
+	}
+	const positive = Math.abs(hash) % 2147483e3;
+	return positive > 0 ? positive : 1;
+}
+function hasAlreadyNotified(userId, eventKey) {
+	return safeStorage.getJSON(`${NOTIFIED_KEYS_PREFIX}${userId}`, []).includes(eventKey);
+}
+function markAsNotified(userId, eventKey) {
+	const storageKey = `${NOTIFIED_KEYS_PREFIX}${userId}`;
+	const keys = safeStorage.getJSON(storageKey, []);
+	if (keys.includes(eventKey)) return;
+	const updated = [...keys.slice(-149), eventKey];
+	safeStorage.setJSON(storageKey, updated);
+}
+function playWebFallbackChime(category) {
+	if (typeof window === "undefined") return;
+	try {
+		const AudioCtx = window.AudioContext || window.webkitAudioContext;
+		if (!AudioCtx) return;
+		const ctx = new AudioCtx();
+		if (ctx.state === "suspended") ctx.resume().catch(() => {});
+		const notes = category === "urgent" ? [
+			{
+				freq: 880,
+				start: 0,
+				dur: .14
+			},
+			{
+				freq: 659.25,
+				start: .14,
+				dur: .18
+			},
+			{
+				freq: 880,
+				start: .32,
+				dur: .2
+			}
+		] : category === "success" ? [{
+			freq: 783.99,
+			start: 0,
+			dur: .14
+		}, {
+			freq: 1174.66,
+			start: .12,
+			dur: .24
+		}] : [
+			{
+				freq: 659.25,
+				start: 0,
+				dur: .14
+			},
+			{
+				freq: 830.61,
+				start: .1,
+				dur: .16
+			},
+			{
+				freq: 987.77,
+				start: .2,
+				dur: .24
+			}
+		];
+		const now = ctx.currentTime;
+		for (const n of notes) {
+			const osc = ctx.createOscillator();
+			const gain = ctx.createGain();
+			osc.type = "sine";
+			osc.frequency.setValueAtTime(n.freq, now + n.start);
+			gain.gain.setValueAtTime(.001, now + n.start);
+			gain.gain.exponentialRampToValueAtTime(.08, now + n.start + .015);
+			gain.gain.exponentialRampToValueAtTime(.001, now + n.start + n.dur);
+			osc.connect(gain);
+			gain.connect(ctx.destination);
+			osc.start(now + n.start);
+			osc.stop(now + n.start + n.dur + .02);
+		}
+		setTimeout(() => {
+			ctx.close().catch(() => {});
+		}, 900);
+	} catch {}
+}
+async function initializeNativeNotifications(onNavigate) {
+	if (!Capacitor.isNativePlatform()) return () => {};
+	try {
+		if (Capacitor.getPlatform() === "android" && !channelsInitialized) {
+			const channels = [
+				{
+					id: CHANNEL_MAP.urgent.id,
+					name: "تنبيهات عاجلة وإعادة الرفع | Urgent Alerts",
+					description: "إشعارات إعادة رفع الهوية أو إشعار بنكك وإلغاء الطلبات",
+					sound: CHANNEL_MAP.urgent.sound,
+					importance: 5,
+					visibility: 1,
+					lights: true,
+					lightColor: "#ef4444",
+					vibration: true
+				},
+				{
+					id: CHANNEL_MAP.booking.id,
+					name: "حالة الطلبات والخدمات | Service Updates",
+					description: "طلبات الخدمات الجديدة، بدء التنفيذ، وإنهاء الخدمة",
+					sound: CHANNEL_MAP.booking.sound,
+					importance: 5,
+					visibility: 1,
+					lights: true,
+					lightColor: "#0f766e",
+					vibration: true
+				},
+				{
+					id: CHANNEL_MAP.success.id,
+					name: "الاعتمادات والتقييمات | Approvals & Ratings",
+					description: "اعتماد الهوية، تأكيد توريد العمولة، وتقييمات العملاء",
+					sound: CHANNEL_MAP.success.sound,
+					importance: 4,
+					visibility: 1,
+					lights: true,
+					lightColor: "#10b981",
+					vibration: true
+				}
+			];
+			for (const ch of channels) await LocalNotifications.createChannel(ch).catch(() => {});
+			channelsInitialized = true;
+		}
+		if (!permissionRequested) {
+			permissionRequested = true;
+			if ((await LocalNotifications.checkPermissions()).display !== "granted") await LocalNotifications.requestPermissions().catch(() => {});
+		}
+		const tapListenerPromise = LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+			const targetTab = action?.notification?.extra?.targetTab;
+			if (targetTab && onNavigate) onNavigate(targetTab);
+		});
+		return () => {
+			tapListenerPromise.then((handle) => handle.remove()).catch(() => {});
+		};
+	} catch {
+		return () => {};
+	}
+}
+async function requestNativeNotificationPermission() {
+	if (!Capacitor.isNativePlatform()) return;
+	try {
+		if ((await LocalNotifications.checkPermissions()).display !== "granted") await LocalNotifications.requestPermissions();
+	} catch {}
+}
+async function dispatchAppNotification(payload) {
+	const { userId, eventKey, category, title, body, targetTab } = payload;
+	if (hasAlreadyNotified(userId, eventKey)) return;
+	markAsNotified(userId, eventKey);
+	toastListeners.forEach((listener) => {
+		try {
+			listener(payload);
+		} catch {}
+	});
+	if (Capacitor.isNativePlatform()) {
+		try {
+			if ((await LocalNotifications.checkPermissions()).display !== "granted") {
+				if ((await LocalNotifications.requestPermissions()).display !== "granted") return;
+			}
+			const channelConfig = CHANNEL_MAP[category];
+			await LocalNotifications.schedule({ notifications: [{
+				id: hashToInt32(`${userId}:${eventKey}`),
+				title,
+				body,
+				largeBody: body,
+				summaryText: "Mehani | مهني",
+				channelId: channelConfig.id,
+				sound: channelConfig.sound,
+				smallIcon: "ic_stat_mehani",
+				iconColor: category === "urgent" ? "#dc2626" : category === "success" ? "#059669" : "#0f766e",
+				autoCancel: true,
+				foreground: true,
+				isExactNotification: false,
+				extra: {
+					targetTab: targetTab || "home",
+					eventKey
+				}
+			}] });
+		} catch (err) {
+			console.error("Failed to schedule native local notification", err);
+		}
+		return;
+	}
+	playWebFallbackChime(category);
+	if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") try {
+		const notif = new Notification(title, {
+			body,
+			icon: "/pwa-192x192.png",
+			tag: eventKey
+		});
+		notif.onclick = () => {
+			window.focus();
+			notif.close();
+		};
+	} catch {}
+}
+// src/hooks/useAppNotifications.ts
+var SNAPSHOT_PREFIX = "mehani_notif_snapshot_";
+var useAppNotifications = () => {
+	const { currentUser, isGuest, allUsers } = useAuth();
+	const { requests, deposits, serviceSuggestions } = useApp();
+	const { language } = useLanguage();
+	(0, import_react.useEffect)(() => {
+		if (!currentUser || isGuest) return;
+		requestNativeNotificationPermission();
+	}, [currentUser?.id, isGuest]);
+	(0, import_react.useEffect)(() => {
+		if (!currentUser || isGuest) return;
+		const userId = currentUser.id;
+		const isAr = language === "ar";
+		const snapKey = `${SNAPSHOT_PREFIX}${userId}`;
+		const prev = safeStorage.getJSON(snapKey, null);
+		const relevantRequests = requests.filter((r) => r.clientId === userId || r.providerId === userId || currentUser.role === "admin");
+		const relevantDeposits = deposits.filter((d) => d.providerId === userId || currentUser.role === "admin");
+		const relevantSuggestions = serviceSuggestions.filter((s) => s.providerId === userId || currentUser.role === "admin");
+		const nextRequests = {};
+		for (const r of relevantRequests) nextRequests[r.id] = {
+			status: r.status,
+			clientRating: r.clientRating,
+			cancelledBy: r.cancelledBy,
+			cancelReason: r.cancelReason
+		};
+		const nextDeposits = {};
+		for (const d of relevantDeposits) nextDeposits[d.id] = {
+			status: d.status,
+			rejectionReason: d.rejectionReason,
+			reviewedAt: d.reviewedAt
+		};
+		const nextSuggestions = {};
+		for (const s of relevantSuggestions) nextSuggestions[s.id] = { status: s.status };
+		const nextAdminPendingNids = {};
+		const nextAdminPendingDeposits = {};
+		const nextAdminPendingSuggestions = {};
+		if (currentUser.role === "admin") {
+			for (const u of allUsers) if (u.role === "provider" && u.nidStatus === "pending") nextAdminPendingNids[u.id] = `${u.nidSubmittedAt || u.createdAt}`;
+			for (const d of deposits) if (d.status === "pending_verification") nextAdminPendingDeposits[d.id] = d.submittedAt;
+			for (const s of serviceSuggestions) if (s.status === "pending") nextAdminPendingSuggestions[s.id] = s.createdAt;
+		}
+		if (currentUser.role === "provider") {
+			if (currentUser.nidStatus === "reupload_requested") dispatchAppNotification({
+				userId,
+				eventKey: `nid_reupload:${`${currentUser.nidSubmittedAt || ""}:${currentUser.nidRejectionReason || ""}`}`,
+				category: "urgent",
+				title: isAr ? "مطلوب إعادة رفع البطاقة القومية" : "National ID Re-upload Required",
+				body: isAr ? `إدارة مهني: يرجى إعادة رفع صورة البطاقة القومية (${currentUser.nidRejectionReason || "الصورة غير واضحة"}).` : `Mehani Admin: Please re-upload your National ID (${currentUser.nidRejectionReason || "Unclear photo"}).`,
+				targetTab: "profile"
+			});
+			for (const d of relevantDeposits) if (d.providerId === userId && d.status === "rejected") dispatchAppNotification({
+				userId,
+				eventKey: `deposit_reupload:${`${d.id}:${d.reviewedAt || ""}:${d.rejectionReason || ""}`}`,
+				category: "urgent",
+				title: isAr ? "مطلوب إعادة رفع إشعار العمولة (بنكك)" : "Deposit Proof Re-upload Needed",
+				body: isAr ? `تم رفض إشعار توريد ${d.amountSDG.toLocaleString()} ج.س (${d.rejectionReason || "يرجى إرفاق إشعار صحيح"}).` : `Your ${d.amountSDG.toLocaleString()} SDG deposit proof was rejected (${d.rejectionReason || "Please re-upload valid receipt"}).`,
+				targetTab: "commission"
+			});
+			const isThursday = (/* @__PURE__ */ new Date()).getDay() === 4;
+			const dueAmount = currentUser.pendingCommissionDueSDG || 0;
+			const hasPendingVerification = relevantDeposits.some((d) => d.providerId === userId && d.status === "pending_verification");
+			if (isThursday && dueAmount > 0 && !hasPendingVerification) {
+				const todayKey = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+				dispatchAppNotification({
+					userId,
+					eventKey: `thursday_due:${todayKey}:${dueAmount}`,
+					category: "booking",
+					title: isAr ? "تذكير توريد عمولات الخميس (8%)" : "Thursday Commission Deposit Due",
+					body: isAr ? `اليوم الخميس: لديك عمولة مستحقة بقيمة ${dueAmount.toLocaleString()} ج.س. يرجى التحويل لحساب بنكك ورفع الإشعار.` : `It's Thursday: You have ${dueAmount.toLocaleString()} SDG commission due. Please deposit via Bankak and upload proof.`,
+					targetTab: "commission"
+				});
+			}
+		}
+		if (prev && prev.initialized) {
+			if (currentUser.role === "provider") {
+				if (prev.nidStatus !== "approved" && currentUser.nidStatus === "approved" || prev.isActive === false && currentUser.isActive === true) dispatchAppNotification({
+					userId,
+					eventKey: `account_approved:${currentUser.nidSubmittedAt || Date.now()}`,
+					category: "success",
+					title: isAr ? "تم اعتماد هويتك وتفعيل حسابك!" : "ID Approved & Account Activated!",
+					body: isAr ? "تهانينا! أصبح ملفك المهني وخدماتك ظاهرين الآن للعملاء لاستقبال الطلبات." : "Congratulations! Your worker profile and services are now live for clients.",
+					targetTab: "profile"
+				});
+				else if (prev.isActive !== false && currentUser.isActive === false && currentUser.nidStatus !== "reupload_requested") dispatchAppNotification({
+					userId,
+					eventKey: `account_deactivated:${currentUser.deactivatedReason || ""}:${Date.now()}`,
+					category: "urgent",
+					title: isAr ? "تنبيه: تم إيقاف تفعيل الحساب" : "Account Temporarily Deactivated",
+					body: isAr ? currentUser.deactivatedReason || "تم تعليق ظهور ملفك المهني مؤقتاً. راجع إدارة المنصة." : currentUser.deactivatedReason || "Your account was deactivated by platform admin.",
+					targetTab: "profile"
+				});
+				for (const d of relevantDeposits) {
+					const prevDep = prev.deposits[d.id];
+					if (d.providerId === userId && d.status === "verified" && prevDep && prevDep.status !== "verified") dispatchAppNotification({
+						userId,
+						eventKey: `deposit_verified:${d.id}:${d.reviewedAt || ""}`,
+						category: "success",
+						title: isAr ? "تم اعتماد توريد العمولة بنجاح" : "Commission Deposit Verified",
+						body: isAr ? `تم التحقق واعتماد إشعار التوريد بمبلغ ${d.amountSDG.toLocaleString()} ج.س (مرجع: ${d.bankakReferenceNumber}).` : `Your ${d.amountSDG.toLocaleString()} SDG deposit (Ref: ${d.bankakReferenceNumber}) has been verified.`,
+						targetTab: "commission"
+					});
+				}
+				for (const s of relevantSuggestions) {
+					const prevSug = prev.suggestions[s.id];
+					if (s.providerId === userId && prevSug && prevSug.status !== s.status) {
+						if (s.status === "approved") dispatchAppNotification({
+							userId,
+							eventKey: `suggestion_approved:${s.id}`,
+							category: "success",
+							title: isAr ? "تمت الموافقة على خدمتك المقترحة" : "Suggested Service Approved",
+							body: isAr ? `تمت إضافة "${s.nameAr}" إلى تصنيفات منصة مهني المعتمدة.` : `"${s.nameEn || s.nameAr}" has been added to Mehani service categories.`,
+							targetTab: "profile"
+						});
+						else if (s.status === "rejected") dispatchAppNotification({
+							userId,
+							eventKey: `suggestion_rejected:${s.id}`,
+							category: "urgent",
+							title: isAr ? "تحديث حول مقترح الخدمة" : "Service Suggestion Update",
+							body: isAr ? `لم يتم اعتماد مقترح "${s.nameAr}"${s.rejectionReason ? `: ${s.rejectionReason}` : "."}` : `Suggestion "${s.nameEn || s.nameAr}" was not approved${s.rejectionReason ? `: ${s.rejectionReason}` : "."}`,
+							targetTab: "profile"
+						});
+					}
+				}
+			}
+			for (const r of relevantRequests) {
+				const prevReq = prev.requests[r.id];
+				const isWorker = r.providerId === userId;
+				const isHirer = r.clientId === userId;
+				if (isWorker && !prevReq && r.status === "pending") dispatchAppNotification({
+					userId,
+					eventKey: `req_new:${r.id}`,
+					category: "booking",
+					title: isAr ? "طلب خدمة جديد!" : "New Service Request!",
+					body: isAr ? `طلب جديد من ${r.clientName} (${r.city} - ${r.neighborhood}) بقيمة ${r.agreedPriceSDG.toLocaleString()} ج.س.` : `New request from ${r.clientName} (${r.city} - ${r.neighborhood}) for ${r.agreedPriceSDG.toLocaleString()} SDG.`,
+					targetTab: "bookings"
+				});
+				if (prevReq && prevReq.status !== r.status) {
+					if (isHirer && r.status === "accepted") dispatchAppNotification({
+						userId,
+						eventKey: `req_accepted:${r.id}`,
+						category: "booking",
+						title: isAr ? "تم قبول طلب خدمتك" : "Service Request Accepted",
+						body: isAr ? `قبل المهني ${r.providerName} طلبك وجاري التنسيق للموعد.` : `${r.providerName} accepted your service request and will coordinate timing.`,
+						targetTab: "bookings"
+					});
+					else if (isHirer && r.status === "in_progress") dispatchAppNotification({
+						userId,
+						eventKey: `req_started:${r.id}`,
+						category: "booking",
+						title: isAr ? "بدأ المهني تنفيذ الخدمة" : "Service Work Started",
+						body: isAr ? `بدأ ${r.providerName} العمل على طلبك رقم #${r.id}.` : `${r.providerName} has started working on request #${r.id}.`,
+						targetTab: "bookings"
+					});
+					else if (isHirer && r.status === "completed") dispatchAppNotification({
+						userId,
+						eventKey: `req_completed:${r.id}`,
+						category: "booking",
+						title: isAr ? "تم إنهاء الخدمة — يرجى التقييم" : "Service Ended — Please Rate",
+						body: isAr ? `قام المهني ${r.providerName} بإنهاء الخدمة وتأكيد السداد (${r.agreedPriceSDG.toLocaleString()} ج.س). اضغط لتقييم الخدمة.` : `${r.providerName} marked your service (${r.agreedPriceSDG.toLocaleString()} SDG) as completed. Tap to rate your worker.`,
+						targetTab: "bookings"
+					});
+					else if ((isHirer || isWorker) && r.status === "cancelled") {
+						const reasonText = r.cancelReason ? ` (${r.cancelReason})` : "";
+						dispatchAppNotification({
+							userId,
+							eventKey: `req_cancelled:${r.id}:${userId}`,
+							category: "urgent",
+							title: isAr ? "تم إلغاء طلب الخدمة" : "Service Request Cancelled",
+							body: isWorker ? isAr ? `تم إلغاء الطلب #${r.id} من العميل ${r.clientName}${reasonText}.` : `Request #${r.id} with client ${r.clientName} was cancelled${reasonText}.` : isAr ? `تم إلغاء طلبك #${r.id} مع المهني ${r.providerName}${reasonText}.` : `Your request #${r.id} with ${r.providerName} was cancelled${reasonText}.`,
+							targetTab: "bookings"
+						});
+					}
+				} else if (!prevReq && r.status === "cancelled" && (isHirer || isWorker)) {
+					const reasonText = r.cancelReason ? ` (${r.cancelReason})` : "";
+					dispatchAppNotification({
+						userId,
+						eventKey: `req_cancelled:${r.id}:${userId}`,
+						category: "urgent",
+						title: isAr ? "تم إلغاء طلب الخدمة" : "Service Request Cancelled",
+						body: isWorker ? isAr ? `تم إلغاء الطلب #${r.id} من العميل ${r.clientName}${reasonText}.` : `Request #${r.id} with client ${r.clientName} was cancelled${reasonText}.` : isAr ? `تم إلغاء طلبك #${r.id} مع المهني ${r.providerName}${reasonText}.` : `Your request #${r.id} with ${r.providerName} was cancelled${reasonText}.`,
+						targetTab: "bookings"
+					});
+				} else if (!prevReq && r.status === "completed" && isHirer) dispatchAppNotification({
+					userId,
+					eventKey: `req_completed:${r.id}`,
+					category: "booking",
+					title: isAr ? "تم إنهاء الخدمة — يرجى التقييم" : "Service Ended — Please Rate",
+					body: isAr ? `قام المهني ${r.providerName} بإنهاء الخدمة وتأكيد السداد (${r.agreedPriceSDG.toLocaleString()} ج.س). اضغط لتقييم الخدمة.` : `${r.providerName} marked your service (${r.agreedPriceSDG.toLocaleString()} SDG) as completed. Tap to rate your worker.`,
+					targetTab: "bookings"
+				});
+				if (isWorker && typeof r.clientRating === "number" && (!prevReq || typeof prevReq.clientRating !== "number")) dispatchAppNotification({
+					userId,
+					eventKey: `req_rated:${r.id}`,
+					category: "success",
+					title: isAr ? `تقييم جديد ${r.clientRating}/5 نجوم ⭐` : `New ${r.clientRating}/5 Star Rating ⭐`,
+					body: isAr ? `قيّم العميل ${r.clientName} خدمتك بـ ${r.clientRating} نجوم${r.clientReviewComment ? `: "${r.clientReviewComment}"` : "."}` : `${r.clientName} rated your work ${r.clientRating} stars${r.clientReviewComment ? `: "${r.clientReviewComment}"` : "."}`,
+					targetTab: "bookings"
+				});
+			}
+			if (currentUser.role === "admin") {
+				const prevNids = prev.adminPendingNids || {};
+				for (const [provId, stamp] of Object.entries(nextAdminPendingNids)) if (prevNids[provId] !== stamp) {
+					const prov = allUsers.find((u) => u.id === provId);
+					dispatchAppNotification({
+						userId,
+						eventKey: `admin_nid:${provId}:${stamp}`,
+						category: "booking",
+						title: isAr ? "طلب مراجعة هوية مهني جديد" : "Provider NID Pending Review",
+						body: isAr ? `المهني ${prov?.name || provId} أرفق البطاقة القومية بانتظار المراجعة والتفعيل.` : `Provider ${prov?.name || provId} submitted a National ID for review.`,
+						targetTab: "admin"
+					});
+				}
+				const prevDeps = prev.adminPendingDeposits || {};
+				for (const [depId, stamp] of Object.entries(nextAdminPendingDeposits)) if (!prevDeps[depId]) {
+					const dep = deposits.find((d) => d.id === depId);
+					dispatchAppNotification({
+						userId,
+						eventKey: `admin_dep:${depId}:${stamp}`,
+						category: "booking",
+						title: isAr ? "إشعار توريد عمولة جديد (بنكك)" : "New Commission Deposit Proof",
+						body: isAr ? `رفع ${dep?.providerName || "مهني"} إشعاراً بمبلغ ${(dep?.amountSDG || 0).toLocaleString()} ج.س للمراجعة.` : `${dep?.providerName || "A provider"} uploaded a ${(dep?.amountSDG || 0).toLocaleString()} SDG deposit proof.`,
+						targetTab: "admin"
+					});
+				}
+				const prevSugs = prev.adminPendingSuggestions || {};
+				for (const [sugId] of Object.entries(nextAdminPendingSuggestions)) if (!prevSugs[sugId]) {
+					const sug = serviceSuggestions.find((s) => s.id === sugId);
+					dispatchAppNotification({
+						userId,
+						eventKey: `admin_sug:${sugId}`,
+						category: "booking",
+						title: isAr ? "مقترح خدمة جديدة من مهني" : "New Service Category Suggestion",
+						body: isAr ? `اقترح ${sug?.providerName || "مهني"} خدمة جديدة: ${sug?.nameAr || ""}.` : `${sug?.providerName || "Provider"} suggested a new service: ${sug?.nameEn || sug?.nameAr || ""}.`,
+						targetTab: "admin"
+					});
+				}
+			}
+		}
+		const updatedSnapshot = {
+			initialized: true,
+			nidStatus: currentUser.nidStatus,
+			nidRejectionReason: currentUser.nidRejectionReason,
+			nidSubmittedAt: currentUser.nidSubmittedAt,
+			isActive: currentUser.isActive,
+			pendingCommissionDueSDG: currentUser.pendingCommissionDueSDG,
+			requests: nextRequests,
+			deposits: nextDeposits,
+			suggestions: nextSuggestions,
+			...currentUser.role === "admin" ? {
+				adminPendingNids: nextAdminPendingNids,
+				adminPendingDeposits: nextAdminPendingDeposits,
+				adminPendingSuggestions: nextAdminPendingSuggestions
+			} : {}
+		};
+		safeStorage.setJSON(snapKey, updatedSnapshot);
+	}, [
+		currentUser,
+		isGuest,
+		allUsers,
+		requests,
+		deposits,
+		serviceSuggestions,
+		language
+	]);
+};
 // src/components/common/CapacitorNativeBridge.tsx
 var CapacitorNativeBridge = () => {
-	const { canGoBack, goBack } = useApp();
+	const { canGoBack, goBack, setActiveTab, setSelectedProviderId } = useApp();
+	const { refreshFromServer } = useAuth();
 	const canGoBackRef = (0, import_react.useRef)(canGoBack);
 	const goBackRef = (0, import_react.useRef)(goBack);
+	const refreshRef = (0, import_react.useRef)(refreshFromServer);
+	const setActiveTabRef = (0, import_react.useRef)(setActiveTab);
+	const setSelectedProviderIdRef = (0, import_react.useRef)(setSelectedProviderId);
+	const [activeToast, setActiveToast] = (0, import_react.useState)(null);
 	canGoBackRef.current = canGoBack;
 	goBackRef.current = goBack;
+	refreshRef.current = refreshFromServer;
+	setActiveTabRef.current = setActiveTab;
+	setSelectedProviderIdRef.current = setSelectedProviderId;
+	useAppNotifications();
 	(0, import_react.useEffect)(() => {
-		if (!Capacitor.isNativePlatform()) return;
+		return subscribeInAppNotificationToast((payload) => {
+			setActiveToast(payload);
+		});
+	}, []);
+	(0, import_react.useEffect)(() => {
+		if (!activeToast) return;
+		const timer = window.setTimeout(() => {
+			setActiveToast(null);
+		}, 6e3);
+		return () => window.clearTimeout(timer);
+	}, [activeToast]);
+	(0, import_react.useEffect)(() => {
+		let cleanupNotifications;
+		const navigateToTab = (tab) => {
+			setSelectedProviderIdRef.current(null);
+			setActiveTabRef.current(tab);
+			window.scrollTo({
+				top: 0,
+				behavior: "smooth"
+			});
+		};
+		initializeNativeNotifications(navigateToTab).then((cleanup) => {
+			cleanupNotifications = cleanup;
+		});
+		if (!Capacitor.isNativePlatform()) return () => {
+			cleanupNotifications?.();
+		};
 		if (Capacitor.getPlatform() === "android") {
 			StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
 			StatusBar.setBackgroundColor({ color: "#0f172a" }).catch(() => {});
 			StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
 		}
-		const listenerPromise = App$1.addListener("backButton", ({ canGoBack: webCanGoBack }) => {
+		const backListenerPromise = App$1.addListener("backButton", ({ canGoBack: webCanGoBack }) => {
 			if (canGoBackRef.current) goBackRef.current();
 			else if (webCanGoBack) window.history.back();
 			else App$1.exitApp();
 		});
+		const appStateListenerPromise = App$1.addListener("appStateChange", ({ isActive }) => {
+			if (isActive) refreshRef.current();
+		});
 		return () => {
-			listenerPromise.then((handle) => handle.remove()).catch(() => {});
+			cleanupNotifications?.();
+			backListenerPromise.then((handle) => handle.remove()).catch(() => {});
+			appStateListenerPromise.then((handle) => handle.remove()).catch(() => {});
 		};
 	}, []);
-	return null;
+	if (!activeToast) return null;
+	const isUrgent = activeToast.category === "urgent";
+	const isSuccess = activeToast.category === "success";
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "fixed top-16 inset-x-0 z-50 px-3 pointer-events-none flex justify-center",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			role: "status",
+			onClick: () => {
+				if (activeToast.targetTab) {
+					setSelectedProviderId(null);
+					setActiveTab(activeToast.targetTab);
+					window.scrollTo({
+						top: 0,
+						behavior: "smooth"
+					});
+				}
+				setActiveToast(null);
+			},
+			className: `pointer-events-auto max-w-md w-full rounded-2xl border p-3.5 shadow-xl flex items-start gap-3 cursor-pointer transition-all ${isUrgent ? "bg-rose-50 border-rose-300 text-rose-950" : isSuccess ? "bg-emerald-50 border-emerald-300 text-emerald-950" : "bg-slate-900 border-slate-700 text-white"}`,
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: `w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${isUrgent ? "bg-rose-600 text-white" : isSuccess ? "bg-emerald-600 text-white" : "bg-teal-600 text-white"}`,
+					children: isUrgent ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, { className: "w-4 h-4" }) : isSuccess ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, { className: "w-4 h-4" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Bell, { className: "w-4 h-4" })
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex-1 min-w-0",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs font-extrabold leading-snug",
+						children: activeToast.title
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: `text-[11px] leading-relaxed mt-0.5 line-clamp-2 ${isUrgent ? "text-rose-800" : isSuccess ? "text-emerald-800" : "text-slate-300"}`,
+						children: activeToast.body
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					type: "button",
+					"aria-label": "Dismiss notification",
+					onClick: (e) => {
+						e.stopPropagation();
+						setActiveToast(null);
+					},
+					className: `p-1 rounded-lg shrink-0 ${isUrgent || isSuccess ? "text-slate-500 hover:bg-black/5" : "text-slate-400 hover:bg-white/10"}`,
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "w-4 h-4" })
+				})
+			]
+		})
+	});
 };
 // src/App.tsx
 var MainContent = () => {

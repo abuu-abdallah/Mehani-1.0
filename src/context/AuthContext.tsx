@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, UserRole } from '../types';
 import { validateSudanPhone, normalizeSudanPhone } from '../utils/phoneValidation';
 import { validateEmail, normalizeEmail } from '../utils/emailValidation';
@@ -157,6 +157,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     void refreshFromServer();
   }, [refreshFromServer]);
+
+  // Background polling while signed in so real-time status, cancellation, completion,
+  // NID re-upload, and deposit re-upload notifications trigger automatically
+  const isPollingRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (!currentUser || isGuest) return;
+
+    const safePoll = async () => {
+      if (isPollingRef.current) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+      isPollingRef.current = true;
+      try {
+        await refreshFromServer();
+      } finally {
+        isPollingRef.current = false;
+      }
+    };
+
+    const intervalId = window.setInterval(() => {
+      void safePoll();
+    }, 12000);
+
+    const handleVisibilityOrOnline = () => {
+      if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+        void safePoll();
+      }
+    };
+
+    window.addEventListener('online', handleVisibilityOrOnline);
+    document.addEventListener('visibilitychange', handleVisibilityOrOnline);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('online', handleVisibilityOrOnline);
+      document.removeEventListener('visibilitychange', handleVisibilityOrOnline);
+    };
+  }, [currentUser?.id, isGuest, refreshFromServer]);
 
   useEffect(() => {
     // Only cache users locally when not in strict remote mode, or cache sanitized list

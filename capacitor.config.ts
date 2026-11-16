@@ -30,6 +30,12 @@ const config: CapacitorConfig = {
       backgroundColor: '#0f172a',
       overlaysWebView: false,
     },
+    LocalNotifications: {
+      smallIcon: 'ic_stat_mehani',
+      iconColor: '#0f766e',
+      sound: 'mehani_chime.wav',
+      presentationOptions: ['badge', 'sound', 'banner', 'list'],
+    },
   },
 };
 

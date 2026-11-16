@@ -112,7 +112,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
   )}`;
 
   return (
-    <div className="pb-28 max-w-3xl mx-auto px-4 pt-3 space-y-5">
+    <div className="pb-44 sm:pb-36 max-w-3xl mx-auto px-4 pt-3 space-y-5">
       
       {/* Top Bar Navigation */}
       <div className="flex items-center justify-between">
@@ -574,33 +574,60 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
         })()}
       </div>
 
-      {/* Cancellation Policy Banner */}
-      <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2.5">
-        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-        <div className="space-y-0.5">
-          <span className="font-bold block">
-            {language === 'ar' ? 'سياسة الإلغاء الشفافة للمنصة' : 'Transparent Cancellation Policy'}
-          </span>
-          <p className="text-[11px] text-amber-800 leading-relaxed">
-            {t('clientCancellationNotice')}
-          </p>
+      {/* Booking Terms & Cancellation Policy Banner */}
+      <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-2.5">
+        <div className="flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <span className="font-bold block">
+              {language === 'ar' ? 'سياسة الإلغاء الشفافة للمنصة' : 'Transparent Cancellation Policy'}
+            </span>
+            <p className="text-[11px] text-amber-900 leading-relaxed">
+              {t('clientCancellationNotice')}
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-amber-200/70 flex items-center gap-2 text-[11px] text-amber-900 font-medium">
+          <Calendar className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+          <span>{t('scheduleAgreementNote')}</span>
         </div>
       </div>
 
       {/* Sticky Bottom CTA for Booking Request */}
-      <div className="fixed bottom-16 inset-x-0 p-3 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 max-w-3xl mx-auto">
-        {clientHasPlacedRequest ? (
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => {
-                setSelectedProviderId(null);
-                setActiveTab('bookings');
-              }}
-              className="py-3 px-3 rounded-2xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <Clock className="w-3.5 h-3.5 text-teal-300" />
-              <span>{language === 'ar' ? 'عرض طلباتي والاتصال' : 'View Bookings & Call'}</span>
-            </button>
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] inset-x-0 bg-white border-t border-slate-200 z-30 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]">
+        <div className="max-w-3xl mx-auto px-4 py-2.5">
+          {clientHasPlacedRequest ? (
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                onClick={() => {
+                  setSelectedProviderId(null);
+                  setActiveTab('bookings');
+                }}
+                className="h-11 px-3 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap truncate"
+              >
+                <Clock className="w-3.5 h-3.5 text-teal-300 shrink-0" />
+                <span className="truncate">{language === 'ar' ? 'طلباتي والاتصال' : 'My Bookings & Call'}</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (isAtMaxCapacity) {
+                    alert(t('capacityReached'));
+                    return;
+                  }
+                  setBookingModalProvider(provider);
+                }}
+                disabled={isAtMaxCapacity}
+                className={`h-11 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer whitespace-nowrap truncate ${
+                  isAtMaxCapacity
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    : 'bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]'
+                }`}
+              >
+                <span className="truncate">{isAtMaxCapacity ? (language === 'ar' ? 'ممتلئ' : 'Full') : t('requestService')}</span>
+              </button>
+            </div>
+          ) : (
             <button
               onClick={() => {
                 if (isAtMaxCapacity) {
@@ -610,43 +637,20 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                 setBookingModalProvider(provider);
               }}
               disabled={isAtMaxCapacity}
-              className={`py-3 px-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer ${
+              className={`w-full h-11 px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer whitespace-nowrap ${
                 isAtMaxCapacity
                   ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   : 'bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]'
               }`}
             >
-              <span>{isAtMaxCapacity ? (language === 'ar' ? 'ممتلئ' : 'Full') : t('requestService')}</span>
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => {
-              if (isAtMaxCapacity) {
-                alert(t('capacityReached'));
-                return;
-              }
-              setBookingModalProvider(provider);
-            }}
-            disabled={isAtMaxCapacity}
-            className={`w-full py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer ${
-              isAtMaxCapacity
-                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                : 'bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]'
-            }`}
-          >
-            <span>
-              {isAtMaxCapacity 
-                ? (language === 'ar' ? 'المهني مشغول حالياً' : 'Provider Currently Busy') 
-                : (language === 'ar' ? 'طلب خدمة من قائمة المهني' : 'Book a Service from Menu')}
-            </span>
-            {!isAtMaxCapacity && (
-              <span className="text-teal-200 font-normal text-xs">
-                · {t('scheduleAgreementNote')}
+              <span className="truncate">
+                {isAtMaxCapacity 
+                  ? (language === 'ar' ? 'المهني مشغول حالياً' : 'Provider Currently Busy') 
+                  : (language === 'ar' ? 'طلب خدمة من قائمة المهني' : 'Book a Service from Menu')}
               </span>
-            )}
-          </button>
-        )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Lightbox Modal for Portfolio Photo Zoom */}
