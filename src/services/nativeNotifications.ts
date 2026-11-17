@@ -1,7 +1,34 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { LocalNotifications, type Channel } from '@capacitor/local-notifications';
 import { safeStorage } from '../utils/safeStorage';
 import type { NavigationTab } from '../context/AppContext';
+
+interface MehaniBackgroundSyncPlugin {
+  saveSession(options: {
+    token: string;
+    userId: string;
+    role: string;
+    language: string;
+    apiUrl: string;
+    snapshotJson?: string;
+    notifiedKeys?: string[];
+  }): Promise<{ ok: boolean }>;
+  syncNotifiedKeys(options: {
+    userId: string;
+    notifiedKeys?: string[];
+    snapshotJson?: string;
+  }): Promise<{ ok: boolean }>;
+  scheduleImmediatePoll(): Promise<{ ok: boolean }>;
+  clearSession(): Promise<{ ok: boolean }>;
+  consumePendingTab(): Promise<{ targetTab?: string | null }>;
+}
+
+const MehaniBackgroundSync = registerPlugin<MehaniBackgroundSyncPlugin>('MehaniBackgroundSync');
+
+const isNativeAndroid = (): boolean =>
+  Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+
+const PRODUCTION_API_URL = 'https://mehani.gt.tc/api.php';
 
 export type NotificationCategory = 'urgent' | 'booking' | 'success';
 
@@ -57,6 +84,74 @@ function markAsNotified(userId: string, eventKey: string): void {
   if (keys.includes(eventKey)) return;
   const updated = [...keys.slice(-(MAX_STORED_KEYS - 1)), eventKey];
   safeStorage.setJSON(storageKey, updated);
+
+  if (isNativeAndroid()) {
+    MehaniBackgroundSync.syncNotifiedKeys({
+      userId,
+      notifiedKeys: updated,
+    }).catch(() => {});
+  }
+}
+
+export function syncBackgroundNotificationSession(params: {
+  token: string;
+  userId: string;
+  role: string;
+  language: 'ar' | 'en';
+  snapshotJson?: string;
+}): void {
+  if (!isNativeAndroid()) return;
+  const keys = safeStorage.getJSON<string[]>(`${NOTIFIED_KEYS_PREFIX}${params.userId}`, []);
+  MehaniBackgroundSync.saveSession({
+    token: params.token,
+    userId: params.userId,
+    role: params.role,
+    language: params.language,
+    apiUrl: PRODUCTION_API_URL,
+    snapshotJson: params.snapshotJson,
+    notifiedKeys: keys,
+  }).catch(() => {});
+}
+
+export function syncBackgroundNotificationSnapshot(userId: string, snapshotJson: string): void {
+  if (!isNativeAndroid()) return;
+  const keys = safeStorage.getJSON<string[]>(`${NOTIFIED_KEYS_PREFIX}${userId}`, []);
+  MehaniBackgroundSync.syncNotifiedKeys({
+    userId,
+    notifiedKeys: keys,
+    snapshotJson,
+  }).catch(() => {});
+}
+
+export function scheduleBackgroundNotificationPoll(): void {
+  if (!isNativeAndroid()) return;
+  MehaniBackgroundSync.scheduleImmediatePoll().catch(() => {});
+}
+
+export function clearBackgroundNotificationSession(): void {
+  if (!isNativeAndroid()) return;
+  MehaniBackgroundSync.clearSession().catch(() => {});
+}
+
+export async function consumePendingNotificationTab(): Promise<NavigationTab | null> {
+  if (!isNativeAndroid()) return null;
+  try {
+    const res = await MehaniBackgroundSync.consumePendingTab();
+    const tab = res?.targetTab;
+    if (
+      tab === 'home' ||
+      tab === 'search' ||
+      tab === 'bookings' ||
+      tab === 'commission' ||
+      tab === 'profile' ||
+      tab === 'admin'
+    ) {
+      return tab;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 function playWebFallbackChime(category: NotificationCategory): void {

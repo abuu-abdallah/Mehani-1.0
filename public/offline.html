@@ -1,87 +1,78 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Mehani | مهني - لا يوجد اتصال بالإنترنت</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Mehani | مهني</title>
     <style>
       * { box-sizing: border-box; }
-      body {
+      html, body {
         margin: 0;
+        padding: 0;
         min-height: 100vh;
+        background: #f8fafc;
+        color: #0f172a;
+        font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+      }
+      .top-offline-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: #b91c1c;
+        color: #ffffff;
+        padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 14px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
         display: flex;
         align-items: center;
-        justify-content: center;
-        background: #0f172a;
-        color: #f8fafc;
-        font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
-        padding: 24px;
+        justify-content: space-between;
+        gap: 12px;
       }
-      .card {
-        width: 100%;
-        max-width: 380px;
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 24px;
-        padding: 28px 24px;
-        text-align: center;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      .banner-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
       }
-      .logo {
-        width: 72px;
-        height: 72px;
-        border-radius: 18px;
-        object-fit: cover;
-        margin: 0 auto 16px;
-        display: block;
-        border: 2px solid rgba(20, 184, 166, 0.5);
-      }
-      h1 {
-        margin: 0 0 8px;
-        font-size: 20px;
-        font-weight: 800;
-        color: #ffffff;
-      }
-      p {
-        margin: 0 0 20px;
+      .banner-title {
         font-size: 13px;
-        line-height: 1.7;
-        color: #cbd5e1;
-      }
-      button {
-        width: 100%;
-        padding: 13px 18px;
-        border: 0;
-        border-radius: 14px;
-        background: #0d9488;
+        font-weight: 700;
+        line-height: 1.4;
         color: #ffffff;
-        font-size: 14px;
+      }
+      .banner-sub {
+        font-size: 11px;
+        line-height: 1.4;
+        color: #fee2e2;
+        direction: rtl;
+        text-align: left;
+      }
+      .retry-btn {
+        flex-shrink: 0;
+        padding: 8px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
+        font-size: 12px;
         font-weight: 700;
         cursor: pointer;
       }
-      button:active {
-        transform: scale(0.98);
-      }
-      .en {
-        margin-top: 12px;
-        font-size: 12px;
-        color: #94a3b8;
+      .retry-btn:active {
+        transform: scale(0.97);
       }
     </style>
   </head>
   <body>
-    <div class="card">
-      <img src="logo.png" alt="Mehani" class="logo" />
-      <h1>لا يوجد اتصال بالإنترنت</h1>
-      <p>
-        تعذر الاتصال بمنصة <strong>مهني (Mehani)</strong>. يرجى التحقق من اتصال الواي فاي أو بيانات الهاتف ثم إعادة المحاولة.
-      </p>
-      <button onclick="window.location.href='https://mehani.gt.tc'">
-        إعادة المحاولة / Retry
-      </button>
-      <div class="en">
-        Unable to reach mehani.gt.tc. Please check your internet connection.
+    <header class="top-offline-banner" role="alert">
+      <div class="banner-text">
+        <span class="banner-title">We can't reach our network right now. Please check your connection</span>
+        <span class="banner-sub">تعذر الوصول إلى الشبكة حالياً. يرجى التحقق من اتصال الإنترنت</span>
       </div>
-    </div>
+      <button type="button" class="retry-btn" onclick="window.location.href='https://mehani.gt.tc'">
+        Retry
+      </button>
+    </header>
   </body>
 </html>

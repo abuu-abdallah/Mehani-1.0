@@ -77,7 +77,7 @@ export const ThursdayCommissionScreen: React.FC = () => {
     );
   }
 
-  // Compute accurate earnings & commission stats
+  // Compute accurate earnings, 8% commission & collected cancellation penalties
   const completedRequests = requests.filter(
     r => r.providerId === currentUser?.id && r.status === 'completed'
   );
@@ -85,10 +85,18 @@ export const ThursdayCommissionScreen: React.FC = () => {
     completedRequests.reduce((sum, r) => sum + r.agreedPriceSDG, 0) ||
     currentUser?.totalEarningsSDG ||
     0;
+  const totalCollectedPenalties = completedRequests.reduce(
+    (sum, r) => sum + (r.cancellationFeePenaltySDG || 0),
+    0
+  );
+  const totalCommission8Percent = completedRequests.reduce(
+    (sum, r) => sum + (r.commissionFeeSDG || Math.round(r.agreedPriceSDG * 0.08)),
+    0
+  );
   const pendingDue =
     currentUser?.pendingCommissionDueSDG !== undefined
       ? currentUser.pendingCommissionDueSDG
-      : Math.round(totalEarned * 0.08);
+      : Math.round(totalEarned * 0.08) + totalCollectedPenalties;
 
   const handleCopyAccount = () => {
     navigator.clipboard.writeText('2334155');
@@ -290,8 +298,14 @@ export const ThursdayCommissionScreen: React.FC = () => {
             {pendingDue.toLocaleString()}
             <span className="text-xs font-medium text-amber-100 ms-1.5">{t('sdg')}</span>
           </div>
-          <span className="text-[11px] text-amber-100 block">
-            {language === 'ar' ? 'نسبة 8% عن إجمالي العمليات المكتملة' : '8% platform fee from completed jobs'}
+          <span className="text-[11px] text-amber-100 block leading-snug">
+            {totalCollectedPenalties > 0
+              ? language === 'ar'
+                ? `تشمل عمولة 8% (${totalCommission8Percent.toLocaleString()} ج.س) + غرامات إلغاء محصلة (${totalCollectedPenalties.toLocaleString()} ج.س)`
+                : `Includes 8% fee (${totalCommission8Percent.toLocaleString()} SDG) + collected penalties (${totalCollectedPenalties.toLocaleString()} SDG)`
+              : language === 'ar'
+                ? 'تشمل نسبة 8% عن الطلبات المكتملة + أي غرامات إلغاء محصلة من العملاء'
+                : '8% platform fee from completed jobs + any collected cancellation penalties'}
           </span>
         </div>
 
@@ -423,12 +437,14 @@ export const ThursdayCommissionScreen: React.FC = () => {
                   : t('depositProofUpload')}
               </h2>
               <span className="text-xs text-slate-500">
-                {language === 'ar' ? 'توثيق سداد عمولة الـ 8% لحساب مهني' : 'Record 8% settlement with screenshot'}
+                {language === 'ar'
+                  ? 'توثيق سداد عمولة الـ 8% وغرامات الإلغاء المحصلة لحساب مهني'
+                  : 'Record 8% commission & collected penalty settlement with screenshot'}
               </span>
             </div>
           </div>
           <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg">
-            العمولة: 8%
+            {language === 'ar' ? 'العمولة 8% + الغرامات' : '8% + Penalties'}
           </span>
         </div>
 

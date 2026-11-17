@@ -102,6 +102,10 @@ interface AppContextType {
   deleteDeposit: (id: string) => Promise<void>;
   adminDeleteRequest: (id: string) => Promise<void>;
   adminCancelRequest: (id: string, reason: string) => Promise<void>;
+  adminWaiveFine: (params: {
+    userId?: string;
+    requestId?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
   addProviderService: (
     providerId: string,
     categoryId: string
@@ -165,21 +169,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const isAuthRequired = !currentUser && !isGuest;
-  const isAuthRequiredRef = useRef<boolean>(isAuthRequired);
-  isAuthRequiredRef.current = isAuthRequired;
-
-  const [showAuthModal, setShowAuthModal] = useState<boolean>(() => !currentUser && !isGuest);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register_customer' | 'register_provider' | 'forgot_password'>('login');
   const [bookingModalProvider, setBookingModalProvider] = useState<User | null>(null);
   const [bookingModalPreSelectedServiceId, setBookingModalPreSelectedServiceId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    if (!currentUser && !isGuest) {
-      setAuthModalMode('login');
-      setShowAuthModal(true);
-    }
-  }, [currentUser, isGuest]);
 
   // Comprehensive Phone Back Navigation & Browser History Sync
   interface AppHistoryState {
@@ -217,7 +210,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!state) {
         historyIndexRef.current = 0;
         setBookingModalProvider(null);
-        setShowAuthModal(isAuthRequiredRef.current);
+        setShowAuthModal(false);
         setSelectedProviderId(null);
         setActiveTab('home');
         return;
@@ -228,9 +221,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (!state.modal || state.modal !== 'booking') {
         setBookingModalProvider(null);
       }
-      if (isAuthRequiredRef.current) {
-        setShowAuthModal(true);
-      } else if (!state.modal || state.modal !== 'auth') {
+      if (!state.modal || state.modal !== 'auth') {
         setShowAuthModal(false);
       }
 
@@ -286,18 +277,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [activeTab, selectedProviderId, bookingModalProvider, showAuthModal]);
 
   const canGoBack =
-    !isAuthRequired &&
-    (activeTab !== 'home' ||
-      selectedProviderId !== null ||
-      !!bookingModalProvider ||
-      showAuthModal ||
-      historyIndexRef.current > 0);
+    activeTab !== 'home' ||
+    selectedProviderId !== null ||
+    !!bookingModalProvider ||
+    showAuthModal ||
+    historyIndexRef.current > 0;
 
   const goBack = useCallback(() => {
-    if (isAuthRequiredRef.current) {
-      return;
-    }
-
     if (historyIndexRef.current > 0 && typeof window !== 'undefined' && window.history.length > 1) {
       window.history.back();
       return;
@@ -331,9 +317,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [bookingModalProvider, goBack]);
 
   const closeAuthModal = useCallback(() => {
-    if (isAuthRequiredRef.current) {
-      return;
-    }
     if (showAuthModal) {
       if (historyIndexRef.current > 0 && typeof window !== 'undefined' && window.history.length > 1) {
         goBack();
@@ -344,6 +327,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [showAuthModal, goBack]);
 
   const openBookingModal = (provider: User, preSelectedServiceId?: string) => {
+    if (!currentUser) {
+      setAuthModalMode('login');
+      setShowAuthModal(true);
+      return;
+    }
     setBookingModalPreSelectedServiceId(preSelectedServiceId);
     setBookingModalProvider(provider);
   };
@@ -605,7 +593,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const provider = providers.find(p => p.id === target.providerId);
       if (provider) {
         const comm = target.commissionFeeSDG || Math.round(target.agreedPriceSDG * 0.08);
-        const newDue = (provider.pendingCommissionDueSDG || 0) + comm;
+        const collectedPenalty = target.cancellationFeePenaltySDG || 0;
+        const newDue = (provider.pendingCommissionDueSDG || 0) + comm + collectedPenalty;
         const newTotalEarnings = (provider.totalEarningsSDG || 0) + target.agreedPriceSDG;
 
         if (currentUser && currentUser.id === provider.id) {
@@ -869,6 +858,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return r;
       })
     );
+  };
+
+  const adminWaiveFine = async (params: {
+    userId?: string;
+    requestId?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    const res = await maharaApi.adminWaiveFine(params);
+    if (res.available) {
+      if (!res.ok) {
+        return { success: false, error: res.error || 'تعذر إعفاء الغرامة' };
+      }
+      await refreshFromServer();
+      return { success: true };
+    }
+
+    if (params.userId) {
+      await adminUpdateUser(params.userId, { unpaidCancellationFeeSDG: 0 });
+    }
+    if (params.requestId) {
+      setRequests(prev =>
+        prev.map(r =>
+          r.id === params.requestId && r.status !== 'completed' && r.status !== 'cancelled'
+            ? { ...r, cancellationFeePenaltySDG: 0 }
+            : r
+        )
+      );
+    }
+    return { success: true };
   };
 
   const addProviderService = async (
@@ -1274,6 +1291,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteDeposit,
         adminDeleteRequest,
         adminCancelRequest,
+        adminWaiveFine,
         addProviderService,
         removeProviderService,
         addCustomService,

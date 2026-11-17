@@ -856,7 +856,7 @@ export const HomeScreen: React.FC = () => {
               {language === 'ar' ? 'تجارب وآراء العملاء' : 'Customer Stories & Trust'}
             </h2>
             <p className="text-xs text-slate-500">
-              {language === 'ar' ? 'ماذا يقول زبائن مهني في الخرطوم وأم درمان وبورتسودان؟' : 'Real experiences from households across Sudan'}
+              {language === 'ar' ? 'شوف زبائن مهني في الخرطوم وأم درمان والولايات بيقولوا شنو' : 'Real experiences from households across Sudan'}
             </p>
           </div>
         </div>
@@ -872,7 +872,7 @@ export const HomeScreen: React.FC = () => {
               </div>
               <p className="text-xs text-slate-700 leading-relaxed">
                 {language === 'ar'
-                  ? '"طلبت فني تكييف لصيانة مكيفين اسبلت في المعمورة، حضر في الموعد المحدد ومعه غاز الفريون وأصلح العطل باحترافية وسددت له عبر بنكك مباشرة."'
+                  ? '"طلبت فني تكييف يصلح لي مكيفين اسبلت في المعمورة، الراجل جاني في مواعيده بالضبط ومعاه الفريون وظبط الشغل نضيف جداً، وحولت ليه قروشه عبر بنكك طوالي."'
                   : '"Booked an AC technician for split units in Al-Mamoura. Arrived on time with refrigerant gas, did a clean job, and I paid smoothly via Bankak."'}
               </p>
             </div>
@@ -892,7 +892,7 @@ export const HomeScreen: React.FC = () => {
               </div>
               <p className="text-xs text-slate-700 leading-relaxed">
                 {language === 'ar'
-                  ? '"نقش الحناء مع الأستاذة إشراقة كان قمة في الروعة، حناء سودانية أصلية وسواد ثابت لمناسبة زواج أختي، التزام ودقة في المواعيد."'
+                  ? '"والله حنة الأستاذة إشراقة ما شاء الله عليها، نقش سمح شديد ولون أسود ثابت لعرس أختي، وزولة أمينة ومواعيدها مظبوطة بالساعة."'
                   : '"The henna session with Ishraqa was breathtaking! Genuine Sudanese dark henna for my sister\'s wedding, punctual and very respectful."'}
               </p>
             </div>
@@ -912,7 +912,7 @@ export const HomeScreen: React.FC = () => {
               </div>
               <p className="text-xs text-slate-700 leading-relaxed">
                 {language === 'ar'
-                  ? '"فصلت جلابيتين سويسريتين عند الترزي عثمان، مقاسات مضبوطة جداً والتشطيب والتطريز في غاية الأناقة، منصة مهني سهلت علينا الكثير."'
+                  ? '"فصلت جلابيتين توتال عند الترزي عثمان، المقاس جا راكز مية في المية والخياطة نضيفة ومرتبة. تطبيق مهني ده والله ريحنا شديد ووفر علينا المشاوير."'
                   : '"Tailored two Swiss cotton jalabiyas with Master Osman. Exact measurements and exquisite finishing. Mehani made trade bookings so convenient."'}
               </p>
             </div>

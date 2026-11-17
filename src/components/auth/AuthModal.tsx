@@ -18,7 +18,9 @@ import {
   Clock,
   Loader2,
   Mail,
-  KeyRound
+  KeyRound,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
@@ -87,6 +89,11 @@ export const AuthModal: React.FC = () => {
   const [isCompressingAvatar, setIsCompressingAvatar] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showLoginPassword, setShowLoginPassword] = useState<boolean>(false);
+  const [showResetNewPassword, setShowResetNewPassword] = useState<boolean>(false);
+  const [showResetConfirmPassword, setShowResetConfirmPassword] = useState<boolean>(false);
+  const [showRegPassword, setShowRegPassword] = useState<boolean>(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState<boolean>(false);
 
   React.useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -255,8 +262,8 @@ export const AuthModal: React.FC = () => {
     // Explicit user requirement: service providers must upload their NID copy (uploaded, not typed)
     if (!nidFileUrl) {
       setErrorMessage(language === 'ar'
-        ? 'يرجى إرفاق ورفع صورة مستند البطاقة القومية (NID) لتوثيق واعتماد الحساب'
-        : 'Please upload a copy of your National ID (NID) document for account verification');
+        ? 'يرجى إرفاق ورفع صورة مستند الرقم الوطني أو جواز السفر لتوثيق واعتماد الحساب'
+        : 'Please upload a copy of your National ID (NID) or Passport for account verification');
       return;
     }
 
@@ -282,7 +289,7 @@ export const AuthModal: React.FC = () => {
         basePriceSDG: numPrice,
         nidUrl: nidFileUrl,
         nidNumber: nidFileName || (language === 'ar' ? 'مستند هوية مرفق' : 'Uploaded ID Document'),
-        coveredNeighborhoods: coveredAreas.split('،').map(s => s.trim()).filter(Boolean),
+        coveredNeighborhoods: coveredAreas.split(/[،,]/).map(s => s.trim()).filter(Boolean),
         avatarUrl: avatarUrl || undefined,
       });
 
@@ -441,14 +448,14 @@ export const AuthModal: React.FC = () => {
               </span>
             </div>
           </div>
-          {(currentUser || isGuest) && (
-            <button
-              onClick={closeAuthModal}
-              className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={closeAuthModal}
+            aria-label={language === 'ar' ? 'إغلاق' : 'Close'}
+            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {pendingApprovalUser ? (
@@ -466,8 +473,8 @@ export const AuthModal: React.FC = () => {
               </h2>
               <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
                 {language === 'ar'
-                  ? 'حسابك كمهني مسجل الآن وهو معطل مؤقتاً بانتظار مراجعة وتدقيق صورة البطاقة القومية (NID) من قبل إدارة منصة مهني لضمان أمان وموثوقية السوق. سيتم مراجعة طلبك وتفعيل الحساب قريباً.'
-                  : 'Your account is registered but deactivated by default while administrators review your uploaded National ID (NID). It will be activated shortly after verification.'}
+                  ? 'حسابك كمهني مسجل الآن وهو معطل مؤقتاً بانتظار مراجعة وتدقيق صورة الرقم الوطني أو جواز السفر من قبل إدارة منصة مهني لضمان أمان وموثوقية السوق. سيتم مراجعة طلبك وتفعيل الحساب قريباً.'
+                  : 'Your account is registered but deactivated by default while administrators review your uploaded National ID (NID) or Passport. It will be activated shortly after verification.'}
               </p>
             </div>
 
@@ -489,7 +496,7 @@ export const AuthModal: React.FC = () => {
               <div className="pt-2 border-t border-slate-200 space-y-1.5 text-[11px]">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">مستند الهوية المرفق:</span>
-                  <span className="font-bold text-teal-800">نسخة البطاقة القومية (مرفقة بنجاح)</span>
+                  <span className="font-bold text-teal-800">نسخة الرقم الوطني / الجواز (مرفقة بنجاح)</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500">حالة الحساب:</span>
@@ -501,7 +508,7 @@ export const AuthModal: React.FC = () => {
 
               {pendingApprovalUser.nidUrl && (
                 <div className="pt-2 border-t border-slate-200">
-                  <span className="text-[10px] text-slate-500 block mb-1">مستند البطاقة القومية المرفق:</span>
+                  <span className="text-[10px] text-slate-500 block mb-1">مستند الرقم الوطني أو جواز السفر المرفق:</span>
                   <img
                     src={pendingApprovalUser.nidUrl}
                     alt="NID Document preview"
@@ -627,14 +634,24 @@ export const AuthModal: React.FC = () => {
                   {t('forgotPassword')}
                 </button>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full px-3 py-2.5 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-              />
+              <div className="relative" dir="ltr">
+                <input
+                  type={showLoginPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full ps-3 pe-10 py-2.5 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword((prev) => !prev)}
+                  aria-label={showLoginPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             <button
@@ -737,27 +754,47 @@ export const AuthModal: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-800 block">{t('newPassword')} *</label>
-                    <input
-                      type="password"
-                      value={resetNewPassword}
-                      onChange={(e) => setResetNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      minLength={6}
-                      required
-                      className="w-full px-3 py-2 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                    />
+                    <div className="relative" dir="ltr">
+                      <input
+                        type={showResetNewPassword ? 'text' : 'password'}
+                        value={resetNewPassword}
+                        onChange={(e) => setResetNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        minLength={6}
+                        required
+                        className="w-full ps-3 pe-10 py-2 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowResetNewPassword((prev) => !prev)}
+                        aria-label={showResetNewPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                        className="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                      >
+                        {showResetNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-800 block">{t('confirmNewPassword')} *</label>
-                    <input
-                      type="password"
-                      value={resetConfirmPassword}
-                      onChange={(e) => setResetConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      minLength={6}
-                      required
-                      className="w-full px-3 py-2 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                    />
+                    <div className="relative" dir="ltr">
+                      <input
+                        type={showResetConfirmPassword ? 'text' : 'password'}
+                        value={resetConfirmPassword}
+                        onChange={(e) => setResetConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        minLength={6}
+                        required
+                        className="w-full ps-3 pe-10 py-2 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowResetConfirmPassword((prev) => !prev)}
+                        aria-label={showResetConfirmPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                        className="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                      >
+                        {showResetConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -923,26 +960,46 @@ export const AuthModal: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-800 block">{t('password')} *</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
+                <div className="relative" dir="ltr">
+                  <input
+                    type={showRegPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full ps-3 pe-10 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPassword((prev) => !prev)}
+                    aria-label={showRegPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                    className="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                  >
+                    {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-800 block">{t('passwordConfirm')} *</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
+                <div className="relative" dir="ltr">
+                  <input
+                    type={showRegConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full ps-3 pe-10 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegConfirmPassword((prev) => !prev)}
+                    aria-label={showRegConfirmPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                    className="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                  >
+                    {showRegConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -968,11 +1025,11 @@ export const AuthModal: React.FC = () => {
               </div>
               <p className="leading-relaxed">
                 {language === 'ar'
-                  ? 'حسابات المهنيين الجدد تكون معطلة افتراضياً لحين مراجعة واعتماد صورة البطاقة القومية المرفقة (NID) من قبل إدارة المنصة لضمان الأمان والموثوقية.'
-                  : 'New provider accounts are deactivated by default until administrators verify your uploaded National ID (NID).'}
+                  ? 'حسابات المهنيين الجدد تكون معطلة افتراضياً لحين مراجعة واعتماد صورة الرقم الوطني أو جواز السفر المرفقة من قبل إدارة المنصة لضمان الأمان والموثوقية.'
+                  : 'New provider accounts are deactivated by default until administrators verify your uploaded National ID (NID) or Passport.'}
               </p>
               <div className="text-[10px] text-amber-800 font-semibold pt-0.5">
-                · عمولة المنصة 8% عن كل خدمة مكتملة تدفع أسبوعياً كل خميس عبر بنكك.
+                · عمولة المنصة 8% عن كل خدمة مكتملة (بالإضافة لأي غرامات إلغاء محصلة) تدفع أسبوعياً كل خميس عبر بنكك.
               </div>
             </div>
 
@@ -1160,12 +1217,12 @@ export const AuthModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Dedicated File Upload Field for National ID (NID Document Copy - Uploaded, not typed) */}
+            {/* Dedicated File Upload Field for National ID or Passport */}
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-teal-700" />
-                  <span>{language === 'ar' ? 'صورة مستند البطاقة القومية (NID) *' : 'National ID Document Copy (NID) *'}</span>
+                  <span>{language === 'ar' ? 'صورة الرقم الوطني أو جواز السفر *' : 'National ID (NID) or Passport Copy *'}</span>
                 </label>
                 <span className="text-[10px] text-amber-800 font-bold bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
                   {language === 'ar' ? 'رفع ملف (إلزامي)' : 'Upload Required'}
@@ -1174,7 +1231,7 @@ export const AuthModal: React.FC = () => {
 
               <p className="text-[11px] text-slate-500 leading-relaxed">
                 {language === 'ar'
-                  ? 'يرجى إرفاق ورفع صورة واضحة للبطاقة القومية أو جواز السفر لتوثيق واعتماد الحساب من قِبل الإدارة (يتم رفع صورة المستند ولا يلزم كتابة أرقام).'
+                  ? 'يرجى إرفاق ورفع صورة واضحة للرقم الوطني أو جواز السفر لتوثيق واعتماد الحساب من قِبل الإدارة (يتم رفع صورة المستند ولا يلزم كتابة أرقام).'
                   : 'Please upload a clear photo or copy of your National ID or passport for administrative verification.'}
               </p>
 
@@ -1195,7 +1252,7 @@ export const AuthModal: React.FC = () => {
                     <Upload className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-bold text-teal-900 block">
-                    {language === 'ar' ? 'اضغط لاختيار ورفع صورة البطاقة القومية' : 'Click to choose & upload National ID copy'}
+                    {language === 'ar' ? 'اضغط لاختيار ورفع صورة الرقم الوطني أو الجواز' : 'Click to upload National ID or Passport copy'}
                   </span>
                   <span className="text-[10px] text-slate-500 mt-0.5">
                     {language === 'ar' ? 'الملفات المدعومة: صور JPG, PNG, WEBP' : 'Supported formats: JPG, PNG, WEBP images'}
@@ -1212,7 +1269,7 @@ export const AuthModal: React.FC = () => {
                   <div className="flex items-center justify-between text-xs font-bold text-emerald-800">
                     <span className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{language === 'ar' ? 'تم اختيار صورة البطاقة القومية بنجاح' : 'National ID copy uploaded'}</span>
+                      <span>{language === 'ar' ? 'تم اختيار صورة الرقم الوطني أو الجواز بنجاح' : 'ID / Passport copy uploaded'}</span>
                     </span>
                     <button
                       type="button"
@@ -1232,7 +1289,7 @@ export const AuthModal: React.FC = () => {
                     />
                     <div className="flex-1 min-w-0 text-[11px]">
                       <span className="text-slate-900 font-bold block truncate">
-                        {nidFileName || (language === 'ar' ? 'صورة البطاقة القومية المرفقة' : 'National ID Document Copy')}
+                        {nidFileName || (language === 'ar' ? 'صورة الرقم الوطني أو الجواز المرفقة' : 'National ID / Passport Copy')}
                       </span>
                       <span className="text-slate-400 text-[10px] block mt-0.5">
                         {language === 'ar' ? 'جاهزة للمراجعة والتدقيق الإداري بعد التسجيل' : 'Ready for admin review after sign up'}
@@ -1308,26 +1365,46 @@ export const AuthModal: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-800 block">{t('password')} *</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
+                <div className="relative" dir="ltr">
+                  <input
+                    type={showRegPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full ps-3 pe-10 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPassword((prev) => !prev)}
+                    aria-label={showRegPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                    className="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                  >
+                    {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-800 block">{t('passwordConfirm')} *</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
+                <div className="relative" dir="ltr">
+                  <input
+                    type={showRegConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    className="w-full ps-3 pe-10 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegConfirmPassword((prev) => !prev)}
+                    aria-label={showRegConfirmPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                    className="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                  >
+                    {showRegConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 

@@ -5,16 +5,24 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Bell, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { useApp, type NavigationTab } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { getAuthToken } from '../../services/api';
+import { safeStorage } from '../../utils/safeStorage';
 import { useAppNotifications } from '../../hooks/useAppNotifications';
 import {
+  clearBackgroundNotificationSession,
+  consumePendingNotificationTab,
   initializeNativeNotifications,
+  scheduleBackgroundNotificationPoll,
   subscribeInAppNotificationToast,
+  syncBackgroundNotificationSession,
   type AppNotificationPayload,
 } from '../../services/nativeNotifications';
 
 export const CapacitorNativeBridge: React.FC = () => {
   const { canGoBack, goBack, setActiveTab, setSelectedProviderId } = useApp();
-  const { refreshFromServer } = useAuth();
+  const { currentUser, isGuest, refreshFromServer } = useAuth();
+  const { language } = useLanguage();
   const canGoBackRef = useRef(canGoBack);
   const goBackRef = useRef(goBack);
   const refreshRef = useRef(refreshFromServer);
@@ -31,6 +39,25 @@ export const CapacitorNativeBridge: React.FC = () => {
 
   // Monitor app state transitions and trigger Android Notification Panel & sound alerts
   useAppNotifications();
+
+  // Keep native Android background worker synced with current session & language
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return;
+
+    const token = getAuthToken();
+    if (currentUser && !isGuest && token) {
+      const snap = safeStorage.getItem(`mehani_notif_snapshot_${currentUser.id}`) || undefined;
+      syncBackgroundNotificationSession({
+        token,
+        userId: currentUser.id,
+        role: currentUser.role,
+        language,
+        snapshotJson: snap,
+      });
+    } else {
+      clearBackgroundNotificationSession();
+    }
+  }, [currentUser?.id, currentUser?.role, isGuest, language]);
 
   useEffect(() => {
     const unsubscribeToast = subscribeInAppNotificationToast((payload) => {
@@ -70,6 +97,9 @@ export const CapacitorNativeBridge: React.FC = () => {
       StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
       StatusBar.setBackgroundColor({ color: '#0f172a' }).catch(() => {});
       StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+      void consumePendingNotificationTab().then((tab) => {
+        if (tab) navigateToTab(tab);
+      });
     }
 
     const backListenerPromise = CapApp.addListener('backButton', ({ canGoBack: webCanGoBack }) => {
@@ -85,6 +115,13 @@ export const CapacitorNativeBridge: React.FC = () => {
     const appStateListenerPromise = CapApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         void refreshRef.current();
+        if (Capacitor.getPlatform() === 'android') {
+          void consumePendingNotificationTab().then((tab) => {
+            if (tab) navigateToTab(tab);
+          });
+        }
+      } else if (Capacitor.getPlatform() === 'android') {
+        scheduleBackgroundNotificationPoll();
       }
     });
 

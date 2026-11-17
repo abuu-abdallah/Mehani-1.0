@@ -228,9 +228,10 @@ export const CustomerBookingsScreen: React.FC = () => {
             const isCompleted = request.status === 'completed';
             const isCancelled = request.status === 'cancelled';
 
-            const contactPhone = isProvider ? request.clientPhone : request.providerPhone;
+            const hideWorkerContact = !isProvider && (isCompleted || isCancelled);
+            const contactPhone = hideWorkerContact ? '' : (isProvider ? request.clientPhone : request.providerPhone);
             const contactName = isProvider ? request.clientName : request.providerName;
-            const cleanPhone = contactPhone.replace(/^0/, '249');
+            const cleanPhone = (contactPhone || '').replace(/^0/, '249');
 
             return (
               <div
@@ -343,14 +344,24 @@ export const CustomerBookingsScreen: React.FC = () => {
                     {/* Prior cancellation penalty indication */}
                     {request.cancellationFeePenaltySDG > 0 && (
                       <div className="text-[11px] text-amber-700 font-bold">
-                        +{request.cancellationFeePenaltySDG.toLocaleString()} {t('sdg')} (5% غرامة سابقة)
+                        +{request.cancellationFeePenaltySDG.toLocaleString()} {t('sdg')}{' '}
+                        {isProvider
+                          ? (language === 'ar' ? '(غرامة إلغاء محصلة تُورد الخميس)' : '(Collected penalty — deposit Thursday)')
+                          : (language === 'ar' ? '(5% غرامة سابقة)' : '(5% prior cancellation fee)')}
                       </div>
                     )}
 
                     {/* Provider Commission Note */}
                     {isProvider && (
                       <div className="text-[11px] text-slate-500">
-                        عمولة مهني (8%): {request.commissionFeeSDG.toLocaleString()} {t('sdg')}
+                        {language === 'ar'
+                          ? `توريد الخميس: ${(request.commissionFeeSDG + (request.cancellationFeePenaltySDG || 0)).toLocaleString()} ${t('sdg')}`
+                          : `Thursday due: ${(request.commissionFeeSDG + (request.cancellationFeePenaltySDG || 0)).toLocaleString()} ${t('sdg')}`}
+                        {request.cancellationFeePenaltySDG > 0 && (
+                          <span className="block text-[10px] text-amber-700">
+                            ({request.commissionFeeSDG.toLocaleString()} عمولة 8% + {request.cancellationFeePenaltySDG.toLocaleString()} غرامة)
+                          </span>
+                        )}
                       </div>
                     )}
 
@@ -365,26 +376,34 @@ export const CustomerBookingsScreen: React.FC = () => {
                 {/* Communication and Workflow Action Buttons */}
                 <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
                   
-                  {/* Direct Contact triggers */}
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={`tel:${contactPhone}`}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition-colors"
-                    >
-                      <Phone className="w-3.5 h-3.5 text-slate-600" />
-                      <span>{t('callNow')}</span>
-                    </a>
+                  {/* Direct Contact triggers (hidden from client once completed or cancelled) */}
+                  {contactPhone && !hideWorkerContact ? (
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`tel:${contactPhone}`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold transition-colors"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-slate-600" />
+                        <span>{t('callNow')}</span>
+                      </a>
 
-                    <a
-                      href={`https://wa.me/${cleanPhone}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 transition-colors"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>{t('whatsappChat')}</span>
-                    </a>
-                  </div>
+                      <a
+                        href={`https://wa.me/${cleanPhone}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 transition-colors"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>{t('whatsappChat')}</span>
+                      </a>
+                    </div>
+                  ) : hideWorkerContact ? (
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {language === 'ar'
+                        ? 'تم إخفاء رقم الهاتف وواتساب المهني بعد انتهاء أو إلغاء الخدمة'
+                        : 'Worker contact info hidden after service completion/cancellation'}
+                    </span>
+                  ) : null}
 
                   {/* Role Specific Actions */}
                   <div className="flex items-center gap-2 ms-auto">
@@ -583,8 +602,8 @@ export const CustomerBookingsScreen: React.FC = () => {
 
             <p className="text-xs text-slate-600">
               {language === 'ar'
-                ? `يرجى تحديد طريقة الدفع التي استلمت بها مبلغ الخدمة (${paymentModalReq.agreedPriceSDG.toLocaleString()} ج.س) من العميل:`
-                : `Select the payment method received from client:`}
+                ? `يرجى تحديد طريقة الدفع التي استلمت بها المبلغ الإجمالي من العميل (${(paymentModalReq.agreedPriceSDG + (paymentModalReq.cancellationFeePenaltySDG || 0)).toLocaleString()} ج.س${paymentModalReq.cancellationFeePenaltySDG > 0 ? ` — يشمل ${paymentModalReq.cancellationFeePenaltySDG.toLocaleString()} ج.س غرامة إلغاء محصلة` : ''}):`
+                : `Select the payment method received from client (${(paymentModalReq.agreedPriceSDG + (paymentModalReq.cancellationFeePenaltySDG || 0)).toLocaleString()} SDG${paymentModalReq.cancellationFeePenaltySDG > 0 ? ` incl. ${paymentModalReq.cancellationFeePenaltySDG.toLocaleString()} SDG penalty` : ''}):`}
             </p>
 
             <div className="space-y-2">
@@ -621,8 +640,17 @@ export const CustomerBookingsScreen: React.FC = () => {
               </label>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900">
-              {t('commissionNotice')} ({Math.round(paymentModalReq.agreedPriceSDG * 0.08).toLocaleString()} {t('sdg')})
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 space-y-1">
+              <div>
+                {t('commissionNotice')} ({Math.round(paymentModalReq.agreedPriceSDG * 0.08).toLocaleString()} {t('sdg')})
+              </div>
+              {paymentModalReq.cancellationFeePenaltySDG > 0 && (
+                <div className="font-bold text-amber-950">
+                  {language === 'ar'
+                    ? `+ غرامة الإلغاء المحصلة من العميل (${paymentModalReq.cancellationFeePenaltySDG.toLocaleString()} ج.س) تُورد أيضاً مع عمولة الخميس — الإجمالي المطلوب توريده: ${(Math.round(paymentModalReq.agreedPriceSDG * 0.08) + paymentModalReq.cancellationFeePenaltySDG).toLocaleString()} ج.س`
+                    : `+ Collected client penalty (${paymentModalReq.cancellationFeePenaltySDG.toLocaleString()} SDG) is also due Thursday — Total to deposit: ${(Math.round(paymentModalReq.agreedPriceSDG * 0.08) + paymentModalReq.cancellationFeePenaltySDG).toLocaleString()} SDG`}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2 pt-2">

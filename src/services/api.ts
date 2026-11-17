@@ -381,6 +381,9 @@ export const maharaApi = {
   adminCancelRequest: (id: string, reason: string) =>
     callApi<{ ok: true }>('admin_cancel_request', { id, reason }),
 
+  adminWaiveFine: (params: { userId?: string; requestId?: string }) =>
+    callApi<{ ok: true; user?: User | null; request?: ServiceRequest | null }>('admin_waive_fine', params),
+
   approveSuggestion: (suggestionId: string) =>
     callApi<{ ok: true; categoryId: string }>('approve_suggestion', { suggestionId }),
 

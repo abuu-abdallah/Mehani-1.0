@@ -46,16 +46,20 @@ if (!is_array($config) || empty($config['db_host']) || empty($config['db_name'])
 
 try {
     $dsn = sprintf(
-        'mysql:host=%s;dbname=%s;charset=%s',
+        'mysql:host=%s;dbname=%s;charset=utf8mb4',
         $config['db_host'],
-        $config['db_name'],
-        $config['db_charset'] ?? 'utf8mb4'
+        $config['db_name']
     );
-    $pdo = new PDO($dsn, $config['db_user'], $config['db_pass'] ?? '', [
+    $pdoOptions = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
+    ];
+    if (defined('PDO::MYSQL_ATTR_INIT_COMMAND')) {
+        $pdoOptions[PDO::MYSQL_ATTR_INIT_COMMAND] = 'SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci';
+    }
+    $pdo = new PDO($dsn, $config['db_user'], $config['db_pass'] ?? '', $pdoOptions);
+    $pdo->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci');
 } catch (Throwable $e) {
     error_log('[Mehani API] MySQL connection failed: ' . $e->getMessage());
     sendJson([
@@ -228,6 +232,99 @@ function ensureThursdayDepositsSchema(PDO $pdo): void {
         }
     } catch (Throwable $e) {
         error_log('[Mehani API] thursday_deposits schema upgrade check: ' . $e->getMessage());
+    }
+}
+
+function ensureTutorCategoryUpdated(PDO $pdo): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    try {
+        $stmt = $pdo->prepare('SELECT description_ar FROM categories WHERE id = ? LIMIT 1');
+        $stmt->execute(['tutor']);
+        $row = $stmt->fetch();
+        if ($row && strpos((string) $row['description_ar'], 'تأسيس شهادة سودانية، رياضيات') !== false) {
+            $pdo->prepare('UPDATE categories SET description_ar = ?, description_en = ? WHERE id = ?')->execute([
+                'دروس وتأسيس لجميع المراحل الدراسية (الابتدائي، المتوسط، الثانوي والشهادة السودانية) في كل المواد',
+                'Private tutoring for all school classes and grade levels (Primary, Intermediate, Secondary & Sudanese Certificate)',
+                'tutor',
+            ]);
+        }
+    } catch (Throwable $e) {
+        error_log('[Mehani API] tutor category update check: ' . $e->getMessage());
+    }
+}
+
+function ensureUtf8mb4TextColumns(PDO $pdo): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+
+    $tableSpecs = [
+        'users' => [
+            'name' => ['VARCHAR(191)', false, null],
+            'state' => ['VARCHAR(191)', false, "'الخرطوم'"],
+            'city' => ['VARCHAR(191)', false, "'الخرطوم'"],
+            'neighborhood' => ['VARCHAR(191)', false, "'الرياض'"],
+            'deactivated_reason' => ['TEXT', true, null],
+            'trade_title_ar' => ['VARCHAR(191)', true, null],
+            'trade_title_en' => ['VARCHAR(191)', true, null],
+            'bio_ar' => ['TEXT', true, null],
+            'bio_en' => ['TEXT', true, null],
+            'nid_rejection_reason' => ['TEXT', true, null],
+            'covered_neighborhoods_json' => ['TEXT', true, null],
+        ],
+        'service_requests' => [
+            'client_name' => ['VARCHAR(191)', false, null],
+            'provider_name' => ['VARCHAR(191)', false, null],
+            'provider_trade_ar' => ['VARCHAR(191)', false, null],
+            'provider_trade_en' => ['VARCHAR(191)', false, null],
+            'scheduled_time_note' => ['VARCHAR(191)', false, null],
+            'address_details' => ['TEXT', false, null],
+            'city' => ['VARCHAR(191)', false, null],
+            'neighborhood' => ['VARCHAR(191)', false, null],
+            'problem_description' => ['TEXT', false, null],
+            'client_review_comment' => ['TEXT', true, null],
+            'cancel_reason' => ['TEXT', true, null],
+        ],
+    ];
+
+    foreach ($tableSpecs as $table => $columns) {
+        try {
+            $rows = $pdo->query("SHOW FULL COLUMNS FROM `$table`")->fetchAll();
+            $existing = [];
+            foreach ($rows as $row) {
+                $existing[(string) $row['Field']] = $row;
+            }
+
+            $alterClauses = [];
+            foreach ($columns as $colName => [$targetType, $nullable, $defaultSql]) {
+                if (!isset($existing[$colName])) continue;
+                $col = $existing[$colName];
+                $collation = strtolower((string) ($col['Collation'] ?? ''));
+                $curType = strtolower((string) ($col['Type'] ?? ''));
+
+                $needsCharset = strpos($collation, 'utf8mb4') !== 0;
+                $needsWiderVarchar = false;
+                if ($targetType === 'VARCHAR(191)' && preg_match('/^varchar\((\d+)\)/i', $curType, $m)) {
+                    if ((int) $m[1] < 191) {
+                        $needsWiderVarchar = true;
+                    }
+                }
+
+                if ($needsCharset || $needsWiderVarchar) {
+                    $nullSql = $nullable ? 'NULL' : 'NOT NULL';
+                    $defPart = $defaultSql !== null ? " DEFAULT $defaultSql" : ($nullable ? ' DEFAULT NULL' : '');
+                    $alterClauses[] = "MODIFY COLUMN `$colName` $targetType CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci $nullSql$defPart";
+                }
+            }
+
+            if ($alterClauses) {
+                $pdo->exec("ALTER TABLE `$table` " . implode(', ', $alterClauses));
+            }
+        } catch (Throwable $e) {
+            error_log("[Mehani API] utf8mb4 check failed for $table: " . $e->getMessage());
+        }
     }
 }
 
@@ -605,6 +702,16 @@ function hydrateAllUsers(PDO $pdo, ?array $viewer): array {
         ];
     }
 
+    // Track providers with an active (pending/accepted/in_progress) request from the viewer
+    $activeProviderIdsForViewer = [];
+    if ($viewerId && !$isAdmin) {
+        $actStmt = $pdo->prepare("SELECT DISTINCT provider_id FROM service_requests WHERE client_id = ? AND status IN ('pending', 'accepted', 'in_progress')");
+        $actStmt->execute([$viewerId]);
+        foreach ($actStmt->fetchAll() as $ar) {
+            $activeProviderIdsForViewer[(string) $ar['provider_id']] = true;
+        }
+    }
+
     $result = [];
     foreach ($userRows as $row) {
         $uid = (string) $row['id'];
@@ -617,12 +724,13 @@ function hydrateAllUsers(PDO $pdo, ?array $viewer): array {
         }
 
         $includeSensitive = $isAdmin || $isSelf;
+        $canSeePhone = $isAdmin || $isSelf || isset($activeProviderIdsForViewer[$uid]);
         $covered = json_decode((string) ($row['covered_neighborhoods_json'] ?? '[]'), true);
 
         $item = [
             'id' => $uid,
             'name' => (string) $row['name'],
-            'phone' => (string) $row['phone'],
+            'phone' => ($role === 'provider' && !$canSeePhone) ? '' : (string) $row['phone'],
             'role' => $role,
             'avatarUrl' => (string) ($row['avatar_url'] ?? ''),
             'state' => (string) $row['state'],
@@ -690,9 +798,16 @@ function hydrateSingleUser(PDO $pdo, string $userId, bool $includeSensitive = tr
     return null;
 }
 
-function hydrateRequest(array $row): array {
+function hydrateRequest(array $row, ?array $viewer = null): array {
     $itemIds = json_decode((string) ($row['selected_service_item_ids_json'] ?? '[]'), true);
     $itemNames = json_decode((string) ($row['selected_service_names_json'] ?? '[]'), true);
+    $viewerId = $viewer['id'] ?? null;
+    $isAdmin = ($viewer['role'] ?? '') === 'admin';
+    $status = (string) $row['status'];
+    $hideProviderPhone = !$isAdmin
+        && $viewerId === (string) $row['client_id']
+        && in_array($status, ['completed', 'cancelled'], true);
+
     $out = [
         'id' => (string) $row['id'],
         'clientId' => (string) $row['client_id'],
@@ -700,10 +815,10 @@ function hydrateRequest(array $row): array {
         'clientPhone' => (string) $row['client_phone'],
         'providerId' => (string) $row['provider_id'],
         'providerName' => (string) $row['provider_name'],
-        'providerPhone' => (string) $row['provider_phone'],
+        'providerPhone' => $hideProviderPhone ? '' : (string) $row['provider_phone'],
         'providerTradeAr' => (string) $row['provider_trade_ar'],
         'providerTradeEn' => (string) $row['provider_trade_en'],
-        'status' => (string) $row['status'],
+        'status' => $status,
         'createdAt' => (string) $row['created_at'],
         'scheduledTimeNote' => (string) $row['scheduled_time_note'],
         'addressDetails' => (string) $row['address_details'],
@@ -785,6 +900,8 @@ try {
 
         case 'bootstrap': {
             $viewer = getAuthenticatedUser($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
+            ensureTutorCategoryUpdated($pdo);
             $catRows = $pdo->query('SELECT * FROM categories')->fetchAll();
             $categories = array_map('hydrateCategory', $catRows);
             $users = hydrateAllUsers($pdo, $viewer);
@@ -804,7 +921,7 @@ try {
                     $stmt->execute([$viewer['id'], $viewer['id']]);
                     $reqRows = $stmt->fetchAll();
                 }
-                $requestsOut = array_map('hydrateRequest', $reqRows);
+                $requestsOut = array_map(static fn ($r) => hydrateRequest($r, $viewer), $reqRows);
             }
 
             // Also include active job counts per provider so availability badges are accurate even for guests/other clients
@@ -907,6 +1024,7 @@ try {
         }
 
         case 'auth_register_customer': {
+            ensureUtf8mb4TextColumns($pdo);
             $name = trim((string) ($body['name'] ?? ''));
             $cleanPhone = validateSudanPhoneOrFail((string) ($body['phone'] ?? ''));
             $cleanEmail = validateEmailOrFail((string) ($body['email'] ?? ''), true);
@@ -944,6 +1062,7 @@ try {
         }
 
         case 'auth_register_provider': {
+            ensureUtf8mb4TextColumns($pdo);
             $name = trim((string) ($body['name'] ?? ''));
             $cleanPhone = validateSudanPhoneOrFail((string) ($body['phone'] ?? ''));
             $cleanEmail = validateEmailOrFail((string) ($body['email'] ?? ''), true);
@@ -963,7 +1082,7 @@ try {
             $avatarUrl = trim((string) ($body['avatarUrl'] ?? ''));
 
             if ($name === '' || $password === '' || $nidUrl === '') {
-                sendJson(['ok' => false, 'error' => 'يرجى إكمال بيانات الحساب وإرفاق صورة البطاقة القومية'], 400);
+                sendJson(['ok' => false, 'error' => 'يرجى إكمال بيانات الحساب وإرفاق صورة الرقم الوطني أو جواز السفر'], 400);
             }
 
             $check = $pdo->prepare('SELECT id FROM users WHERE phone = ? LIMIT 1');
@@ -992,7 +1111,7 @@ try {
                 $city,
                 $neighborhood,
                 $today,
-                'بانتظار مراجعة واعتماد البطاقة القومية (NID) من قبل إدارة المنصة',
+                'بانتظار مراجعة واعتماد الرقم الوطني أو جواز السفر من قبل إدارة المنصة',
                 $tradeCategoryId,
                 $tradeTitleAr,
                 $tradeTitleEn,
@@ -1127,6 +1246,7 @@ try {
 
         case 'update_profile': {
             $authUser = requireAuth($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $uid = (string) $authUser['id'];
 
             $fields = [];
@@ -1219,7 +1339,7 @@ try {
                 $newNidUrl,
                 $newNidNumber,
                 date('c'),
-                'تم استلام صورة البطاقة القومية المحدثة وهي قيد مراجعة وتدقيق الإدارة',
+                'تم استلام صورة الرقم الوطني / جواز السفر المحدثة وهي قيد مراجعة وتدقيق الإدارة',
                 $targetUserId,
             ]);
 
@@ -1346,6 +1466,7 @@ try {
 
         case 'book_service': {
             $client = requireAuth($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $providerId = (string) ($body['providerId'] ?? '');
             $provStmt = $pdo->prepare('SELECT * FROM users WHERE id = ? AND role = "provider" LIMIT 1');
             $provStmt->execute([$providerId]);
@@ -1403,7 +1524,7 @@ try {
 
             $rowStmt = $pdo->prepare('SELECT * FROM service_requests WHERE id = ?');
             $rowStmt->execute([$newId]);
-            sendJson(['ok' => true, 'request' => hydrateRequest($rowStmt->fetch())]);
+            sendJson(['ok' => true, 'request' => hydrateRequest($rowStmt->fetch(), $client)]);
         }
 
         case 'cancel_service': {
@@ -1465,9 +1586,11 @@ try {
 
             if ($newStatus === 'completed' && $req['status'] !== 'completed') {
                 $comm = (int) ($req['commission_fee_sdg'] ?: round(((int) $req['agreed_price_sdg']) * 0.08));
+                $collectedPenalty = (int) ($req['cancellation_fee_penalty_sdg'] ?? 0);
+                $dueIncrement = $comm + $collectedPenalty;
                 $agreed = (int) $req['agreed_price_sdg'];
                 $pdo->prepare('UPDATE users SET pending_commission_due_sdg = pending_commission_due_sdg + ?, total_earnings_sdg = total_earnings_sdg + ? WHERE id = ?')
-                    ->execute([$comm, $agreed, $req['provider_id']]);
+                    ->execute([$dueIncrement, $agreed, $req['provider_id']]);
             }
             $pdo->commit();
 
@@ -1590,6 +1713,7 @@ try {
 
         case 'admin_add_user': {
             requireAdmin($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $cleanPhone = validateSudanPhoneOrFail((string) ($body['phone'] ?? ''));
             $dup = $pdo->prepare('SELECT id FROM users WHERE phone = ? LIMIT 1');
             $dup->execute([$cleanPhone]);
@@ -1646,6 +1770,7 @@ try {
 
         case 'admin_update_user': {
             requireAdmin($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $id = (string) ($body['id'] ?? '');
             $updates = is_array($body['updates'] ?? null) ? $body['updates'] : $body;
             $fields = [];
@@ -1699,6 +1824,10 @@ try {
                 $fields[] = 'base_price_sdg = ?';
                 $params[] = (int) $updates['basePriceSDG'];
             }
+            if (array_key_exists('unpaidCancellationFeeSDG', $updates)) {
+                $fields[] = 'unpaid_cancellation_fee_sdg = ?';
+                $params[] = max(0, (int) $updates['unpaidCancellationFeeSDG']);
+            }
             if ($fields) {
                 $params[] = $id;
                 $pdo->prepare('UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
@@ -1737,7 +1866,7 @@ try {
         case 'admin_request_nid_reupload': {
             requireAdmin($pdo, $config);
             $userId = (string) ($body['userId'] ?? '');
-            $reason = trim((string) ($body['reason'] ?? 'المستند المرفق غير واضح أو غير مطابق، يرجى إعادة رفع صورة واضحة للبطاقة القومية'));
+            $reason = trim((string) ($body['reason'] ?? 'المستند المرفق غير واضح أو غير مطابق، يرجى إعادة رفع صورة واضحة للرقم الوطني أو جواز السفر'));
             $pdo->prepare('UPDATE users SET is_active = 0, nid_status = "reupload_requested", nid_rejection_reason = ?, deactivated_reason = ? WHERE id = ?')
                 ->execute([$reason, $reason, $userId]);
             sendJson(['ok' => true]);
@@ -1875,6 +2004,54 @@ try {
             sendJson(['ok' => true]);
         }
 
+        case 'admin_waive_fine': {
+            $adminUser = requireAdmin($pdo, $config);
+            $userId = trim((string) ($body['userId'] ?? ''));
+            $requestId = trim((string) ($body['requestId'] ?? ''));
+
+            if ($userId === '' && $requestId === '') {
+                sendJson(['ok' => false, 'error' => 'يرجى تحديد المستخدم أو الطلب المطلوب إعفائه من الغرامة'], 400);
+            }
+
+            $updatedUser = null;
+            $updatedRequest = null;
+
+            if ($userId !== '') {
+                $uStmt = $pdo->prepare('SELECT id FROM users WHERE id = ? LIMIT 1');
+                $uStmt->execute([$userId]);
+                if (!$uStmt->fetch()) {
+                    sendJson(['ok' => false, 'error' => 'المستخدم غير موجود'], 404);
+                }
+                $pdo->prepare('UPDATE users SET unpaid_cancellation_fee_sdg = 0 WHERE id = ?')->execute([$userId]);
+                $updatedUser = hydrateSingleUser($pdo, $userId, true);
+            }
+
+            if ($requestId !== '') {
+                $rStmt = $pdo->prepare('SELECT * FROM service_requests WHERE id = ? LIMIT 1');
+                $rStmt->execute([$requestId]);
+                $reqRow = $rStmt->fetch();
+                if (!$reqRow) {
+                    sendJson(['ok' => false, 'error' => 'الطلب غير موجود'], 404);
+                }
+                if (in_array((string) $reqRow['status'], ['completed', 'cancelled'], true)) {
+                    sendJson(['ok' => false, 'error' => 'لا يمكن إعفاء الغرامة بعد اكتمال الخدمة أو إلغائها'], 400);
+                }
+                $pdo->prepare('UPDATE service_requests SET cancellation_fee_penalty_sdg = 0 WHERE id = ?')->execute([$requestId]);
+                $rStmt2 = $pdo->prepare('SELECT * FROM service_requests WHERE id = ? LIMIT 1');
+                $rStmt2->execute([$requestId]);
+                $reqRow2 = $rStmt2->fetch();
+                if ($reqRow2) {
+                    $updatedRequest = hydrateRequest($reqRow2, $adminUser);
+                }
+            }
+
+            sendJson([
+                'ok' => true,
+                'user' => $updatedUser,
+                'request' => $updatedRequest,
+            ]);
+        }
+
         case 'approve_suggestion': {
             requireAdmin($pdo, $config);
             $suggestionId = (string) ($body['suggestionId'] ?? '');
@@ -1910,6 +2087,114 @@ try {
             $pdo->prepare('UPDATE service_suggestions SET status = "rejected", rejection_reason = ?, reviewed_at = ? WHERE id = ?')
                 ->execute([$reason, date('Y-m-d H:i'), $suggestionId]);
             sendJson(['ok' => true]);
+        }
+
+        case 'notifications_feed': {
+            $user = requireAuth($pdo, $config);
+            ensureThursdayDepositsSchema($pdo);
+            $uid = (string) $user['id'];
+            $role = (string) $user['role'];
+
+            $userOut = [
+                'id' => $uid,
+                'role' => $role,
+                'nidStatus' => $user['nid_status'] ?? null,
+                'nidRejectionReason' => $user['nid_rejection_reason'] ?? null,
+                'nidSubmittedAt' => $user['nid_submitted_at'] ?? null,
+                'isActive' => ((int) ($user['is_active'] ?? 1)) === 1,
+                'deactivatedReason' => $user['deactivated_reason'] ?? null,
+                'pendingCommissionDueSDG' => (int) ($user['pending_commission_due_sdg'] ?? 0),
+            ];
+
+            if ($role === 'admin') {
+                $reqRows = $pdo->query('SELECT id, status, client_id, provider_id, client_name, provider_name, agreed_price_sdg, cancellation_fee_penalty_sdg, client_rating, client_review_comment, cancel_reason FROM service_requests ORDER BY id DESC LIMIT 60')->fetchAll();
+            } else {
+                $stmt = $pdo->prepare('SELECT id, status, client_id, provider_id, client_name, provider_name, agreed_price_sdg, cancellation_fee_penalty_sdg, client_rating, client_review_comment, cancel_reason FROM service_requests WHERE client_id = ? OR provider_id = ? ORDER BY id DESC LIMIT 60');
+                $stmt->execute([$uid, $uid]);
+                $reqRows = $stmt->fetchAll();
+            }
+            $requestsFeed = array_map(static fn ($r) => [
+                'id' => (string) $r['id'],
+                'status' => (string) $r['status'],
+                'clientId' => (string) $r['client_id'],
+                'providerId' => (string) $r['provider_id'],
+                'clientName' => (string) $r['client_name'],
+                'providerName' => (string) $r['provider_name'],
+                'agreedPriceSDG' => (int) $r['agreed_price_sdg'],
+                'cancellationFeePenaltySDG' => (int) ($r['cancellation_fee_penalty_sdg'] ?? 0),
+                'clientRating' => $r['client_rating'] !== null ? (int) $r['client_rating'] : null,
+                'clientReviewComment' => $r['client_review_comment'] !== null ? (string) $r['client_review_comment'] : null,
+                'cancelReason' => $r['cancel_reason'] !== null ? (string) $r['cancel_reason'] : null,
+            ], $reqRows);
+
+            $depositsFeed = [];
+            if ($role === 'admin') {
+                $depRows = $pdo->query('SELECT id, provider_id, provider_name, amount_sdg, bankak_reference_number, status, rejection_reason, reviewed_at, submitted_at FROM thursday_deposits ORDER BY id DESC LIMIT 60')->fetchAll();
+            } elseif ($role === 'provider') {
+                $stmt = $pdo->prepare('SELECT id, provider_id, provider_name, amount_sdg, bankak_reference_number, status, rejection_reason, reviewed_at, submitted_at FROM thursday_deposits WHERE provider_id = ? ORDER BY id DESC LIMIT 40');
+                $stmt->execute([$uid]);
+                $depRows = $stmt->fetchAll();
+            } else {
+                $depRows = [];
+            }
+            foreach ($depRows as $d) {
+                $depositsFeed[] = [
+                    'id' => (string) $d['id'],
+                    'providerId' => (string) $d['provider_id'],
+                    'providerName' => (string) $d['provider_name'],
+                    'amountSDG' => (int) $d['amount_sdg'],
+                    'bankakReferenceNumber' => (string) $d['bankak_reference_number'],
+                    'status' => (string) $d['status'],
+                    'rejectionReason' => $d['rejection_reason'] ?? null,
+                    'reviewedAt' => $d['reviewed_at'] ?? null,
+                    'submittedAt' => (string) $d['submitted_at'],
+                ];
+            }
+
+            $suggestionsFeed = [];
+            if ($role === 'admin') {
+                $sugRows = $pdo->query('SELECT id, provider_id, provider_name, name_ar, name_en, status, rejection_reason, created_at FROM service_suggestions ORDER BY id DESC LIMIT 40')->fetchAll();
+            } elseif ($role === 'provider') {
+                $stmt = $pdo->prepare('SELECT id, provider_id, provider_name, name_ar, name_en, status, rejection_reason, created_at FROM service_suggestions WHERE provider_id = ? ORDER BY id DESC LIMIT 40');
+                $stmt->execute([$uid]);
+                $sugRows = $stmt->fetchAll();
+            } else {
+                $sugRows = [];
+            }
+            foreach ($sugRows as $s) {
+                $suggestionsFeed[] = [
+                    'id' => (string) $s['id'],
+                    'providerId' => (string) $s['provider_id'],
+                    'providerName' => (string) $s['provider_name'],
+                    'nameAr' => (string) $s['name_ar'],
+                    'nameEn' => (string) $s['name_en'],
+                    'status' => (string) $s['status'],
+                    'rejectionReason' => $s['rejection_reason'] ?? null,
+                    'createdAt' => (string) $s['created_at'],
+                ];
+            }
+
+            $pendingNidProviders = [];
+            if ($role === 'admin') {
+                $nidRows = $pdo->query("SELECT id, name, nid_submitted_at, created_at FROM users WHERE role = 'provider' AND nid_status = 'pending' ORDER BY id DESC LIMIT 40")->fetchAll();
+                foreach ($nidRows as $p) {
+                    $pendingNidProviders[] = [
+                        'id' => (string) $p['id'],
+                        'name' => (string) $p['name'],
+                        'nidSubmittedAt' => $p['nid_submitted_at'] ?? null,
+                        'createdAt' => (string) $p['created_at'],
+                    ];
+                }
+            }
+
+            sendJson([
+                'ok' => true,
+                'user' => $userOut,
+                'requests' => $requestsFeed,
+                'deposits' => $depositsFeed,
+                'suggestions' => $suggestionsFeed,
+                'pendingNidProviders' => $pendingNidProviders,
+            ]);
         }
 
         default: {

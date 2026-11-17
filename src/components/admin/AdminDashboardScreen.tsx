@@ -77,6 +77,7 @@ export const AdminDashboardScreen: React.FC = () => {
     deleteDeposit, 
     adminDeleteRequest,
     adminCancelRequest,
+    adminWaiveFine,
     updateRequestStatus,
     getProviderActiveServicesCount,
     serviceSuggestions,
@@ -88,11 +89,12 @@ export const AdminDashboardScreen: React.FC = () => {
   const BackArrowIcon = dir === 'rtl' ? ArrowRight : ArrowLeft;
 
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>('overview');
+  const [fineActionFeedback, setFineActionFeedback] = useState<string | null>(null);
 
   // Search & Filter States for Users
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'customer' | 'provider' | 'admin'>('all');
-  const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'deactivated' | 'pending_nid'>('all');
+  const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'deactivated' | 'pending_nid' | 'has_fine'>('all');
 
   // Search & Filter States for Services/Categories
   const [serviceSearch, setServiceSearch] = useState('');
@@ -122,6 +124,7 @@ export const AdminDashboardScreen: React.FC = () => {
     nidUrl: string;
     bioAr: string;
     avatarUrl: string;
+    unpaidCancellationFeeSDG: string;
   }>({
     name: '',
     phone: '',
@@ -140,6 +143,7 @@ export const AdminDashboardScreen: React.FC = () => {
     nidUrl: '/src/assets/images/tailor_embroidery_craft_1791698438179.jpg',
     bioAr: '',
     avatarUrl: DEFAULT_AVATAR_URL,
+    unpaidCancellationFeeSDG: '0',
   });
 
   // Service Category Add/Edit Modal
@@ -180,10 +184,19 @@ export const AdminDashboardScreen: React.FC = () => {
   const [completeServiceModalReq, setCompleteServiceModalReq] = useState<ServiceRequest | null>(null);
   const [selectedPayMethod, setSelectedPayMethod] = useState<'cash' | 'bankak'>('bankak');
 
-  // Filtered Users
+  // Pending NID Providers
   const pendingNidProviders = useMemo(() => {
     return allUsers.filter(u => u.role === 'provider' && u.isActive === false);
   }, [allUsers]);
+
+  // Users with unpaid cancellation fines
+  const usersWithFines = useMemo(() => {
+    return allUsers.filter(u => (u.unpaidCancellationFeeSDG || 0) > 0);
+  }, [allUsers]);
+
+  const totalUnpaidFinesSDG = useMemo(() => {
+    return usersWithFines.reduce((sum, u) => sum + (u.unpaidCancellationFeeSDG || 0), 0);
+  }, [usersWithFines]);
 
   // Pending service suggestions from providers
   const pendingSuggestions = useMemo(() => {
@@ -195,11 +208,12 @@ export const AdminDashboardScreen: React.FC = () => {
       // Role filter
       if (userRoleFilter !== 'all' && u.role !== userRoleFilter) return false;
 
-      // Status filter (active vs deactivated vs pending_nid)
+      // Status filter (active vs deactivated vs pending_nid vs has_fine)
       const isActive = u.isActive !== false;
       if (userStatusFilter === 'active' && !isActive) return false;
       if (userStatusFilter === 'deactivated' && isActive) return false;
       if (userStatusFilter === 'pending_nid' && (u.role !== 'provider' || isActive)) return false;
+      if (userStatusFilter === 'has_fine' && (u.unpaidCancellationFeeSDG || 0) <= 0) return false;
 
       // Search query
       if (userSearch.trim()) {
@@ -387,6 +401,7 @@ export const AdminDashboardScreen: React.FC = () => {
       nidUrl: '/src/assets/images/tailor_embroidery_craft_1791698438179.jpg',
       bioAr: '',
       avatarUrl: DEFAULT_AVATAR_URL,
+      unpaidCancellationFeeSDG: '0',
     });
     setUserModalOpen(true);
   };
@@ -411,6 +426,7 @@ export const AdminDashboardScreen: React.FC = () => {
       nidUrl: user.nidUrl || '',
       bioAr: user.bioAr || '',
       avatarUrl: user.avatarUrl || DEFAULT_AVATAR_URL,
+      unpaidCancellationFeeSDG: String(user.unpaidCancellationFeeSDG || 0),
     });
     setUserModalOpen(true);
   };
@@ -443,6 +459,7 @@ export const AdminDashboardScreen: React.FC = () => {
 
     if (editingUser) {
       // Update existing user
+      const parsedFine = Math.max(0, parseInt(userFormData.unpaidCancellationFeeSDG, 10) || 0);
       const res = await adminUpdateUser(editingUser.id, {
         name: userFormData.name.trim(),
         phone: cleanPhone,
@@ -453,6 +470,7 @@ export const AdminDashboardScreen: React.FC = () => {
         avatarUrl: userFormData.avatarUrl.trim() || undefined,
         isActive: userFormData.isActive,
         deactivatedReason: userFormData.isActive ? undefined : (userFormData.deactivatedReason || 'معطل بواسطة إدارة النظام'),
+        unpaidCancellationFeeSDG: parsedFine,
         ...(userFormData.password ? { password: userFormData.password } : {}),
         tradeCategoryId: userFormData.role === 'provider' ? userFormData.tradeCategoryId : undefined,
         tradeTitleAr: userFormData.role === 'provider' ? userFormData.tradeTitleAr : undefined,
@@ -619,6 +637,50 @@ export const AdminDashboardScreen: React.FC = () => {
     if (!completeServiceModalReq) return;
     await updateRequestStatus(completeServiceModalReq.id, 'completed', selectedPayMethod);
     setCompleteServiceModalReq(null);
+  };
+
+  const handleWaiveUserFine = async (user: User) => {
+    const fineAmount = user.unpaidCancellationFeeSDG || 0;
+    if (fineAmount <= 0) return;
+    const msg =
+      language === 'ar'
+        ? `هل ترغب في إعفاء (${user.name}) من غرامة الإلغاء المستحقة (${fineAmount.toLocaleString()} ج.س) وتصفيرها؟`
+        : `Waive unpaid cancellation fine of ${fineAmount.toLocaleString()} SDG for ${user.name}?`;
+    if (!window.confirm(msg)) return;
+
+    const res = await adminWaiveFine({ userId: user.id });
+    if (!res.success) {
+      alert(res.error || 'تعذر إعفاء الغرامة');
+      return;
+    }
+    setFineActionFeedback(
+      language === 'ar'
+        ? `تم إعفاء ${user.name} من غرامة ${fineAmount.toLocaleString()} ج.س بنجاح.`
+        : `Waived ${fineAmount.toLocaleString()} SDG fine for ${user.name}.`
+    );
+    setTimeout(() => setFineActionFeedback(null), 4000);
+  };
+
+  const handleWaiveRequestFine = async (req: ServiceRequest) => {
+    const fineAmount = req.cancellationFeePenaltySDG || 0;
+    if (fineAmount <= 0) return;
+    const msg =
+      language === 'ar'
+        ? `هل ترغب في إعفاء غرامة الإلغاء (${fineAmount.toLocaleString()} ج.س) المضافة على الطلب #${req.id} للعميل (${req.clientName})؟`
+        : `Waive ${fineAmount.toLocaleString()} SDG cancellation fine attached to booking #${req.id} for ${req.clientName}?`;
+    if (!window.confirm(msg)) return;
+
+    const res = await adminWaiveFine({ requestId: req.id });
+    if (!res.success) {
+      alert(res.error || 'تعذر إعفاء الغرامة');
+      return;
+    }
+    setFineActionFeedback(
+      language === 'ar'
+        ? `تم إعفاء الغرامة (${fineAmount.toLocaleString()} ج.س) من الطلب #${req.id} بنجاح.`
+        : `Waived ${fineAmount.toLocaleString()} SDG fine on request #${req.id}.`
+    );
+    setTimeout(() => setFineActionFeedback(null), 4000);
   };
 
   return (
@@ -793,10 +855,10 @@ export const AdminDashboardScreen: React.FC = () => {
                 </div>
                 <div>
                   <span className="font-extrabold text-sm block">
-                    {language === 'ar' ? `يوجد ${pendingNidProviders.length} مقدم خدمة جديد بانتظار مراجعة واعتماد البطاقة القومية (NID)` : `${pendingNidProviders.length} New Providers Awaiting NID Approval`}
+                    {language === 'ar' ? `يوجد ${pendingNidProviders.length} مقدم خدمة جديد بانتظار مراجعة واعتماد الرقم الوطني أو جواز السفر` : `${pendingNidProviders.length} New Providers Awaiting NID / Passport Approval`}
                   </span>
                   <span className="text-xs text-amber-800">
-                    {language === 'ar' ? 'حسابات المهنيين معطلة افتراضياً حتى تقوم الإدارة بفحص صورة البطاقة القومية وتفعيل الحساب.' : 'Provider accounts remain deactivated until admin reviews NID and activates.'}
+                    {language === 'ar' ? 'حسابات المهنيين معطلة افتراضياً حتى تقوم الإدارة بفحص صورة الرقم الوطني أو جواز السفر وتفعيل الحساب.' : 'Provider accounts remain deactivated until admin reviews NID/Passport and activates.'}
                   </span>
                 </div>
               </div>
@@ -838,6 +900,40 @@ export const AdminDashboardScreen: React.FC = () => {
                 className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer shrink-0"
               >
                 {language === 'ar' ? 'مراجعة مقترحات الخدمات' : 'Review Suggestions'}
+              </button>
+            </div>
+          )}
+
+          {/* Unpaid Cancellation Fines Alert Card in Overview */}
+          {usersWithFines.length > 0 && (
+            <div className="p-4 rounded-3xl bg-rose-500/10 border-2 border-rose-300 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-700 shrink-0 shadow-2xs font-bold text-sm">
+                  {usersWithFines.length}
+                </div>
+                <div>
+                  <span className="font-extrabold text-sm block">
+                    {language === 'ar'
+                      ? `يوجد ${usersWithFines.length} مستخدم عليهم غرامات إلغاء مستحقة (${totalUnpaidFinesSDG.toLocaleString()} ج.س)`
+                      : `${usersWithFines.length} users have unpaid cancellation fines (${totalUnpaidFinesSDG.toLocaleString()} SDG)`}
+                  </span>
+                  <span className="text-xs text-rose-800">
+                    {language === 'ar'
+                      ? 'يمكن للإدارة مراجعة الغرامات وإعفاء أي مستخدم منها مباشرة.'
+                      : 'Admins can review unpaid fines and waive them for any user.'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setUserRoleFilter('all');
+                  setUserStatusFilter('has_fine');
+                  setActiveAdminTab('users');
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer shrink-0"
+              >
+                {language === 'ar' ? 'عرض وإعفاء الغرامات' : 'Review & Waive Fines'}
               </button>
             </div>
           )}
@@ -966,8 +1062,8 @@ export const AdminDashboardScreen: React.FC = () => {
                 <div>
                   <span className="font-bold block">
                     {language === 'ar' 
-                      ? `يوجد ${pendingNidProviders.length} مقدم خدمة بانتظار مراجعة واعتماد الرقم الوطني والبطاقة القومية (NID)` 
-                      : `${pendingNidProviders.length} providers awaiting National ID verification`}
+                      ? `يوجد ${pendingNidProviders.length} مقدم خدمة بانتظار مراجعة واعتماد الرقم الوطني أو جواز السفر` 
+                      : `${pendingNidProviders.length} providers awaiting National ID / Passport verification`}
                   </span>
                   <span className="text-[11px] text-amber-700">
                     {language === 'ar' ? 'حسابات المهنيين الجدد معطلة افتراضياً حتى تعتمدها الإدارة بعد تدقيق الهوية' : 'New provider accounts are deactivated by default until verified by admin'}
@@ -1011,6 +1107,13 @@ export const AdminDashboardScreen: React.FC = () => {
               <option value="admin">{t('adminRole')}</option>
             </select>
 
+            {fineActionFeedback && (
+              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{fineActionFeedback}</span>
+              </div>
+            )}
+
             <select
               value={userStatusFilter}
               onChange={(e) => setUserStatusFilter(e.target.value as any)}
@@ -1019,6 +1122,9 @@ export const AdminDashboardScreen: React.FC = () => {
               <option value="all">{language === 'ar' ? 'كل حالات الحساب (نشط ومعطل)' : 'All Statuses'}</option>
               <option value="pending_nid">
                 ⏳ {language === 'ar' ? `بانتظار تدقيق واعتماد الهوية (${pendingNidProviders.length})` : `Pending NID Review (${pendingNidProviders.length})`}
+              </option>
+              <option value="has_fine">
+                💸 {language === 'ar' ? `عليهم غرامات إلغاء (${usersWithFines.length})` : `With Unpaid Fines (${usersWithFines.length})`}
               </option>
               <option value="active">{language === 'ar' ? 'الحسابات النشطة فقط' : 'Active Accounts Only'}</option>
               <option value="deactivated">{language === 'ar' ? 'الحسابات المعطلة/المجمدة فقط' : 'Deactivated Accounts Only'}</option>
@@ -1134,68 +1240,90 @@ export const AdminDashboardScreen: React.FC = () => {
                         {user.city} · {user.neighborhood}
                       </td>
 
-                      {/* Provider Details & Private NID */}
+                      {/* Provider Details, Private NID & Cancellation Fines */}
                       <td className="p-3">
-                        {isProv ? (
-                          <div className="space-y-1">
-                            <span className="text-teal-700 font-semibold block">{user.tradeTitleAr || 'حرفي'}</span>
-                            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                              <span className="tabular-nums font-bold text-slate-700">{user.basePriceSDG?.toLocaleString()} ج.س</span>
-                              <span>·</span>
-                              <span className={activeCount >= 2 ? 'text-amber-700 font-bold' : 'text-emerald-700'}>
-                                {activeCount}/2 طلبات جارية
-                              </span>
-                            </div>
+                        <div className="space-y-1.5">
+                          {isProv ? (
+                            <div className="space-y-1">
+                              <span className="text-teal-700 font-semibold block">{user.tradeTitleAr || 'حرفي'}</span>
+                              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+                                <span className="tabular-nums font-bold text-slate-700">{user.basePriceSDG?.toLocaleString()} ج.س</span>
+                                <span>·</span>
+                                <span className={activeCount >= 2 ? 'text-amber-700 font-bold' : 'text-emerald-700'}>
+                                  {activeCount}/2 طلبات جارية
+                                </span>
+                              </div>
 
-                            {/* Private NID for Admin & Verification status */}
-                            <div className="flex items-center gap-1.5 text-[10px] pt-0.5 flex-wrap">
-                              {user.nidNumber ? (
-                                <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
-                                  {user.nidNumber}
-                                </span>
-                              ) : (
-                                <span className="text-slate-400">بدون NID</span>
-                              )}
-                              {user.nidStatus === 'reupload_requested' && (
-                                <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 text-[9px] font-bold">
-                                  بانتظار إعادة الرفع
-                                </span>
-                              )}
-                              {!isActive && (user.deactivatedReason?.includes('المحدثة') || (user.nidStatus === 'pending' && user.nidSubmittedAt)) && (
-                                <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold">
-                                  ✨ مستند محدث
-                                </span>
-                              )}
-                              <button
-                                onClick={() => {
-                                  setInspectNidUser(user);
-                                  setShowNidReuploadPrompt(false);
-                                  setNidReuploadReasonText('');
-                                }}
-                                className={`font-bold px-2 py-0.5 rounded cursor-pointer transition-colors ${
-                                  user.nidStatus === 'reupload_requested'
-                                    ? 'bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300'
+                              {/* Private NID for Admin & Verification status */}
+                              <div className="flex items-center gap-1.5 text-[10px] pt-0.5 flex-wrap">
+                                {user.nidNumber ? (
+                                  <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
+                                    {user.nidNumber}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">بدون NID</span>
+                                )}
+                                {user.nidStatus === 'reupload_requested' && (
+                                  <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 text-[9px] font-bold">
+                                    بانتظار إعادة الرفع
+                                  </span>
+                                )}
+                                {!isActive && (user.deactivatedReason?.includes('المحدثة') || (user.nidStatus === 'pending' && user.nidSubmittedAt)) && (
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold">
+                                    ✨ مستند محدث
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => {
+                                    setInspectNidUser(user);
+                                    setShowNidReuploadPrompt(false);
+                                    setNidReuploadReasonText('');
+                                  }}
+                                  className={`font-bold px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                                    user.nidStatus === 'reupload_requested'
+                                      ? 'bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300'
+                                      : !isActive && user.deactivatedReason?.includes('المحدثة')
+                                      ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300'
+                                      : !isActive 
+                                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300' 
+                                      : 'text-teal-700 hover:text-teal-800 underline'
+                                  }`}
+                                  title="عرض وتدقيق مستند الهوية المرفوع"
+                                >
+                                  {user.nidStatus === 'reupload_requested' 
+                                    ? 'طلب إعادة الرفع'
                                     : !isActive && user.deactivatedReason?.includes('المحدثة')
-                                    ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300'
+                                    ? '✨ تدقيق المستند المحدث'
                                     : !isActive 
-                                    ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300' 
-                                    : 'text-teal-700 hover:text-teal-800 underline'
-                                }`}
-                                title="عرض وتدقيق مستند الهوية المرفوع"
+                                    ? '⚠️ تدقيق واعتماد NID' 
+                                    : t('viewNIDDocument')}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            (user.unpaidCancellationFeeSDG || 0) <= 0 && (
+                              <span className="text-slate-400 text-[11px]">—</span>
+                            )
+                          )}
+
+                          {/* Unpaid Cancellation Fine Badge & Waive Action */}
+                          {(user.unpaidCancellationFeeSDG || 0) > 0 && (
+                            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                              <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-bold tabular-nums">
+                                {language === 'ar'
+                                  ? `غرامة إلغاء: ${(user.unpaidCancellationFeeSDG || 0).toLocaleString()} ج.س`
+                                  : `Fine: ${(user.unpaidCancellationFeeSDG || 0).toLocaleString()} SDG`}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleWaiveUserFine(user)}
+                                className="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold cursor-pointer transition-colors"
                               >
-                                {user.nidStatus === 'reupload_requested' 
-                                  ? 'طلب إعادة الرفع'
-                                  : !isActive && user.deactivatedReason?.includes('المحدثة')
-                                  ? '✨ تدقيق المستند المحدث'
-                                  : !isActive 
-                                  ? '⚠️ تدقيق واعتماد NID' 
-                                  : t('viewNIDDocument')}
+                                {t('waiveFine')}
                               </button>
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-slate-400 text-[11px]">—</span>
-                        )}
+                          )}
+                        </div>
                       </td>
 
                       {/* Actions: Edit, Delete */}
@@ -1598,6 +1726,11 @@ export const AdminDashboardScreen: React.FC = () => {
                       <td className="p-3">
                         <span className="font-bold text-slate-900 tabular-nums">{req.agreedPriceSDG.toLocaleString()} ج.س</span>
                         <span className="text-[10px] text-amber-700 font-semibold block">عمولة المنصة: {req.commissionFeeSDG} ج.س</span>
+                        {(req.cancellationFeePenaltySDG || 0) > 0 && (
+                          <span className="text-[10px] text-rose-700 font-bold block tabular-nums">
+                            + غرامة إلغاء: {req.cancellationFeePenaltySDG.toLocaleString()} ج.س
+                          </span>
+                        )}
                         {req.paymentMethod && (
                           <span className="text-[9px] text-slate-500 block">
                             سداد العميل: {req.paymentMethod === 'bankak' ? 'بنكك' : 'كاش'}
@@ -1704,6 +1837,16 @@ export const AdminDashboardScreen: React.FC = () => {
                                 >
                                   <CheckCircle2 className="w-3 h-3" />
                                   <span>إنهاء</span>
+                                </button>
+                              )}
+                              {isOngoing && (req.cancellationFeePenaltySDG || 0) > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleWaiveRequestFine(req)}
+                                  className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] cursor-pointer flex items-center gap-1"
+                                  title={t('waiveFine')}
+                                >
+                                  <span>{t('waiveFine')}</span>
                                 </button>
                               )}
                               <button
@@ -2419,6 +2562,33 @@ export const AdminDashboardScreen: React.FC = () => {
                 </div>
               </div>
 
+              {/* Unpaid Cancellation Fine (Edit User & Waive Option) */}
+              {editingUser && (
+                <div className="p-3 bg-rose-50/60 rounded-2xl border border-rose-200 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="font-bold text-slate-800">
+                      {t('unpaidFines')} ({t('sdg')}):
+                    </label>
+                    {Number(userFormData.unpaidCancellationFeeSDG) > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setUserFormData({ ...userFormData, unpaidCancellationFeeSDG: '0' })}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold cursor-pointer"
+                      >
+                        {t('waiveFine')} (0)
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    value={userFormData.unpaidCancellationFeeSDG}
+                    onChange={(e) => setUserFormData({ ...userFormData, unpaidCancellationFeeSDG: e.target.value })}
+                    className="w-full px-3 py-2 border border-rose-200 rounded-xl bg-white font-mono"
+                  />
+                </div>
+              )}
+
               {/* Provider Specific Inputs */}
               {userFormData.role === 'provider' && (
                 <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
@@ -2809,7 +2979,7 @@ export const AdminDashboardScreen: React.FC = () => {
                 <ShieldCheck className="w-5 h-5 text-teal-700" />
                 <div>
                   <h3 className="font-extrabold text-base text-slate-900">
-                    {language === 'ar' ? 'وثيقة الهوية الوطنية (بيانات خاصة)' : 'National ID Document (Private)'}
+                    {language === 'ar' ? 'وثيقة الرقم الوطني أو جواز السفر (بيانات خاصة)' : 'National ID / Passport Document (Private)'}
                   </h3>
                   <span className="text-[10px] text-amber-700 font-semibold block">
                     {t('nidPrivateNotice')}
@@ -2870,7 +3040,7 @@ export const AdminDashboardScreen: React.FC = () => {
                   />
                 ) : (
                   <div className="p-8 text-center text-slate-400">
-                    {language === 'ar' ? 'لم يتم إرفاق ملف بطاقة شخصية' : 'No ID document attached'}
+                    {language === 'ar' ? 'لم يتم إرفاق ملف الرقم الوطني أو جواز السفر' : 'No ID / Passport document attached'}
                   </div>
                 )}
               </div>
@@ -2923,7 +3093,7 @@ export const AdminDashboardScreen: React.FC = () => {
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         'صورة المستند غير واضحة وباهتة ولا يمكن قراءة الاسم أو الرقم الوطني',
-                        'المستند المرفق لا يطابق البطاقة القومية الرسمية أو جواز السفر',
+                        'المستند المرفق لا يطابق الرقم الوطني الرسمي أو جواز السفر',
                         'أطراف المستند مقصوصة والبيانات غير مكتملة'
                       ].map((preset, idx) => (
                         <button

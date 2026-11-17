@@ -3,7 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { safeStorage } from '../utils/safeStorage';
-import { dispatchAppNotification, requestNativeNotificationPermission } from '../services/nativeNotifications';
+import {
+  dispatchAppNotification,
+  requestNativeNotificationPermission,
+  syncBackgroundNotificationSnapshot,
+} from '../services/nativeNotifications';
 import type { ServiceStatus } from '../types';
 
 interface RequestSnap {
@@ -122,10 +126,10 @@ export const useAppNotifications = () => {
           userId,
           eventKey: `nid_reupload:${nidSignature}`,
           category: 'urgent',
-          title: isAr ? 'مطلوب إعادة رفع البطاقة القومية' : 'National ID Re-upload Required',
+          title: isAr ? 'مطلوب إعادة رفع الرقم الوطني أو جواز السفر' : 'ID / Passport Re-upload Required',
           body: isAr
-            ? `إدارة مهني: يرجى إعادة رفع صورة البطاقة القومية (${currentUser.nidRejectionReason || 'الصورة غير واضحة'}).`
-            : `Mehani Admin: Please re-upload your National ID (${currentUser.nidRejectionReason || 'Unclear photo'}).`,
+            ? `إدارة مهني: يرجى إعادة رفع صورة الرقم الوطني أو جواز السفر (${currentUser.nidRejectionReason || 'الصورة غير واضحة'}).`
+            : `Mehani Admin: Please re-upload your National ID or Passport (${currentUser.nidRejectionReason || 'Unclear photo'}).`,
           targetTab: 'profile',
         });
       }
@@ -158,10 +162,10 @@ export const useAppNotifications = () => {
           userId,
           eventKey: `thursday_due:${todayKey}:${dueAmount}`,
           category: 'booking',
-          title: isAr ? 'تذكير توريد عمولات الخميس (8%)' : 'Thursday Commission Deposit Due',
+          title: isAr ? 'تذكير توريد عمولات وغرامات الخميس' : 'Thursday Commission & Penalty Deposit Due',
           body: isAr
-            ? `اليوم الخميس: لديك عمولة مستحقة بقيمة ${dueAmount.toLocaleString()} ج.س. يرجى التحويل لحساب بنكك ورفع الإشعار.`
-            : `It's Thursday: You have ${dueAmount.toLocaleString()} SDG commission due. Please deposit via Bankak and upload proof.`,
+            ? `اليوم الخميس: لديك مبلغ مستحق بقيمة ${dueAmount.toLocaleString()} ج.س (العمولة + الغرامات المحصلة). يرجى التحويل عبر بنكك ورفع الإشعار.`
+            : `It's Thursday: You have ${dueAmount.toLocaleString()} SDG due (8% commission + collected penalties). Please deposit via Bankak and upload proof.`,
           targetTab: 'commission',
         });
       }
@@ -379,10 +383,10 @@ export const useAppNotifications = () => {
               userId,
               eventKey: `admin_nid:${provId}:${stamp}`,
               category: 'booking',
-              title: isAr ? 'طلب مراجعة هوية مهني جديد' : 'Provider NID Pending Review',
+              title: isAr ? 'طلب مراجعة هوية مهني جديد' : 'Provider ID / Passport Pending Review',
               body: isAr
-                ? `المهني ${prov?.name || provId} أرفق البطاقة القومية بانتظار المراجعة والتفعيل.`
-                : `Provider ${prov?.name || provId} submitted a National ID for review.`,
+                ? `المهني ${prov?.name || provId} أرفق الرقم الوطني أو جواز السفر بانتظار المراجعة والتفعيل.`
+                : `Provider ${prov?.name || provId} submitted an ID/Passport for review.`,
               targetTab: 'admin',
             });
           }
@@ -444,6 +448,7 @@ export const useAppNotifications = () => {
         : {}),
     };
     safeStorage.setJSON(snapKey, updatedSnapshot);
+    syncBackgroundNotificationSnapshot(userId, JSON.stringify(updatedSnapshot));
   }, [
     currentUser,
     isGuest,

@@ -28,7 +28,9 @@ import {
   Check,
   ArrowLeft,
   ArrowRight,
-  Mail
+  Mail,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
@@ -78,6 +80,8 @@ export const ProfileSettingsScreen: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatarUrl || '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Provider Specific Profile Edit State
   const [basePrice, setBasePrice] = useState(currentUser?.basePriceSDG ? String(currentUser.basePriceSDG) : '25000');
@@ -155,9 +159,21 @@ export const ProfileSettingsScreen: React.FC = () => {
     }
   };
 
-  // Synchronize state when currentUser changes (e.g. role switch, login)
+  // Track whether the user is actively editing fields so background polling doesn't overwrite typed values
+  const hasUnsavedEditsRef = React.useRef<boolean>(false);
+  const lastSyncedUserIdRef = React.useRef<string | null>(null);
+
+  // Synchronize state when user logs in or switches account (and when no unsaved edits exist)
   React.useEffect(() => {
-    if (currentUser) {
+    if (!currentUser) {
+      lastSyncedUserIdRef.current = null;
+      hasUnsavedEditsRef.current = false;
+      return;
+    }
+    const isDifferentUser = lastSyncedUserIdRef.current !== currentUser.id;
+    if (isDifferentUser || !hasUnsavedEditsRef.current) {
+      lastSyncedUserIdRef.current = currentUser.id;
+      hasUnsavedEditsRef.current = false;
       setName(currentUser.name || '');
       setPhone(currentUser.phone || '');
       setEmail(currentUser.email || '');
@@ -402,6 +418,7 @@ export const ProfileSettingsScreen: React.FC = () => {
       return;
     }
 
+    hasUnsavedEditsRef.current = false;
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
   };
@@ -529,8 +546,8 @@ export const ProfileSettingsScreen: React.FC = () => {
             </span>
             <p className="text-emerald-800 text-xs leading-relaxed">
               {language === 'ar'
-                ? 'تم استلام وتحديث صورة بطاقتك القومية بنجاح وهي قيد التدقيق والمراجعة الآن من قِبل إدارة المنصة. ستصلك الموافقة وتفعيل الحساب فور الاعتماد.'
-                : 'Your updated National ID document has been submitted and is currently being audited by administrators. You will be activated once verified.'}
+                ? 'تم استلام وتحديث صورة الرقم الوطني أو جواز السفر بنجاح وهي قيد التدقيق والمراجعة الآن من قِبل إدارة المنصة. ستصلك الموافقة وتفعيل الحساب فور الاعتماد.'
+                : 'Your updated National ID or Passport document has been submitted and is currently being audited by administrators. You will be activated once verified.'}
             </p>
           </div>
         </div>
@@ -547,8 +564,8 @@ export const ProfileSettingsScreen: React.FC = () => {
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <h3 className="font-extrabold text-sm text-amber-950">
                   {currentUser.nidStatus === 'reupload_requested'
-                    ? (language === 'ar' ? 'مطلوب إعادة إرفاق مستند البطاقة القومية' : 'National ID Re-upload Required')
-                    : (language === 'ar' ? 'إعادة إرفاق وتحديث صورة البطاقة القومية' : 'Update National ID Document')}
+                    ? (language === 'ar' ? 'مطلوب إعادة إرفاق مستند الرقم الوطني أو الجواز' : 'National ID / Passport Re-upload Required')
+                    : (language === 'ar' ? 'إعادة إرفاق وتحديث صورة الرقم الوطني أو الجواز' : 'Update National ID / Passport Document')}
                 </h3>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-200/90 text-amber-900 font-extrabold text-[10px]">
@@ -573,7 +590,7 @@ export const ProfileSettingsScreen: React.FC = () => {
                       ? 'قامت إدارة المنصة بمراجعة مستند الهوية المرفق وطلبت منك إعادة إرفاق صورة بديلة وواضحة لتتمكن من اعتماد وتفعيل حسابك.'
                       : 'Platform admins audited your uploaded ID and requested a clearer replacement document to verify your account.')
                   : (language === 'ar'
-                      ? 'قم برفع صورة واضحة لبطاقتك القومية أو جواز سفرك ليتم اعتماد وتدقيق بياناتك.'
+                      ? 'قم برفع صورة واضحة للرقم الوطني أو جواز السفر ليتم اعتماد وتدقيق بياناتك.'
                       : 'Upload a clear photo of your National ID or passport for verification.')}
               </p>
             </div>
@@ -612,7 +629,7 @@ export const ProfileSettingsScreen: React.FC = () => {
           {/* New Document Upload / Correction Area */}
           <div className="space-y-3 pt-1">
             <span className="text-xs font-bold text-amber-950 block">
-              {language === 'ar' ? 'قم بإرفاق صورة جديدة واضحة للبطاقة القومية أو الجواز:' : 'Upload Clear New Photo of National ID or Passport:'}
+              {language === 'ar' ? 'قم بإرفاق صورة جديدة واضحة للرقم الوطني أو جواز السفر:' : 'Upload Clear New Photo of National ID or Passport:'}
             </span>
 
             {isCompressingReplacementNid ? (
@@ -726,7 +743,7 @@ export const ProfileSettingsScreen: React.FC = () => {
               <div className="pt-1 text-[11px] text-amber-800 flex items-center gap-2 flex-wrap">
                 <span>{language === 'ar' ? 'الرقم الوطني المرفق:' : 'National ID:'} <strong>{currentUser.nidNumber}</strong></span>
                 {currentUser.nidUrl && (
-                  <span className="text-emerald-700 font-bold">· تم إرفاق صورة البطاقة القومية بنجاح</span>
+                  <span className="text-emerald-700 font-bold">· تم إرفاق صورة الرقم الوطني أو الجواز بنجاح</span>
                 )}
                 {currentUser.nidSubmittedAt && (
                   <span className="text-slate-500 font-mono text-[10px]">
@@ -751,7 +768,7 @@ export const ProfileSettingsScreen: React.FC = () => {
                   className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
                 >
                   <Upload className="w-3.5 h-3.5" />
-                  <span>{language === 'ar' ? 'إعادة رفع / تحديث صورة البطاقة القومية (NID)' : 'Re-upload / Update National ID Copy'}</span>
+                  <span>{language === 'ar' ? 'إعادة رفع / تحديث صورة الرقم الوطني أو الجواز' : 'Re-upload / Update National ID or Passport'}</span>
                 </button>
               </div>
             )}
@@ -857,7 +874,10 @@ export const ProfileSettingsScreen: React.FC = () => {
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  hasUnsavedEditsRef.current = true;
+                  setName(e.target.value);
+                }}
                 required
                 className="w-full px-3 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
               />
@@ -879,7 +899,10 @@ export const ProfileSettingsScreen: React.FC = () => {
                 type="tel"
                 value={phone}
                 maxLength={14}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  hasUnsavedEditsRef.current = true;
+                  setPhone(e.target.value);
+                }}
                 placeholder="0912345678"
                 required
                 className="w-full px-3 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono"
@@ -900,7 +923,10 @@ export const ProfileSettingsScreen: React.FC = () => {
                 type="email"
                 dir="ltr"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  hasUnsavedEditsRef.current = true;
+                  setEmail(e.target.value);
+                }}
                 placeholder={t('emailPlaceholder')}
                 required={Boolean(currentUser.email)}
                 className="w-full px-3 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
@@ -920,7 +946,10 @@ export const ProfileSettingsScreen: React.FC = () => {
               <input
                 type="text"
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => {
+                  hasUnsavedEditsRef.current = true;
+                  setCity(e.target.value);
+                }}
                 className="w-full px-3 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
               />
             </div>
@@ -933,7 +962,10 @@ export const ProfileSettingsScreen: React.FC = () => {
               <input
                 type="text"
                 value={neighborhood}
-                onChange={(e) => setNeighborhood(e.target.value)}
+                onChange={(e) => {
+                  hasUnsavedEditsRef.current = true;
+                  setNeighborhood(e.target.value);
+                }}
                 className="w-full px-3 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
               />
             </div>
@@ -948,7 +980,10 @@ export const ProfileSettingsScreen: React.FC = () => {
               <textarea
                 rows={3}
                 value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                onChange={(e) => {
+                  hasUnsavedEditsRef.current = true;
+                  setBio(e.target.value);
+                }}
                 className="w-full px-3 py-2 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
               />
             </div>
@@ -963,20 +998,40 @@ export const ProfileSettingsScreen: React.FC = () => {
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={t('password')}
-                className="w-full px-3 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-              />
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t('passwordConfirm')}
-                className="w-full px-3 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
-              />
+              <div className="relative" dir="ltr">
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder={t('password')}
+                  className="w-full ps-3 pe-10 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                  aria-label={showNewPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="relative" dir="ltr">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder={t('passwordConfirm')}
+                  className="w-full ps-3 pe-10 py-2.5 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  aria-label={showConfirmPassword ? (language === 'ar' ? 'إخفاء كلمة المرور' : 'Hide password') : (language === 'ar' ? 'إظهار كلمة المرور' : 'Show password')}
+                  className="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
 

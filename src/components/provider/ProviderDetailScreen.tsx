@@ -79,7 +79,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
           </h2>
           <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
             {language === 'ar'
-              ? 'عذراً، تم حجب وإخفاء هذا الملف الشخصي وخدماته عن العملاء نظراً لتعطيل الحساب من قِبل إدارة المنصة لعدم استيفاء شروط التوثيق أو اعتماد صورة البطاقة القومية.'
+              ? 'عذراً، تم حجب وإخفاء هذا الملف الشخصي وخدماته عن العملاء نظراً لتعطيل الحساب من قِبل إدارة المنصة لعدم استيفاء شروط التوثيق أو اعتماد مستند الرقم الوطني / جواز السفر.'
               : 'This service provider profile and all associated services are currently hidden from clients because the account is deactivated by platform administration.'}
           </p>
         </div>
@@ -99,14 +99,24 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
   const isAtMaxCapacity = activeJobs >= 3;
 
   // Contact details visibility rule:
-  // Visible to Admin, the provider themselves, or a client who has placed at least one request with this provider
-  const clientHasPlacedRequest = currentUser 
-    ? requests.some(r => r.clientId === currentUser.id && r.providerId === provider.id) 
+  // Visible to Admin, the provider themselves, or a client with an ACTIVE (non-completed, non-cancelled) request with this provider
+  const clientHasActiveRequest = currentUser
+    ? requests.some(
+        r =>
+          r.clientId === currentUser.id &&
+          r.providerId === provider.id &&
+          r.status !== 'completed' &&
+          r.status !== 'cancelled'
+      )
     : false;
-  const canViewContactDetails = currentUser?.role === 'admin' || currentUser?.id === provider.id || clientHasPlacedRequest;
+  const hasVisiblePhone = Boolean(provider.phone);
+  const canViewContactDetails =
+    currentUser?.role === 'admin' ||
+    currentUser?.id === provider.id ||
+    (clientHasActiveRequest && hasVisiblePhone);
 
   // WhatsApp link format (Sudan +249)
-  const cleanPhone = provider.phone.replace(/^0/, '249');
+  const cleanPhone = (provider.phone || '').replace(/^0/, '249');
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
     `السلام عليكم يا ${provider.name}، تواصلت معك عبر منصة مهني بخصوص خدمات: ${provider.tradeTitleAr}`
   )}`;
@@ -139,10 +149,10 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
               <span className="font-bold block">
                 {currentUser?.role === 'admin'
                   ? (language === 'ar' ? 'تنبيه إداري: هذا الحساب معطل حالياً ومحجوب بالكامل عن جميع العملاء في المنصة' : 'Admin Alert: This provider account is deactivated and hidden from all clients')
-                  : (language === 'ar' ? 'حسابك معطل ومخفي عن العملاء حالياً حتى تدقيق البطاقة القومية واكتمال التفعيل' : 'Your account is currently deactivated and hidden from clients')}
+                  : (language === 'ar' ? 'حسابك معطل ومخفي عن العملاء حالياً حتى تدقيق الرقم الوطني أو الجواز واكتمال التفعيل' : 'Your account is currently deactivated and hidden from clients')}
               </span>
               <span className="text-[11px] text-rose-800">
-                {provider.deactivatedReason || 'بانتظار مراجعة واعتماد صورة البطاقة القومية من الإدارة'}
+                {provider.deactivatedReason || 'بانتظار مراجعة واعتماد صورة الرقم الوطني أو جواز السفر من الإدارة'}
               </span>
             </div>
           </div>
@@ -237,13 +247,13 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
         {/* Direct Contact Options: Only visible after a request has been placed (or for Admin / Provider) */}
         {canViewContactDetails ? (
           <div className="space-y-2 pt-1">
-            {clientHasPlacedRequest && currentUser?.role !== 'admin' && currentUser?.id !== provider.id && (
+            {clientHasActiveRequest && currentUser?.role !== 'admin' && currentUser?.id !== provider.id && (
               <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span className="font-semibold text-[11px]">
                   {language === 'ar'
-                    ? 'لديك طلب خدمة معتمد/مرسل لهذا المهني — بيانات الاتصال والواتساب متاحة للتنسيق المباشر.'
-                    : 'You have a placed booking request — Direct Phone & WhatsApp are active.'}
+                    ? 'لديك طلب خدمة نشط حالياً مع هذا المهني — بيانات الاتصال والواتساب متاحة للتنسيق المباشر وتُخفى تلقائياً بعد إنهاء أو إلغاء الخدمة.'
+                    : 'You have an active booking request — Direct Phone & WhatsApp are visible until the service ends or is cancelled.'}
                 </span>
               </div>
             )}
@@ -279,8 +289,8 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                 </span>
                 <p className="text-[11px] text-slate-600 leading-relaxed">
                   {language === 'ar'
-                    ? 'تظهر أرقام الهاتف ورابط واتساب المباشر للعميل فور تأكيد إرسال طلب الخدمة، لضمان الجدية وحفظ خصوصية مقدمي الخدمات وتنظيم المواعيد.'
-                    : 'Provider phone number and direct WhatsApp chat will be revealed only after a booking request is placed, ensuring privacy and scheduling commitments.'}
+                    ? 'تظهر أرقام الهاتف ورابط واتساب المباشر للعميل فقط أثناء سريان طلب الخدمة، وتُخفى مجدداً بعد إنهاء أو إلغاء الخدمة حفاظاً على الخصوصية.'
+                    : 'Provider phone number and WhatsApp chat are revealed only while a booking request is active, and hidden again once the service is ended or cancelled.'}
                 </p>
               </div>
             </div>
@@ -291,7 +301,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                   alert(t('capacityReached'));
                   return;
                 }
-                setBookingModalProvider(provider);
+                openBookingModal(provider);
               }}
               disabled={isAtMaxCapacity}
               className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer ${
@@ -597,7 +607,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
       {/* Sticky Bottom CTA for Booking Request */}
       <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] inset-x-0 bg-white border-t border-slate-200 z-30 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]">
         <div className="max-w-3xl mx-auto px-4 py-2.5">
-          {clientHasPlacedRequest ? (
+          {clientHasActiveRequest ? (
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 onClick={() => {
@@ -615,7 +625,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                     alert(t('capacityReached'));
                     return;
                   }
-                  setBookingModalProvider(provider);
+                  openBookingModal(provider);
                 }}
                 disabled={isAtMaxCapacity}
                 className={`h-11 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer whitespace-nowrap truncate ${
@@ -634,7 +644,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                   alert(t('capacityReached'));
                   return;
                 }
-                setBookingModalProvider(provider);
+                openBookingModal(provider);
               }}
               disabled={isAtMaxCapacity}
               className={`w-full h-11 px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer whitespace-nowrap ${

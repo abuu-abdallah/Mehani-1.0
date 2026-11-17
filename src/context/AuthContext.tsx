@@ -424,7 +424,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       neighborhood: data.neighborhood,
       createdAt: new Date().toISOString().split('T')[0],
       isActive: false,
-      deactivatedReason: 'بانتظار مراجعة واعتماد البطاقة القومية (NID) من قبل إدارة المنصة',
+      deactivatedReason: 'بانتظار مراجعة واعتماد الرقم الوطني أو جواز السفر من قبل إدارة المنصة',
       tradeCategoryId: data.tradeCategoryId,
       serviceCategoryIds: assignedCategories,
       tradeTitleAr: data.tradeTitleAr,
@@ -834,7 +834,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const adminRequestNidReupload = async (userId: string, reason: string) => {
     const cleanReason =
       reason.trim() ||
-      'المستند المرفق غير واضح أو غير مطابق، يرجى إعادة رفع صورة واضحة للبطاقة القومية';
+      'المستند المرفق غير واضح أو غير مطابق، يرجى إعادة رفع صورة واضحة للرقم الوطني أو جواز السفر';
 
     const res = await maharaApi.adminRequestNidReupload(userId, cleanReason);
     if (res.available) {
@@ -907,7 +907,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             nidStatus: 'pending',
             nidSubmittedAt: new Date().toISOString(),
             isActive: false,
-            deactivatedReason: 'تم استلام صورة البطاقة القومية المحدثة وهي قيد مراجعة وتدقيق الإدارة',
+            deactivatedReason: 'تم استلام صورة الرقم الوطني / جواز السفر المحدثة وهي قيد مراجعة وتدقيق الإدارة',
           };
         }
         return u;
@@ -924,7 +924,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           nidStatus: 'pending',
           nidSubmittedAt: new Date().toISOString(),
           isActive: false,
-          deactivatedReason: 'تم استلام صورة البطاقة القومية المحدثة وهي قيد مراجعة وتدقيق الإدارة',
+          deactivatedReason: 'تم استلام صورة الرقم الوطني / جواز السفر المحدثة وهي قيد مراجعة وتدقيق الإدارة',
         };
       });
     }
