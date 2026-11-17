@@ -1,9 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { User, UserRole } from '../types';
-import { validateSudanPhone, normalizeSudanPhone } from '../utils/phoneValidation';
+import { validateSudanPhone, normalizePhoneForLookup, normalizeNumerals } from '../utils/phoneValidation';
 import { validateEmail, normalizeEmail } from '../utils/emailValidation';
 import { safeStorage } from '../utils/safeStorage';
-import { BootstrapResponse, getAuthToken, maharaApi, setAuthToken } from '../services/api';
+import {
+  BootstrapResponse,
+  canUseLocalFallback,
+  describeUnavailableApiError,
+  getAuthToken,
+  maharaApi,
+  setAuthToken,
+} from '../services/api';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -216,7 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [currentUser]);
 
   const login = async (phone: string, password: string) => {
-    const rawTrimmed = phone.trim();
+    const rawTrimmed = normalizeNumerals(phone).trim();
     const res = await maharaApi.login(rawTrimmed, password);
 
     if (res.available) {
@@ -232,15 +239,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, user: res.data.user };
     }
 
-    // Local fallback (when PHP bridge is not executing, e.g., Vite dev preview)
-    const normalized = normalizeSudanPhone(rawTrimmed);
+    if (!canUseLocalFallback(res.error, isRemoteApi)) {
+      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+    }
+
+    // Local fallback (only when Vite dev/preview serves raw api.php without PHP)
+    const normalizedPhone = normalizePhoneForLookup(rawTrimmed);
+    const normalizedEmail = rawTrimmed.includes('@') ? normalizeEmail(rawTrimmed) : '';
     const user = allUsers.find(u => {
-      const uNorm = normalizeSudanPhone(u.phone);
-      return (normalized && uNorm === normalized) || u.phone === rawTrimmed || u.phone === normalized;
+      if (normalizedEmail && u.email && normalizeEmail(u.email) === normalizedEmail) {
+        return true;
+      }
+      const uNorm = normalizePhoneForLookup(u.phone);
+      return (normalizedPhone && uNorm === normalizedPhone) || u.phone === rawTrimmed;
     });
 
     if (!user) {
-      return { success: false, error: 'رقم الهاتف غير مسجل في مهني' };
+      return {
+        success: false,
+        error: normalizedEmail ? 'البريد الإلكتروني غير مسجل في مهني' : 'رقم الهاتف غير مسجل في مهني',
+      };
     }
 
     if (user.password && user.password !== password) {
@@ -289,7 +307,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true };
     }
 
-    // Local fallback
+    if (!canUseLocalFallback(res.error, isRemoteApi)) {
+      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+    }
+
+    // Local fallback (dev/preview without PHP only)
     if (allUsers.some(u => u.phone === cleanPhone)) {
       return { success: false, error: 'رقم الهاتف مسجل بالفعل مسبقاً' };
     }
@@ -370,7 +392,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    // Local fallback
+    if (!canUseLocalFallback(res.error, isRemoteApi)) {
+      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+    }
+
+    // Local fallback (dev/preview without PHP only)
     if (allUsers.some(u => u.phone === cleanPhone)) {
       return { success: false, error: 'رقم الهاتف مسجل بالفعل مسبقاً' };
     }
@@ -442,6 +468,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true, message: res.data.message };
     }
 
+    if (!canUseLocalFallback(res.error, isRemoteApi)) {
+      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+    }
+
     // Local dev preview fallback when PHP bridge is unavailable
     const matchedUser = allUsers.find(
       u => u.email && normalizeEmail(u.email) === cleanEmail
@@ -486,6 +516,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: res.error || 'تعذر تحديث كلمة المرور' };
       }
       return { success: true, message: res.data.message };
+    }
+
+    if (!canUseLocalFallback(res.error, isRemoteApi)) {
+      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
     }
 
     // Local dev preview fallback

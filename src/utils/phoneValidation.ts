@@ -46,11 +46,22 @@ export const SUDAN_OPERATORS: Record<'zain' | 'mtn' | 'sudani', SudanOperatorInf
 };
 
 /**
- * Normalizes input phone to a pure 10-digit format if it includes +249, 00249, dashes, spaces.
+ * Converts Arabic-Indic (٠-٩) and Persian (۰-۹) digits to ASCII 0-9 and strips directional marks.
+ */
+export function normalizeNumerals(input: string): string {
+  if (!input) return '';
+  return input
+    .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069\u00A0]/g, '')
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x06f0));
+}
+
+/**
+ * Normalizes input phone to a pure 10-digit format if it includes +249, 00249, dashes, spaces, or Arabic numerals.
  */
 export function normalizeSudanPhone(input: string): string {
   if (!input) return '';
-  let cleaned = input.replace(/[\s\-\(\)\.]/g, '');
+  let cleaned = normalizeNumerals(input).replace(/[\s\-\(\)\.]/g, '');
 
   // Convert international prefixes +249 or 00249 or 249 to local 0-prefixed
   if (cleaned.startsWith('+249')) {
@@ -61,6 +72,17 @@ export function normalizeSudanPhone(input: string): string {
     cleaned = '0' + cleaned.slice(3);
   }
 
+  return cleaned;
+}
+
+/**
+ * Normalizes a phone input specifically for login/account lookup (also prepends 0 to 9-digit 9xxxxxxxx / 1xxxxxxxx numbers).
+ */
+export function normalizePhoneForLookup(input: string): string {
+  const cleaned = normalizeSudanPhone(input);
+  if (/^(9|1)\d{8}$/.test(cleaned)) {
+    return '0' + cleaned;
+  }
   return cleaned;
 }
 

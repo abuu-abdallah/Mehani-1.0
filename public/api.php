@@ -9,6 +9,8 @@
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Auth-Token');
@@ -74,8 +76,20 @@ function getJsonBody(): array {
     return is_array($decoded) ? $decoded : [];
 }
 
+function normalizeNumerals(string $raw): string {
+    $cleaned = str_replace(
+        ["\u{200E}", "\u{200F}", "\u{202A}", "\u{202B}", "\u{202C}", "\u{202D}", "\u{202E}", "\u{2066}", "\u{2067}", "\u{2068}", "\u{2069}", "\u{00A0}"],
+        '',
+        trim($raw)
+    );
+    $from = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    $to   = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    return str_replace($from, $to, $cleaned);
+}
+
 function normalizeSudanPhone(string $raw): ?string {
-    $digits = preg_replace('/[^0-9]/', '', trim($raw));
+    $ascii = normalizeNumerals($raw);
+    $digits = preg_replace('/[^0-9]/', '', $ascii);
     if ($digits === null || $digits === '') return null;
 
     if (strpos($digits, '00249') === 0) {
@@ -90,6 +104,32 @@ function normalizeSudanPhone(string $raw): ?string {
         return $digits;
     }
     return null;
+}
+
+function buildSudanPhoneVariants(string $raw): array {
+    $ascii = normalizeNumerals($raw);
+    $digits = preg_replace('/[^0-9]/', '', $ascii) ?? '';
+    $variants = [];
+
+    if ($ascii !== '') {
+        $variants[] = $ascii;
+    }
+    if ($digits !== '') {
+        $variants[] = $digits;
+    }
+
+    $normalized = normalizeSudanPhone($ascii);
+    if ($normalized !== null) {
+        $core9 = substr($normalized, 1); // 9xxxxxxxx or 1xxxxxxxx
+        $variants[] = $normalized;
+        $variants[] = $core9;
+        $variants[] = '249' . $core9;
+        $variants[] = '+249' . $core9;
+        $variants[] = '00249' . $core9;
+    }
+
+    $unique = array_values(array_unique(array_filter($variants, static fn ($v) => $v !== '')));
+    return $unique;
 }
 
 function validateSudanPhoneOrFail(string $raw): string {
@@ -822,16 +862,37 @@ try {
         }
 
         case 'auth_login': {
-            $rawPhone = (string) ($body['phone'] ?? '');
+            $rawIdentifier = normalizeNumerals((string) ($body['phone'] ?? $body['identifier'] ?? $body['email'] ?? ''));
             $password = (string) ($body['password'] ?? '');
-            $cleanPhone = normalizeSudanPhone($rawPhone) ?? trim($rawPhone);
 
-            $stmt = $pdo->prepare('SELECT * FROM users WHERE phone = ? LIMIT 1');
-            $stmt->execute([$cleanPhone]);
-            $user = $stmt->fetch();
+            if ($rawIdentifier === '' || $password === '') {
+                sendJson(['ok' => false, 'error' => 'يرجى إدخال رقم الهاتف أو البريد الإلكتروني وكلمة المرور'], 400);
+            }
+
+            $user = false;
+            $emailCandidate = normalizeEmail($rawIdentifier);
+            if ($emailCandidate !== null) {
+                $stmt = $pdo->prepare('SELECT * FROM users WHERE LOWER(TRIM(email)) = ? LIMIT 1');
+                $stmt->execute([$emailCandidate]);
+                $user = $stmt->fetch();
+            }
 
             if (!$user) {
-                sendJson(['ok' => false, 'error' => 'رقم الهاتف غير مسجل في مهني'], 401);
+                $variants = buildSudanPhoneVariants($rawIdentifier);
+                if ($variants) {
+                    $placeholders = implode(', ', array_fill(0, count($variants), '?'));
+                    $sql = "SELECT * FROM users WHERE TRIM(phone) IN ($placeholders) OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(phone), ' ', ''), '-', ''), '+', ''), '(', ''), ')', '') IN ($placeholders) LIMIT 1";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(array_merge($variants, $variants));
+                    $user = $stmt->fetch();
+                }
+            }
+
+            if (!$user) {
+                $notFoundMsg = $emailCandidate !== null
+                    ? 'البريد الإلكتروني غير مسجل في مهني'
+                    : 'رقم الهاتف غير مسجل في مهني';
+                sendJson(['ok' => false, 'error' => $notFoundMsg], 401);
             }
             if (!verifyUserPassword($pdo, $user, $password)) {
                 sendJson(['ok' => false, 'error' => 'كلمة المرور غير صحيحة'], 401);

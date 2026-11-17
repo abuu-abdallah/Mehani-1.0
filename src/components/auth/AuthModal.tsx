@@ -592,17 +592,24 @@ export const AuthModal: React.FC = () => {
               </div>
             )}
 
-        {/* FORM 1: LOGIN (Phone Number & Password Only) */}
+        {/* FORM 1: LOGIN (Phone Number or Email & Password) */}
         {authModalMode === 'login' && (
           <form onSubmit={handleLoginSubmit} className="p-5 space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-800 block">{t('phone')} *</label>
+              <label className="text-xs font-bold text-slate-800 block">
+                {language === 'ar' ? 'رقم الهاتف أو البريد الإلكتروني' : 'Phone Number or Email'} *
+              </label>
               <div className="relative">
                 <input
-                  type="tel"
+                  type="text"
+                  dir="ltr"
+                  autoComplete="username"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t('phonePlaceholder')}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  placeholder={language === 'ar' ? '0912345678 أو name@example.com' : '0912345678 or name@example.com'}
                   required
                   className="w-full px-3 py-2.5 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono"
                 />

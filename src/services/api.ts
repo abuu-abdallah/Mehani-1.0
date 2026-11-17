@@ -51,7 +51,61 @@ export const setAuthToken = (token: string | null): void => {
   }
 };
 
-export async function callApi<T = Record<string, any>>(
+/**
+ * Local storage fallback is strictly limited to non-PHP dev/preview environments
+ * (e.g. localhost Vite dev server or AI Studio *.run.app preview).
+ * On production domains like mehani.gt.tc and in Capacitor APKs, MySQL via api.php is authoritative.
+ */
+export function isLocalPreviewOnlyEnvironment(): boolean {
+  if (typeof window === 'undefined') return false;
+  const isCapacitor = Boolean((window as any).Capacitor?.isNativePlatform?.());
+  if (isCapacitor) return false;
+  const host = (window.location.hostname || '').toLowerCase();
+  if (!host || host === 'mehani.gt.tc' || host.endsWith('.mehani.gt.tc')) {
+    return false;
+  }
+  return (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '::1' ||
+    host.endsWith('.run.app')
+  );
+}
+
+export function canUseLocalFallback(
+  apiError?: string,
+  isRemoteAlreadyConfirmed?: boolean
+): boolean {
+  if (isRemoteAlreadyConfirmed) return false;
+  return apiError === 'PHP_NOT_EXECUTING' && isLocalPreviewOnlyEnvironment();
+}
+
+export function describeUnavailableApiError(
+  apiError?: string,
+  language: 'ar' | 'en' = 'ar'
+): string {
+  if (language === 'en') {
+    switch (apiError) {
+      case 'HTML_CHALLENGE_OR_ERROR':
+        return 'The server returned an unexpected page instead of database data. Please reload the page and try again.';
+      case 'NETWORK_UNREACHABLE':
+        return 'Unable to reach the Mehani database server. Please check your internet connection and try again.';
+      default:
+        return 'Database server connection failed temporarily. Please verify your connection or try again in a moment.';
+    }
+  }
+
+  switch (apiError) {
+    case 'HTML_CHALLENGE_OR_ERROR':
+      return 'استجاب الخادم بصفحة غير متوقعة بدلاً من قاعدة البيانات (قد يكون فحص حماية أو ملف api.php غير محدث). يرجى تحديث الصفحة والمحاولة مرة أخرى.';
+    case 'NETWORK_UNREACHABLE':
+      return 'تعذر الاتصال بخادم قاعدة بيانات مهني. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+    default:
+      return 'تعذر التحقق من الحساب عبر خادم قاعدة البيانات حالياً. يرجى تحديث الصفحة أو المحاولة بعد لحظات.';
+  }
+}
+
+async function executeApiFetch<T>(
   action: string,
   payload?: unknown
 ): Promise<ApiCallResult<T>> {
@@ -72,20 +126,30 @@ export async function callApi<T = Record<string, any>>(
       headers,
       body: payload !== undefined ? JSON.stringify(payload) : undefined,
       credentials: 'same-origin',
+      cache: 'no-store',
     });
 
     const contentType = (response.headers.get('content-type') || '').toLowerCase();
     const rawText = await response.text();
     const trimmed = rawText.trim();
 
-    // Detect non-PHP environment (Vite serving raw api.php source) or InfinityFree HTML bot-challenge page
+    if (trimmed.startsWith('<?php')) {
+      return { available: false, error: 'PHP_NOT_EXECUTING' };
+    }
+
+    if (trimmed === '') {
+      return { available: false, error: 'EMPTY_RESPONSE' };
+    }
+
+    // Detect InfinityFree anti-bot HTML challenge (aes.js / __test) or HTML error pages
     if (
-      trimmed.startsWith('<?php') ||
       trimmed.startsWith('<!DOCTYPE') ||
       trimmed.startsWith('<html') ||
+      trimmed.includes('aes.js') ||
+      trimmed.includes('__test') ||
       (!contentType.includes('application/json') && !trimmed.startsWith('{'))
     ) {
-      return { available: false, error: 'PHP_BRIDGE_UNAVAILABLE' };
+      return { available: false, error: 'HTML_CHALLENGE_OR_ERROR' };
     }
 
     let parsed: any;
@@ -117,6 +181,20 @@ export async function callApi<T = Record<string, any>>(
   } catch {
     return { available: false, error: 'NETWORK_UNREACHABLE' };
   }
+}
+
+export async function callApi<T = Record<string, any>>(
+  action: string,
+  payload?: unknown
+): Promise<ApiCallResult<T>> {
+  const firstAttempt = await executeApiFetch<T>(action, payload);
+  if (firstAttempt.available || firstAttempt.error === 'PHP_NOT_EXECUTING') {
+    return firstAttempt;
+  }
+
+  // Retry once after a short delay to recover from transient InfinityFree / mobile network hiccups
+  await new Promise(resolve => setTimeout(resolve, 400));
+  return executeApiFetch<T>(action, payload);
 }
 
 export const maharaApi = {
