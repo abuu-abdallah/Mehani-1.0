@@ -10,9 +10,12 @@ import {
   ShieldCheck,
   ArrowLeft,
   ArrowRight,
-  Bell
+  Bell,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { BrandLogo } from './BrandLogo';
@@ -21,6 +24,7 @@ import { NotificationInboxModal } from './NotificationInboxModal';
 
 export const Navbar: React.FC = () => {
   const { t, language, dir, toggleLanguage } = useLanguage();
+  const { isDark, toggleTheme } = useTheme();
   const { currentUser, isGuest } = useAuth();
   const { 
     activeTab, 
@@ -63,7 +67,7 @@ export const Navbar: React.FC = () => {
   return (
     <>
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-30 bg-slate-900 text-white border-b border-slate-800 shadow-sm">
+      <header className="sticky top-0 z-30 bg-slate-900 dark:bg-slate-950 text-white border-b border-slate-800 shadow-sm transition-colors">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
           
           {/* Zone 1: Navigation Back Button & Brand Wordmark */}
@@ -106,7 +110,9 @@ export const Navbar: React.FC = () => {
                   {currentUser.role === 'admin' 
                     ? t('adminRole') 
                     : currentUser.role === 'provider' 
-                    ? (currentUser.tradeTitleAr || 'مقدم خدمة') 
+                    ? (language === 'ar'
+                        ? (currentUser.tradeTitleAr || 'مقدم خدمة')
+                        : (currentUser.tradeTitleEn || currentUser.tradeTitleAr || 'Service Provider'))
                     : t('customerRole').split(' ')[0]}
                 </span>
               </span>
@@ -137,6 +143,21 @@ export const Navbar: React.FC = () => {
                 <span>{t('navAdmin')}</span>
               </button>
             )}
+
+            {/* Theme Switcher (Light / Dark) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-white transition-colors cursor-pointer shrink-0"
+              title={isDark ? t('switchToLight') : t('switchToDark')}
+              aria-label={isDark ? t('switchToLight') : t('switchToDark')}
+            >
+              {isDark ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-teal-300" />
+              )}
+            </button>
 
             {/* Language Switcher */}
             <button
@@ -211,7 +232,7 @@ export const Navbar: React.FC = () => {
       {/* Persistent Bottom Tab Bar (Ergonomic Thumb-Zone) */}
       <nav 
         aria-label="Bottom Navigation" 
-        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.45)] transition-colors"
       >
         <div className={`max-w-md mx-auto grid ${isAdmin || currentUser?.role === 'provider' ? 'grid-cols-5' : 'grid-cols-4'} items-center h-16 px-1`}>
           
@@ -219,7 +240,9 @@ export const Navbar: React.FC = () => {
           <button
             onClick={() => handleTabChange('home')}
             className={`flex flex-col items-center justify-center h-full py-1 min-h-[44px] cursor-pointer transition-colors ${
-              activeTab === 'home' ? 'text-teal-700 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'
+              activeTab === 'home'
+                ? 'text-teal-700 dark:text-teal-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
             }`}
           >
             <Home className={`w-5 h-5 ${activeTab === 'home' ? 'stroke-[2.4]' : 'stroke-[1.8]'}`} />
@@ -232,7 +255,9 @@ export const Navbar: React.FC = () => {
           <button
             onClick={() => handleTabChange('search')}
             className={`flex flex-col items-center justify-center h-full py-1 min-h-[44px] cursor-pointer transition-colors ${
-              activeTab === 'search' ? 'text-teal-700 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'
+              activeTab === 'search'
+                ? 'text-teal-700 dark:text-teal-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
             }`}
           >
             <Search className={`w-5 h-5 ${activeTab === 'search' ? 'stroke-[2.4]' : 'stroke-[1.8]'}`} />
@@ -245,7 +270,9 @@ export const Navbar: React.FC = () => {
           <button
             onClick={() => handleTabChange('bookings')}
             className={`relative flex flex-col items-center justify-center h-full py-1 min-h-[44px] cursor-pointer transition-colors ${
-              activeTab === 'bookings' ? 'text-teal-700 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'
+              activeTab === 'bookings'
+                ? 'text-teal-700 dark:text-teal-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
             }`}
           >
             <div className="relative">
@@ -266,7 +293,9 @@ export const Navbar: React.FC = () => {
             <button
               onClick={() => handleTabChange('admin')}
               className={`flex flex-col items-center justify-center h-full py-1 min-h-[44px] cursor-pointer transition-colors ${
-                activeTab === 'admin' ? 'text-teal-700 font-bold' : 'text-purple-600 hover:text-purple-800 font-medium'
+                activeTab === 'admin'
+                  ? 'text-teal-700 dark:text-teal-400 font-bold'
+                  : 'text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-medium'
               }`}
             >
               <ShieldCheck className={`w-5 h-5 ${activeTab === 'admin' ? 'stroke-[2.4]' : 'stroke-[1.8]'}`} />
@@ -278,7 +307,9 @@ export const Navbar: React.FC = () => {
             <button
               onClick={() => handleTabChange('commission')}
               className={`flex flex-col items-center justify-center h-full py-1 min-h-[44px] cursor-pointer transition-colors ${
-                activeTab === 'commission' ? 'text-teal-700 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'
+                activeTab === 'commission'
+                  ? 'text-teal-700 dark:text-teal-400 font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
               }`}
             >
               <div className="relative">
@@ -301,7 +332,9 @@ export const Navbar: React.FC = () => {
           <button
             onClick={() => handleTabChange('profile')}
             className={`flex flex-col items-center justify-center h-full py-1 min-h-[44px] cursor-pointer transition-colors ${
-              activeTab === 'profile' ? 'text-teal-700 font-bold' : 'text-slate-500 hover:text-slate-800 font-medium'
+              activeTab === 'profile'
+                ? 'text-teal-700 dark:text-teal-400 font-bold'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
             }`}
           >
             <UserIcon className={`w-5 h-5 ${activeTab === 'profile' ? 'stroke-[2.4]' : 'stroke-[1.8]'}`} />

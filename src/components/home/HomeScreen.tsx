@@ -38,17 +38,17 @@ import { ProviderCustomService, User } from '../../types';
 
 // Category color palettes for vibrant, distinctive visual identity
 const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  tailor: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', glow: 'hover:border-rose-400' },
-  henna_beauty: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', glow: 'hover:border-amber-400' },
-  electrician_ac: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', glow: 'hover:border-sky-400' },
-  plumber: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', glow: 'hover:border-blue-400' },
-  builder_mason: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', glow: 'hover:border-orange-400' },
-  carpenter: { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200', glow: 'hover:border-yellow-400' },
-  painter: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', glow: 'hover:border-indigo-400' },
-  barber: { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200', glow: 'hover:border-teal-400' },
-  tutor: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', glow: 'hover:border-purple-400' },
-  cook_catering: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', glow: 'hover:border-red-400' },
-  cleaner: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', glow: 'hover:border-emerald-400' },
+  tailor: { bg: 'bg-rose-50 dark:bg-rose-950/50', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-800/60', glow: 'hover:border-rose-400 dark:hover:border-rose-500' },
+  henna_beauty: { bg: 'bg-amber-50 dark:bg-amber-950/50', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800/60', glow: 'hover:border-amber-400 dark:hover:border-amber-500' },
+  electrician_ac: { bg: 'bg-sky-50 dark:bg-sky-950/50', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-800/60', glow: 'hover:border-sky-400 dark:hover:border-sky-500' },
+  plumber: { bg: 'bg-blue-50 dark:bg-blue-950/50', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-800/60', glow: 'hover:border-blue-400 dark:hover:border-blue-500' },
+  builder_mason: { bg: 'bg-orange-50 dark:bg-orange-950/50', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-800/60', glow: 'hover:border-orange-400 dark:hover:border-orange-500' },
+  carpenter: { bg: 'bg-yellow-50 dark:bg-yellow-950/50', text: 'text-yellow-800 dark:text-yellow-300', border: 'border-yellow-200 dark:border-yellow-800/60', glow: 'hover:border-yellow-400 dark:hover:border-yellow-500' },
+  painter: { bg: 'bg-indigo-50 dark:bg-indigo-950/50', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-800/60', glow: 'hover:border-indigo-400 dark:hover:border-indigo-500' },
+  barber: { bg: 'bg-teal-50 dark:bg-teal-950/50', text: 'text-teal-700 dark:text-teal-300', border: 'border-teal-200 dark:border-teal-800/60', glow: 'hover:border-teal-400 dark:hover:border-teal-500' },
+  tutor: { bg: 'bg-purple-50 dark:bg-purple-950/50', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-200 dark:border-purple-800/60', glow: 'hover:border-purple-400 dark:hover:border-purple-500' },
+  cook_catering: { bg: 'bg-red-50 dark:bg-red-950/50', text: 'text-red-700 dark:text-red-300', border: 'border-red-200 dark:border-red-800/60', glow: 'hover:border-red-400 dark:hover:border-red-500' },
+  cleaner: { bg: 'bg-emerald-50 dark:bg-emerald-950/50', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800/60', glow: 'hover:border-emerald-400 dark:hover:border-emerald-500' },
 };
 
 export const HomeScreen: React.FC = () => {
@@ -196,7 +196,7 @@ export const HomeScreen: React.FC = () => {
 
             {/* Smart Unified Search Bar */}
             <form onSubmit={handleSearchSubmit} className="pt-2">
-              <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-white/95 backdrop-blur-md rounded-2xl p-1.5 shadow-2xl border border-white/20 gap-1.5 focus-within:ring-2 focus-within:ring-teal-400">
+              <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl p-1.5 shadow-2xl border border-white/20 dark:border-slate-700 gap-1.5 focus-within:ring-2 focus-within:ring-teal-400">
                 
                 {/* Search Input */}
                 <div className="flex items-center flex-1 min-w-0 px-2 py-1">
@@ -206,13 +206,13 @@ export const HomeScreen: React.FC = () => {
                     value={localSearch}
                     onChange={(e) => setLocalSearch(e.target.value)}
                     placeholder={language === 'ar' ? 'ما الخدمة أو الحرفة التي تبحث عنها اليوم؟ (مثال: صيانة مكيف، حناء...)' : 'What service do you need? (e.g. AC repair, Henna, Tailor...)'}
-                    className="w-full px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 bg-transparent focus:outline-none font-medium"
+                    className="w-full px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 bg-transparent focus:outline-none font-medium"
                   />
                   {localSearch && (
                     <button
                       type="button"
                       onClick={() => setLocalSearch('')}
-                      className="text-xs text-slate-400 hover:text-slate-600 px-2 cursor-pointer"
+                      className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 px-2 cursor-pointer"
                     >
                       ✕
                     </button>
@@ -220,12 +220,12 @@ export const HomeScreen: React.FC = () => {
                 </div>
 
                 {/* City Quick Picker within Search */}
-                <div className="hidden md:flex items-center border-s border-slate-200 ps-2 pe-1">
-                  <MapPin className="w-4 h-4 text-teal-600 shrink-0 me-1" />
+                <div className="hidden md:flex items-center border-s border-slate-200 dark:border-slate-700 ps-2 pe-1">
+                  <MapPin className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 me-1" />
                   <select
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
-                    className="text-xs font-semibold text-slate-700 bg-transparent py-2 px-1 focus:outline-none cursor-pointer"
+                    className="text-xs font-semibold text-slate-700 dark:text-slate-200 bg-transparent py-2 px-1 focus:outline-none cursor-pointer"
                   >
                     <option value="all">{language === 'ar' ? 'جميع المدن' : 'All Cities'}</option>
                     {Object.keys(SUDAN_STATES_CITIES).map(c => (
@@ -330,14 +330,14 @@ export const HomeScreen: React.FC = () => {
       <section className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-teal-100 text-teal-800 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-md bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 flex items-center justify-center">
               <MapPin className="w-3.5 h-3.5" />
             </div>
-            <h2 className="text-sm font-extrabold text-slate-900">
+            <h2 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">
               {language === 'ar' ? 'تصفح حسب المدينة أو الولاية' : 'Browse by City & State'}
             </h2>
           </div>
-          <span className="text-[11px] text-slate-500 font-medium">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             {language === 'ar' ? 'اختر مدينتك لعرض المهنيين الأقرب إليك' : 'Find providers closest to your neighborhood'}
           </span>
         </div>
@@ -347,8 +347,8 @@ export const HomeScreen: React.FC = () => {
             onClick={() => handleCitySelect('all')}
             className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs ${
               selectedCity === 'all'
-                ? 'bg-slate-900 text-white ring-2 ring-slate-900 ring-offset-1'
-                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                ? 'bg-slate-900 dark:bg-teal-600 text-white ring-2 ring-slate-900 dark:ring-teal-500 ring-offset-1 dark:ring-offset-slate-950'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
             }`}
           >
             {language === 'ar' ? '🇸🇩 جميع المدن' : '🇸🇩 All Cities'}
@@ -363,14 +363,14 @@ export const HomeScreen: React.FC = () => {
                 onClick={() => handleCitySelect(city)}
                 className={`px-3.5 py-2 text-xs font-semibold rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
                   isSelected
-                    ? 'bg-teal-700 text-white ring-2 ring-teal-600 ring-offset-1'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-teal-50 hover:border-teal-200'
+                    ? 'bg-teal-700 dark:bg-teal-600 text-white ring-2 ring-teal-600 dark:ring-teal-500 ring-offset-1 dark:ring-offset-slate-950'
+                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-teal-50 dark:hover:bg-slate-800 hover:border-teal-200 dark:hover:border-teal-700'
                 }`}
               >
                 <span>{city}</span>
                 {count > 0 && (
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    isSelected ? 'bg-teal-800 text-teal-100' : 'bg-slate-100 text-slate-600'
+                    isSelected ? 'bg-teal-800 text-teal-100' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                   }`}>
                     {count}
                   </span>
@@ -385,11 +385,11 @@ export const HomeScreen: React.FC = () => {
       <section className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-teal-600" />
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
+              <Briefcase className="w-5 h-5 text-teal-600 dark:text-teal-400" />
               <span>{t('allCategories')}</span>
             </h2>
-            <p className="text-xs text-slate-500 font-normal">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-normal">
               {language === 'ar' ? 'اختر التخصص المطلوب وتصفح قائمة الحرفيين وأسعارهم المعتمدة' : 'Select a trade category to view services and transparent starting prices'}
             </p>
           </div>
@@ -398,7 +398,7 @@ export const HomeScreen: React.FC = () => {
               setSelectedCategoryId(null);
               setActiveTab('search');
             }}
-            className="flex items-center gap-1 text-xs font-black text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200 transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-xs font-black text-teal-700 dark:text-teal-300 hover:text-teal-800 dark:hover:text-teal-200 bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 px-3 py-1.5 rounded-xl border border-teal-200 dark:border-teal-800 transition-colors cursor-pointer"
           >
             <span>{language === 'ar' ? 'عرض كافة الخدمات' : 'View All Services'}</span>
             <ArrowIcon className="w-3.5 h-3.5" />
@@ -408,10 +408,10 @@ export const HomeScreen: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {categories.map((category) => {
             const style = CATEGORY_STYLES[category.id] || { 
-              bg: 'bg-teal-50', 
-              text: 'text-teal-700', 
-              border: 'border-teal-200', 
-              glow: 'hover:border-teal-400' 
+              bg: 'bg-teal-50 dark:bg-teal-950/50', 
+              text: 'text-teal-700 dark:text-teal-300', 
+              border: 'border-teal-200 dark:border-teal-800/60', 
+              glow: 'hover:border-teal-400 dark:hover:border-teal-500' 
             };
             const workerCount = providers.filter(p => 
               p.tradeCategoryId === category.id || 
@@ -423,7 +423,7 @@ export const HomeScreen: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`flex flex-col justify-between p-4 rounded-2xl bg-white border border-slate-200/90 hover:shadow-lg transition-all text-start group cursor-pointer relative overflow-hidden ${style.glow} hover:-translate-y-0.5 duration-200`}
+                className={`flex flex-col justify-between p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:shadow-lg transition-all text-start group cursor-pointer relative overflow-hidden ${style.glow} hover:-translate-y-0.5 duration-200`}
               >
                 {/* Top Badge & Icon */}
                 <div>
@@ -432,29 +432,29 @@ export const HomeScreen: React.FC = () => {
                       <CategoryIcon iconName={category.iconName} className="w-5 h-5" />
                     </div>
                     {workerCount > 0 && (
-                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
                         {workerCount} {language === 'ar' ? 'مهني' : 'workers'}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 group-hover:text-teal-800 transition-colors leading-snug">
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100 group-hover:text-teal-800 dark:group-hover:text-teal-300 transition-colors leading-snug">
                     {language === 'ar' ? category.nameAr : category.nameEn}
                   </h3>
 
-                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
                     {language === 'ar' ? category.descriptionAr : category.descriptionEn}
                   </p>
                 </div>
 
                 {/* Bottom Starting Price Badge */}
-                <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between w-full">
-                  <div className="text-[11px] font-semibold text-slate-600">
-                    <span className="text-[10px] text-slate-400 block leading-tight">{t('priceStarting')}</span>
-                    <span className="text-teal-700 font-extrabold text-xs">{category.averageRateSDG.toLocaleString()}</span>
-                    <span className="text-[10px] text-slate-500 ms-1 font-normal">{t('sdg')}</span>
+                <div className="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between w-full">
+                  <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block leading-tight">{t('priceStarting')}</span>
+                    <span className="text-teal-700 dark:text-teal-400 font-extrabold text-xs">{category.averageRateSDG.toLocaleString()}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 ms-1 font-normal">{t('sdg')}</span>
                   </div>
-                  <div className="w-6 h-6 rounded-lg bg-slate-50 group-hover:bg-teal-50 text-slate-400 group-hover:text-teal-600 flex items-center justify-center transition-colors">
+                  <div className="w-6 h-6 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:bg-teal-50 dark:group-hover:bg-teal-950/60 text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 flex items-center justify-center transition-colors">
                     <ArrowIcon className="w-3.5 h-3.5" />
                   </div>
                 </div>
@@ -469,17 +469,17 @@ export const HomeScreen: React.FC = () => {
         <section className="space-y-3.5">
           <div className="flex items-center justify-between px-1">
             <div>
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
-                <Sparkles className="w-4 h-4 text-amber-600" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>{language === 'ar' ? 'خدمات معتمدة بأسعار ثابتة' : 'Fixed Price Verified Services'}</span>
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                 {language === 'ar' ? 'احجز خدماتك الفردية مباشرة' : 'Book Individual Services Directly'}
               </h2>
             </div>
             <button
               onClick={() => setActiveTab('search')}
-              className="text-xs font-bold text-teal-700 hover:text-teal-800 cursor-pointer"
+              className="text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 cursor-pointer"
             >
               {language === 'ar' ? 'تصفح كل الخدمات' : 'View All Services'}
             </button>
@@ -493,21 +493,21 @@ export const HomeScreen: React.FC = () => {
               return (
                 <div
                   key={service.id}
-                  className="rounded-2xl p-4 bg-white border border-slate-200/90 hover:border-teal-400/80 hover:shadow-md transition-all flex flex-col justify-between group"
+                  className="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-teal-400/80 dark:hover:border-teal-500/70 hover:shadow-md transition-all flex flex-col justify-between group"
                 >
                   <div>
                     {/* Category pill & Capacity badge */}
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200/70 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200/70 dark:border-teal-800/70 px-2 py-0.5 rounded-md">
                         {categoryName}
                       </span>
                       {isAtMaxCapacity ? (
-                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 px-2 py-0.5 rounded-full flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                           {language === 'ar' ? 'مشغول حالياً' : 'Busy'}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 px-2 py-0.5 rounded-full flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           {language === 'ar' ? 'متاح للطلب' : 'Available'}
                         </span>
@@ -515,32 +515,32 @@ export const HomeScreen: React.FC = () => {
                     </div>
 
                     {/* Service Name */}
-                    <h3 className="font-extrabold text-sm text-slate-900 line-clamp-2 leading-snug">
+                    <h3 className="font-extrabold text-sm text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug">
                       {service.nameAr}
                     </h3>
 
                     {/* Provider mini info */}
                     <div 
                       onClick={() => handleProviderClick(provider.id)}
-                      className="flex items-center gap-2 mt-3 p-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors cursor-pointer border border-slate-100"
+                      className="flex items-center gap-2 mt-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100/80 dark:hover:bg-slate-800 transition-colors cursor-pointer border border-slate-100 dark:border-slate-700/70"
                     >
                       <img
                         src={provider.avatarUrl}
                         alt={provider.name}
-                        className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0"
+                        className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                         referrerPolicy="no-referrer"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-xs text-slate-800 truncate block">
+                          <span className="font-bold text-xs text-slate-800 dark:text-slate-100 truncate block">
                             {provider.name}
                           </span>
-                          <div className="flex items-center gap-0.5 text-[10px] text-amber-600 font-bold shrink-0">
+                          <div className="flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-400 font-bold shrink-0">
                             <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                             <span>{provider.rating?.toFixed(1) || '5.0'}</span>
                           </div>
                         </div>
-                        <span className="text-[10px] text-slate-500 truncate block">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate block">
                           {provider.city} · {provider.neighborhood}
                         </span>
                       </div>
@@ -548,12 +548,12 @@ export const HomeScreen: React.FC = () => {
                   </div>
 
                   {/* Price & Booking Trigger Button */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
                     <div>
-                      <span className="text-[10px] text-slate-400 block leading-tight">{language === 'ar' ? 'سعر الخدمة' : 'Fixed Rate'}</span>
-                      <div className="text-teal-700 font-black text-sm">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block leading-tight">{language === 'ar' ? 'سعر الخدمة' : 'Fixed Rate'}</span>
+                      <div className="text-teal-700 dark:text-teal-400 font-black text-sm">
                         {service.priceSDG.toLocaleString()}
-                        <span className="text-[10px] text-slate-500 ms-1 font-semibold">{t('sdg')}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 ms-1 font-semibold">{t('sdg')}</span>
                       </div>
                     </div>
 
@@ -563,7 +563,7 @@ export const HomeScreen: React.FC = () => {
                       disabled={isAtMaxCapacity}
                       className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer ${
                         isAtMaxCapacity
-                          ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                          ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                           : 'bg-teal-600 hover:bg-teal-500 text-white active:scale-98'
                       }`}
                     >
@@ -582,10 +582,10 @@ export const HomeScreen: React.FC = () => {
       <section className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
               {language === 'ar' ? 'أعمال وحرف مميزة في مهني' : 'Featured Craft Spotlights'}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {language === 'ar' ? 'أصالة الحرف التراثية وأحدث معايير الصيانة المنزلية' : 'Authentic heritage crafts and top modern domestic maintenance'}
             </p>
           </div>
@@ -673,16 +673,16 @@ export const HomeScreen: React.FC = () => {
       <section className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
               {language === 'ar' ? 'حرفيون ومهنيون معتمدون' : 'Vetted Trade Specialists'}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {language === 'ar' ? 'تعرف على المهنيين وتصفح قوائم خدماتهم وأسعارهم المحددة' : 'Explore skilled tradespeople and their individual service catalogs'}
             </p>
           </div>
           <button
             onClick={() => setActiveTab('search')}
-            className="text-xs font-bold text-teal-700 hover:text-teal-800 cursor-pointer"
+            className="text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 cursor-pointer"
           >
             {language === 'ar' ? 'تصفح جميع المهنيين' : 'Browse All Workers'}
           </button>
@@ -698,7 +698,7 @@ export const HomeScreen: React.FC = () => {
               <div
                 key={provider.id}
                 onClick={() => handleProviderClick(provider.id)}
-                className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-teal-500/60 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/60 dark:hover:border-teal-500/70 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-start gap-3.5">
@@ -706,30 +706,30 @@ export const HomeScreen: React.FC = () => {
                       <img
                         src={provider.avatarUrl}
                         alt={provider.name}
-                        className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shadow-2xs group-hover:scale-102 transition-transform"
+                        className="w-16 h-16 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:scale-102 transition-transform"
                         referrerPolicy="no-referrer"
                       />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-extrabold text-base text-slate-900 truncate group-hover:text-teal-800 transition-colors">
+                        <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 truncate group-hover:text-teal-800 dark:group-hover:text-teal-300 transition-colors">
                           {provider.name}
                         </h3>
-                        <div className="flex items-center gap-1 text-xs text-amber-600 font-extrabold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shrink-0">
+                        <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-300 font-extrabold bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-lg border border-amber-200 dark:border-amber-800/60 shrink-0">
                           <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                           <span>{provider.rating?.toFixed(1) || '5.0'}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">({provider.reviewCount})</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">({provider.reviewCount})</span>
                         </div>
                       </div>
 
-                      <p className="text-xs text-teal-700 font-bold truncate mt-0.5">
-                        {provider.tradeTitleAr}
+                      <p className="text-xs text-teal-700 dark:text-teal-400 font-bold truncate mt-0.5">
+                        {language === 'ar' ? provider.tradeTitleAr : (provider.tradeTitleEn || provider.tradeTitleAr)}
                       </p>
 
-                      <div className="flex items-center gap-2 text-xs text-slate-500 mt-1.5">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1.5">
                         <span className="flex items-center gap-1 font-medium">
-                          <MapPin className="w-3.5 h-3.5 text-teal-600" />
+                          <MapPin className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                           {provider.city} · {provider.neighborhood}
                         </span>
                       </div>
@@ -742,13 +742,13 @@ export const HomeScreen: React.FC = () => {
                       {provider.customServices.slice(0, 2).map(cs => (
                         <span 
                           key={cs.id}
-                          className="text-[11px] font-medium text-slate-600 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md truncate max-w-[200px]"
+                          className="text-[11px] font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-md truncate max-w-[200px]"
                         >
                           • {cs.nameAr} ({cs.priceSDG.toLocaleString()} {t('sdg')})
                         </span>
                       ))}
                       {provider.customServices.length > 2 && (
-                        <span className="text-[10px] text-slate-400 font-bold self-center">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold self-center">
                           +{provider.customServices.length - 2} {language === 'ar' ? 'خدمات إضافية' : 'more'}
                         </span>
                       )}
@@ -757,15 +757,15 @@ export const HomeScreen: React.FC = () => {
                 </div>
 
                 {/* Capacity Status (Only Available or Busy) & Profile Navigation */}
-                <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
                   <div>
                     {isAtMaxCapacity ? (
-                      <span className="text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full font-bold text-[11px] flex items-center gap-1.5">
+                      <span className="text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 px-3 py-1 rounded-full font-bold text-[11px] flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-amber-500" />
                         {language === 'ar' ? 'مشغول حالياً' : 'Busy'}
                       </span>
                     ) : (
-                      <span className="text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full font-bold text-[11px] flex items-center gap-1.5">
+                      <span className="text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 px-3 py-1 rounded-full font-bold text-[11px] flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-500" />
                         {language === 'ar' ? 'متاح للطلب' : 'Available'}
                       </span>
@@ -773,7 +773,7 @@ export const HomeScreen: React.FC = () => {
                   </div>
 
                   {/* View services and profile button (No "Book Service Now" on worker cards) */}
-                  <div className="flex items-center gap-1.5 text-xs text-teal-800 font-black bg-teal-50 group-hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200 transition-colors">
+                  <div className="flex items-center gap-1.5 text-xs text-teal-800 dark:text-teal-300 font-black bg-teal-50 dark:bg-teal-950/60 group-hover:bg-teal-100 dark:group-hover:bg-teal-900/60 px-3 py-1.5 rounded-xl border border-teal-200 dark:border-teal-800 transition-colors">
                     <span>{servicesCount} {language === 'ar' ? 'خدمات متوفرة' : 'services'}</span>
                     <ArrowIcon className="w-3.5 h-3.5" />
                   </div>
@@ -852,10 +852,10 @@ export const HomeScreen: React.FC = () => {
       <section className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
               {language === 'ar' ? 'تجارب وآراء العملاء' : 'Customer Stories & Trust'}
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {language === 'ar' ? 'شوف زبائن مهني في الخرطوم وأم درمان والولايات بيقولوا شنو' : 'Real experiences from households across Sudan'}
             </p>
           </div>
@@ -863,61 +863,61 @@ export const HomeScreen: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Review 1 */}
-          <div className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+          <div className="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-1 text-amber-500">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
                 ))}
               </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                 {language === 'ar'
                   ? '"طلبت فني تكييف يصلح لي مكيفين اسبلت في المعمورة، الراجل جاني في مواعيده بالضبط ومعاه الفريون وظبط الشغل نضيف جداً، وحولت ليه قروشه عبر بنكك طوالي."'
                   : '"Booked an AC technician for split units in Al-Mamoura. Arrived on time with refrigerant gas, did a clean job, and I paid smoothly via Bankak."'}
               </p>
             </div>
-            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-              <span className="font-bold text-slate-800">أحمد الفاتح</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="font-bold text-slate-800 dark:text-slate-200">أحمد الفاتح</span>
               <span>الخرطوم · المعمورة</span>
             </div>
           </div>
 
           {/* Review 2 */}
-          <div className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+          <div className="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-1 text-amber-500">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
                 ))}
               </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                 {language === 'ar'
                   ? '"والله حنة الأستاذة إشراقة ما شاء الله عليها، نقش سمح شديد ولون أسود ثابت لعرس أختي، وزولة أمينة ومواعيدها مظبوطة بالساعة."'
                   : '"The henna session with Ishraqa was breathtaking! Genuine Sudanese dark henna for my sister\'s wedding, punctual and very respectful."'}
               </p>
             </div>
-            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-              <span className="font-bold text-slate-800">سارة عبد الرحيم</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="font-bold text-slate-800 dark:text-slate-200">سارة عبد الرحيم</span>
               <span>أم درمان · المهندسين</span>
             </div>
           </div>
 
           {/* Review 3 */}
-          <div className="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+          <div className="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-1 text-amber-500">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-3.5 h-3.5 fill-amber-500" />
                 ))}
               </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                 {language === 'ar'
                   ? '"فصلت جلابيتين توتال عند الترزي عثمان، المقاس جا راكز مية في المية والخياطة نضيفة ومرتبة. تطبيق مهني ده والله ريحنا شديد ووفر علينا المشاوير."'
                   : '"Tailored two Swiss cotton jalabiyas with Master Osman. Exact measurements and exquisite finishing. Mehani made trade bookings so convenient."'}
               </p>
             </div>
-            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-              <span className="font-bold text-slate-800">محمد تاج الدين</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="font-bold text-slate-800 dark:text-slate-200">محمد تاج الدين</span>
               <span>الخرطوم · الرياض</span>
             </div>
           </div>

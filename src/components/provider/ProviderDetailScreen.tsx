@@ -70,14 +70,14 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
   if (isDeactivated && isClientViewer) {
     return (
       <div className="pb-28 max-w-lg mx-auto px-4 pt-16 text-center space-y-5">
-        <div className="w-16 h-16 rounded-3xl bg-amber-100 flex items-center justify-center mx-auto text-amber-700 shadow-xs border border-amber-200">
+        <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center mx-auto text-amber-700 dark:text-amber-400 shadow-xs border border-amber-200 dark:border-amber-800/70">
           <ShieldAlert className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-bold text-slate-900">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
             {language === 'ar' ? 'الملف الشخصي والخدمات غير متاحة حالياً' : 'Profile & Services Unavailable'}
           </h2>
-          <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
             {language === 'ar'
               ? 'عذراً، تم حجب وإخفاء هذا الملف الشخصي وخدماته عن العملاء نظراً لتعطيل الحساب من قِبل إدارة المنصة لعدم استيفاء شروط التوثيق أو اعتماد مستند الرقم الوطني / جواز السفر.'
               : 'This service provider profile and all associated services are currently hidden from clients because the account is deactivated by platform administration.'}
@@ -86,7 +86,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
         <div className="pt-2">
           <button
             onClick={onBack}
-            className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="px-6 py-2.5 bg-slate-900 dark:bg-teal-700 hover:bg-slate-800 dark:hover:bg-teal-600 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
           >
             {language === 'ar' ? 'الرجوع إلى قائمة الحرفيين المتاحين' : 'Back to Available Workers'}
           </button>
@@ -128,30 +128,30 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-50 transition-all shadow-2xs cursor-pointer group"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-2xs cursor-pointer group"
           title={language === 'ar' ? 'الرجوع للقائمة السابقة' : 'Back to previous view'}
         >
-          <ArrowIcon className="w-4 h-4 text-teal-600 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
+          <ArrowIcon className="w-4 h-4 text-teal-600 dark:text-teal-400 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
           <span>{language === 'ar' ? 'الرجوع للقائمة' : 'Back'}</span>
         </button>
 
-        <span className="text-xs text-slate-500 font-semibold">
+        <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
           {provider.city} · {provider.neighborhood}
         </span>
       </div>
 
       {/* Deactivation Notice for Admin or Owner */}
       {isDeactivated && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-300 text-rose-950 text-xs flex items-center justify-between gap-3 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800/70 text-rose-950 dark:text-rose-100 text-xs flex items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+            <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
             <div>
               <span className="font-bold block">
                 {currentUser?.role === 'admin'
                   ? (language === 'ar' ? 'تنبيه إداري: هذا الحساب معطل حالياً ومحجوب بالكامل عن جميع العملاء في المنصة' : 'Admin Alert: This provider account is deactivated and hidden from all clients')
                   : (language === 'ar' ? 'حسابك معطل ومخفي عن العملاء حالياً حتى تدقيق الرقم الوطني أو الجواز واكتمال التفعيل' : 'Your account is currently deactivated and hidden from clients')}
               </span>
-              <span className="text-[11px] text-rose-800">
+              <span className="text-[11px] text-rose-800 dark:text-rose-200">
                 {provider.deactivatedReason || 'بانتظار مراجعة واعتماد صورة الرقم الوطني أو جواز السفر من الإدارة'}
               </span>
             </div>
@@ -171,7 +171,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
       )}
 
       {/* Profile Header Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 text-center sm:text-start">
           
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
@@ -180,38 +180,38 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
               <img
                 src={provider.avatarUrl}
                 alt={provider.name}
-                className="w-24 h-24 rounded-2xl object-cover border-2 border-slate-100 shadow-sm"
+                className="w-24 h-24 rounded-2xl object-cover border-2 border-slate-100 dark:border-slate-800 shadow-sm"
                 referrerPolicy="no-referrer"
               />
             </div>
 
             {/* Details */}
             <div className="flex-1 min-w-0 space-y-1">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-slate-100">
                 {provider.name}
               </h1>
-              <p className="text-sm text-teal-700 font-bold">
-                {provider.tradeTitleAr}
+              <p className="text-sm text-teal-700 dark:text-teal-400 font-bold">
+                {language === 'ar' ? provider.tradeTitleAr : (provider.tradeTitleEn || provider.tradeTitleAr)}
               </p>
 
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-slate-500 pt-1">
-                <span className="flex items-center gap-1 font-bold text-amber-600">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-slate-500 dark:text-slate-400 pt-1">
+                <span className="flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
                   <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
                   <span>{provider.rating?.toFixed(1) || '5.0'}</span>
-                  <span className="text-slate-400 font-normal">({provider.reviewCount} {language === 'ar' ? 'تقييم' : 'reviews'})</span>
+                  <span className="text-slate-400 dark:text-slate-500 font-normal">({provider.reviewCount} {language === 'ar' ? 'تقييم' : 'reviews'})</span>
                 </span>
 
                 <span>·</span>
 
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                   <span>{provider.city}، {provider.neighborhood}</span>
                 </span>
 
                 {(currentUser?.role === 'admin' || currentUser?.id === provider.id) && provider.nidNumber && (
                   <>
                     <span>·</span>
-                    <span className="text-slate-600 font-mono text-[11px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    <span className="text-slate-600 dark:text-slate-300 font-mono text-[11px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                       {language === 'ar' ? `رقم الهوية (خاص): ${provider.nidNumber}` : `NID (Private): ${provider.nidNumber}`}
                     </span>
                   </>
@@ -224,8 +224,8 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
           <div className="shrink-0 flex flex-col items-center sm:items-end gap-1">
             <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-2xs ${
               isAtMaxCapacity 
-                ? 'bg-amber-100 text-amber-900 border border-amber-300' 
-                : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800/70' 
+                : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/70'
             }`}>
               <span className={`w-2 h-2 rounded-full ${isAtMaxCapacity ? 'bg-amber-500' : 'bg-emerald-500'}`} />
               <span>
@@ -237,7 +237,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
 
             {/* If provider viewing their own profile, show their private capacity count */}
             {currentUser?.id === provider.id && (
-              <span className="text-[10px] text-slate-400 font-mono">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
                 {language === 'ar' ? `(طاقتك: ${activeJobs}/3 خدمات جارية)` : `(Your capacity: ${activeJobs}/3)`}
               </span>
             )}
@@ -248,8 +248,8 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
         {canViewContactDetails ? (
           <div className="space-y-2 pt-1">
             {clientHasActiveRequest && currentUser?.role !== 'admin' && currentUser?.id !== provider.id && (
-              <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/70 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span className="font-semibold text-[11px]">
                   {language === 'ar'
                     ? 'لديك طلب خدمة نشط حالياً مع هذا المهني — بيانات الاتصال والواتساب متاحة للتنسيق المباشر وتُخفى تلقائياً بعد إنهاء أو إلغاء الخدمة.'
@@ -270,7 +270,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
 
               <a
                 href={`tel:${provider.phone}`}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors shadow-xs"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs transition-colors shadow-xs border border-transparent dark:border-slate-700"
               >
                 <Phone className="w-4 h-4" />
                 <span>{t('callNow')} ({provider.phone})</span>
@@ -278,16 +278,16 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
             </div>
           </div>
         ) : (
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-3 pt-3">
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs space-y-3 pt-3">
             <div className="flex items-start gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 flex items-center justify-center shrink-0 mt-0.5">
                 <Lock className="w-4 h-4" />
               </div>
               <div className="space-y-0.5">
-                <span className="font-bold text-slate-900 block">
+                <span className="font-bold text-slate-900 dark:text-slate-100 block">
                   {language === 'ar' ? 'بيانات الاتصال (الهاتف والواتساب) محمية' : 'Contact Details (Phone & WhatsApp) are Protected'}
                 </span>
-                <p className="text-[11px] text-slate-600 leading-relaxed">
+                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                   {language === 'ar'
                     ? 'تظهر أرقام الهاتف ورابط واتساب المباشر للعميل فقط أثناء سريان طلب الخدمة، وتُخفى مجدداً بعد إنهاء أو إلغاء الخدمة حفاظاً على الخصوصية.'
                     : 'Provider phone number and WhatsApp chat are revealed only while a booking request is active, and hidden again once the service is ended or cancelled.'}
@@ -306,7 +306,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
               disabled={isAtMaxCapacity}
               className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer ${
                 isAtMaxCapacity
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                   : 'bg-teal-700 hover:bg-teal-600 text-white shadow-xs'
               }`}
             >
@@ -320,12 +320,12 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
       </div>
 
       {/* Bio & Experience Section */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-3">
-        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-          <Briefcase className="w-4 h-4 text-teal-700" />
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-3">
+        <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+          <Briefcase className="w-4 h-4 text-teal-700 dark:text-teal-400" />
           <span>{language === 'ar' ? 'نبذة عن الخبرة والمهنة' : 'Professional Bio & Trade'}</span>
         </h2>
-        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
           {provider.bioAr}
         </p>
 
@@ -336,8 +336,8 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
             : (provider.tradeCategoryId ? [provider.tradeCategoryId] : []);
           if (catIds.length === 0) return null;
           return (
-            <div className="pt-2 border-t border-slate-100 space-y-1.5">
-              <span className="text-xs font-semibold text-slate-500 block">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
                 {language === 'ar' ? 'الخدمات والحرف التي يقدمها:' : 'Offered Services & Trades:'}
               </span>
               <div className="flex flex-wrap gap-2">
@@ -346,9 +346,9 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                   return (
                     <span
                       key={catId}
-                      className="px-3 py-1 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold inline-flex items-center gap-1.5"
+                      className="px-3 py-1 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/70 text-teal-800 dark:text-teal-300 text-xs font-bold inline-flex items-center gap-1.5"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-600" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-600 dark:bg-teal-400" />
                       <span>{cat ? (language === 'ar' ? cat.nameAr : cat.nameEn) : catId}</span>
                     </span>
                   );
@@ -360,15 +360,15 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
 
         {/* Covered Neighborhoods */}
         {provider.coveredNeighborhoods && provider.coveredNeighborhoods.length > 0 && (
-          <div className="pt-2 border-t border-slate-100 space-y-1.5">
-            <span className="text-xs font-semibold text-slate-500 block">
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">
               {t('coveredAreas')}:
             </span>
             <div className="flex flex-wrap gap-1.5">
               {provider.coveredNeighborhoods.map((area, idx) => (
                 <span
                   key={idx}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium"
                 >
                   {area}
                 </span>
@@ -380,15 +380,15 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
 
       {/* Itemized Services & Specific Pricing Menu (Provider defined & instant) */}
       {provider.customServices && provider.customServices.length > 0 && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-3.5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-3.5 shadow-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-teal-700" />
-              <h2 className="text-sm font-bold text-slate-900">
+              <Tag className="w-4 h-4 text-teal-700 dark:text-teal-400" />
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                 {language === 'ar' ? 'قائمة الخدمات والأسعار المحددة' : 'Itemized Services & Specific Pricing'}
               </h2>
             </div>
-            <span className="text-[11px] text-teal-800 font-semibold bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+            <span className="text-[11px] text-teal-800 dark:text-teal-300 font-semibold bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-full border border-teal-200 dark:border-teal-800/70">
               {provider.customServices.length} {language === 'ar' ? 'خدمات معتمدة' : 'services'}
             </span>
           </div>
@@ -399,15 +399,15 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
               return (
                 <div
                   key={service.id}
-                  className="p-3.5 rounded-2xl border border-slate-100 bg-slate-50/70 hover:bg-slate-50 hover:border-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                  className="p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs sm:text-sm font-bold text-slate-900">
+                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                         {service.nameAr}
                       </span>
                       {cat && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white text-slate-700 border border-slate-200">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                           {language === 'ar' ? cat.nameAr : cat.nameEn}
                         </span>
                       )}
@@ -415,8 +415,8 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                    <div className="text-sm font-extrabold text-teal-800 font-mono tabular-nums">
-                      {service.priceSDG.toLocaleString()} <span className="text-[11px] font-normal text-slate-500">{t('sdg')}</span>
+                    <div className="text-sm font-extrabold text-teal-800 dark:text-teal-400 font-mono tabular-nums">
+                      {service.priceSDG.toLocaleString()} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{t('sdg')}</span>
                     </div>
 
                     <button
@@ -442,18 +442,18 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
       )}
 
       {/* Portfolio Gallery Section (Grid Layout) */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-3">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-900">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
             {t('portfolioTitle')}
           </h2>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-400 dark:text-slate-500">
             {provider.portfolio?.length || 0} {language === 'ar' ? 'أعمال موثقة' : 'samples'}
           </span>
         </div>
 
         {(!provider.portfolio || provider.portfolio.length === 0) ? (
-          <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">
+          <div className="p-6 text-center text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 rounded-2xl">
             {language === 'ar' ? 'لم يتم رفع صور أعمال سابقة حتى الآن' : 'No portfolio samples uploaded yet'}
           </div>
         ) : (
@@ -462,7 +462,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
               <div
                 key={item.id}
                 onClick={() => setActivePhoto(item)}
-                className="group relative rounded-2xl overflow-hidden aspect-square bg-slate-100 border border-slate-200 cursor-pointer shadow-2xs"
+                className="group relative rounded-2xl overflow-hidden aspect-square bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer shadow-2xs"
               >
                 <img
                   src={item.imageUrl}
@@ -485,15 +485,15 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
       </div>
 
       {/* Client Star Ratings & Reviews Section */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
-            <h2 className="text-sm font-bold text-slate-900">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
               {language === 'ar' ? 'تقييمات وآراء العملاء' : 'Client Star Ratings & Reviews'}
             </h2>
           </div>
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-slate-100">
             <span className="text-amber-500 font-extrabold text-sm">{provider.rating || 5.0}</span>
             <div className="flex items-center text-amber-400">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -502,12 +502,12 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                   className={`w-3.5 h-3.5 ${
                     star <= Math.round(provider.rating || 5.0)
                       ? 'fill-amber-400 text-amber-500'
-                      : 'text-slate-200'
+                      : 'text-slate-200 dark:text-slate-700'
                   }`}
                 />
               ))}
             </div>
-            <span className="text-slate-400 font-normal">({provider.reviewCount || 0})</span>
+            <span className="text-slate-400 dark:text-slate-500 font-normal">({provider.reviewCount || 0})</span>
           </div>
         </div>
 
@@ -534,11 +534,11 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
 
           if (ratedRequests.length === 0) {
             return (
-              <div className="p-5 text-center rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-500 space-y-1">
-                <p className="font-semibold text-slate-700">
+              <div className="p-5 text-center rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                <p className="font-semibold text-slate-700 dark:text-slate-200">
                   {language === 'ar' ? 'تقييمات ممتازة من العملاء عبر إتمام الخدمات' : 'Great ratings from past clients'}
                 </p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
                   {language === 'ar'
                     ? 'يتمكن العملاء من تقييم الخدمة بالنجوم مباشرة بعد اكتمال تنفيذ طلباتهم.'
                     : 'Clients submit 1 to 5 star ratings directly on completed bookings.'}
@@ -550,9 +550,9 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
           return (
             <div className="space-y-3">
               {ratedRequests.map((req) => (
-                <div key={req.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div key={req.id} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">{req.clientName}</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{req.clientName}</span>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
@@ -560,7 +560,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                           className={`w-3.5 h-3.5 ${
                             star <= (req.clientRating || 5)
                               ? 'fill-amber-400 text-amber-500'
-                              : 'text-slate-200'
+                              : 'text-slate-200 dark:text-slate-700'
                           }`}
                         />
                       ))}
@@ -568,12 +568,12 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                   </div>
 
                   {req.clientReviewComment && (
-                    <p className="text-xs text-slate-700 leading-relaxed italic">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed italic">
                       "{req.clientReviewComment}"
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200/60">
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
                     <span>{req.selectedServiceNames?.join(' + ') || req.problemDescription}</span>
                     <span>{req.ratedAt || req.completedAt}</span>
                   </div>
@@ -585,27 +585,27 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
       </div>
 
       {/* Booking Terms & Cancellation Policy Banner */}
-      <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-2.5">
+      <div className="p-4 rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-950 dark:text-amber-100 space-y-2.5">
         <div className="flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
             <span className="font-bold block">
               {language === 'ar' ? 'سياسة الإلغاء الشفافة للمنصة' : 'Transparent Cancellation Policy'}
             </span>
-            <p className="text-[11px] text-amber-900 leading-relaxed">
+            <p className="text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
               {t('clientCancellationNotice')}
             </p>
           </div>
         </div>
 
-        <div className="pt-2 border-t border-amber-200/70 flex items-center gap-2 text-[11px] text-amber-900 font-medium">
-          <Calendar className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+        <div className="pt-2 border-t border-amber-200/70 dark:border-amber-800/60 flex items-center gap-2 text-[11px] text-amber-900 dark:text-amber-200 font-medium">
+          <Calendar className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400 shrink-0" />
           <span>{t('scheduleAgreementNote')}</span>
         </div>
       </div>
 
       {/* Sticky Bottom CTA for Booking Request */}
-      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] inset-x-0 bg-white border-t border-slate-200 z-30 shadow-[0_-4px_16px_rgba(15,23,42,0.08)]">
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] inset-x-0 bg-white dark:bg-slate-900/95 dark:backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-30 shadow-[0_-4px_16px_rgba(15,23,42,0.08)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.4)]">
         <div className="max-w-3xl mx-auto px-4 py-2.5">
           {clientHasActiveRequest ? (
             <div className="grid grid-cols-2 gap-2.5">
@@ -614,7 +614,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                   setSelectedProviderId(null);
                   setActiveTab('bookings');
                 }}
-                className="h-11 px-3 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap truncate"
+                className="h-11 px-3 rounded-xl font-bold text-xs bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap truncate"
               >
                 <Clock className="w-3.5 h-3.5 text-teal-300 shrink-0" />
                 <span className="truncate">{language === 'ar' ? 'طلباتي والاتصال' : 'My Bookings & Call'}</span>
@@ -630,7 +630,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
                 disabled={isAtMaxCapacity}
                 className={`h-11 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer whitespace-nowrap truncate ${
                   isAtMaxCapacity
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                     : 'bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]'
                 }`}
               >
@@ -649,7 +649,7 @@ export const ProviderDetailScreen: React.FC<Props> = ({ providerId, onBack }) =>
               disabled={isAtMaxCapacity}
               className={`w-full h-11 px-5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer whitespace-nowrap ${
                 isAtMaxCapacity
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
                   : 'bg-teal-700 hover:bg-teal-600 text-white active:scale-[0.99]'
               }`}
             >

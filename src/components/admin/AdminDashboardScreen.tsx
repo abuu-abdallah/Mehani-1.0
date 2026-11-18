@@ -715,16 +715,16 @@ export const AdminDashboardScreen: React.FC = () => {
       <div className="flex items-center justify-between gap-3">
         <button
           onClick={goBack}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold transition-all shadow-2xs cursor-pointer group"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group"
           title={language === 'ar' ? 'الرجوع للمنصة الرئيسية' : 'Back to Platform'}
         >
-          <BackArrowIcon className="w-4 h-4 text-teal-600 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
+          <BackArrowIcon className="w-4 h-4 text-teal-600 dark:text-teal-400 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
           <span>{language === 'ar' ? 'الرجوع للمنصة الرئيسية' : 'Back to Platform'}</span>
         </button>
       </div>
 
       {/* Admin Header with Banner */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-slate-900 dark:bg-slate-950 dark:border dark:border-slate-800 text-white rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-lg bg-teal-500 text-slate-950 text-[10px] font-extrabold uppercase">
@@ -747,13 +747,13 @@ export const AdminDashboardScreen: React.FC = () => {
       </div>
 
       {/* Admin Navigation Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none">
+      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto scrollbar-none">
         <button
           onClick={() => setActiveAdminTab('overview')}
           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap cursor-pointer transition-colors ${
             activeAdminTab === 'overview'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 dark:bg-teal-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
           }`}
         >
           <TrendingUp className="w-3.5 h-3.5" />
@@ -764,8 +764,8 @@ export const AdminDashboardScreen: React.FC = () => {
           onClick={() => setActiveAdminTab('users')}
           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap cursor-pointer transition-colors ${
             activeAdminTab === 'users'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 dark:bg-teal-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
           }`}
         >
           <Users className="w-3.5 h-3.5" />
@@ -781,8 +781,8 @@ export const AdminDashboardScreen: React.FC = () => {
           onClick={() => setActiveAdminTab('services')}
           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap cursor-pointer transition-colors ${
             activeAdminTab === 'services'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 dark:bg-teal-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
           }`}
         >
           <Briefcase className="w-3.5 h-3.5" />
@@ -793,8 +793,8 @@ export const AdminDashboardScreen: React.FC = () => {
           onClick={() => setActiveAdminTab('requests')}
           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap cursor-pointer transition-colors ${
             activeAdminTab === 'requests'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 dark:bg-teal-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
           }`}
         >
           <Clock className="w-3.5 h-3.5" />
@@ -810,8 +810,8 @@ export const AdminDashboardScreen: React.FC = () => {
           onClick={() => setActiveAdminTab('deposits')}
           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap cursor-pointer transition-colors ${
             activeAdminTab === 'deposits'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 dark:bg-teal-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800'
           }`}
         >
           <Wallet className="w-3.5 h-3.5" />
@@ -830,59 +830,59 @@ export const AdminDashboardScreen: React.FC = () => {
       {activeAdminTab === 'overview' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase block">{t('totalUsers')}</span>
-              <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{totalUsersCount}</div>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase block">{t('totalUsers')}</span>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">{totalUsersCount}</div>
               <div className="flex items-center gap-1 text-[10px]">
-                <span className="text-emerald-700 font-bold">{activeUsersCount} نشط</span>
-                <span>·</span>
-                <span className="text-rose-700 font-bold">{deactivatedUsersCount} معطل</span>
+                <span className="text-emerald-700 dark:text-emerald-400 font-bold">{activeUsersCount} نشط</span>
+                <span className="text-slate-400 dark:text-slate-600">·</span>
+                <span className="text-rose-700 dark:text-rose-400 font-bold">{deactivatedUsersCount} معطل</span>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase block">{t('totalProviders')}</span>
-              <div className="text-2xl font-extrabold text-teal-800 tabular-nums">{providersCount}</div>
-              <span className="text-[10px] text-slate-500">{customersCount} عميل مسجل</span>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase block">{t('totalProviders')}</span>
+              <div className="text-2xl font-extrabold text-teal-800 dark:text-teal-400 tabular-nums">{providersCount}</div>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">{customersCount} عميل مسجل</span>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase block">{language === 'ar' ? 'الخدمات الجارية' : 'Ongoing Jobs'}</span>
-              <div className="text-2xl font-extrabold text-amber-600 tabular-nums">{ongoingRequests.length}</div>
-              <span className="text-[10px] text-slate-500">{language === 'ar' ? 'قيد التنفيذ والمتابعة' : 'Underway'}</span>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase block">{language === 'ar' ? 'الخدمات الجارية' : 'Ongoing Jobs'}</span>
+              <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">{ongoingRequests.length}</div>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">{language === 'ar' ? 'قيد التنفيذ والمتابعة' : 'Underway'}</span>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase block">{language === 'ar' ? 'الخدمات المكتملة' : 'Completed Jobs'}</span>
-              <div className="text-2xl font-extrabold text-emerald-700 tabular-nums">{completedRequests.length}</div>
-              <span className="text-[10px] text-slate-500">{cancelledRequests.length} ملغية</span>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase block">{language === 'ar' ? 'الخدمات المكتملة' : 'Completed Jobs'}</span>
+              <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{completedRequests.length}</div>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">{cancelledRequests.length} ملغية</span>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase block">{t('totalVolume')}</span>
-              <div className="text-xl font-extrabold text-slate-900 tabular-nums">{totalVolumeSDG.toLocaleString()}</div>
-              <span className="text-[10px] text-slate-400">{t('sdg')}</span>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase block">{t('totalVolume')}</span>
+              <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">{totalVolumeSDG.toLocaleString()}</div>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">{t('sdg')}</span>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
-              <span className="text-[11px] font-semibold text-slate-400 uppercase block">{t('totalCommission')}</span>
-              <div className="text-xl font-extrabold text-teal-700 tabular-nums">{totalCommissionSDG.toLocaleString()}</div>
-              <span className="text-[10px] text-slate-400">{t('sdg')} (8%)</span>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase block">{t('totalCommission')}</span>
+              <div className="text-xl font-extrabold text-teal-700 dark:text-teal-400 tabular-nums">{totalCommissionSDG.toLocaleString()}</div>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">{t('sdg')} (8%)</span>
             </div>
           </div>
 
           {/* Pending NID Providers Approval Alert Card in Overview */}
           {pendingNidProviders.length > 0 && (
-            <div className="p-4 rounded-3xl bg-amber-500/10 border-2 border-amber-400 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="p-4 rounded-3xl bg-amber-500/10 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-700 text-amber-950 dark:text-amber-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 shadow-2xs font-bold text-sm">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-900/70 flex items-center justify-center text-amber-700 dark:text-amber-300 shrink-0 shadow-2xs font-bold text-sm">
                   {pendingNidProviders.length}
                 </div>
                 <div>
                   <span className="font-extrabold text-sm block">
                     {language === 'ar' ? `يوجد ${pendingNidProviders.length} مقدم خدمة جديد بانتظار مراجعة واعتماد الرقم الوطني أو جواز السفر` : `${pendingNidProviders.length} New Providers Awaiting NID / Passport Approval`}
                   </span>
-                  <span className="text-xs text-amber-800">
+                  <span className="text-xs text-amber-800 dark:text-amber-300">
                     {language === 'ar' ? 'حسابات المهنيين معطلة افتراضياً حتى تقوم الإدارة بفحص صورة الرقم الوطني أو جواز السفر وتفعيل الحساب.' : 'Provider accounts remain deactivated until admin reviews NID/Passport and activates.'}
                   </span>
                 </div>
@@ -903,16 +903,16 @@ export const AdminDashboardScreen: React.FC = () => {
 
           {/* Pending Service Suggestions Alert Card in Overview */}
           {pendingSuggestions.length > 0 && (
-            <div className="p-4 rounded-3xl bg-teal-500/10 border-2 border-teal-500/60 text-teal-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="p-4 rounded-3xl bg-teal-500/10 dark:bg-teal-950/40 border-2 border-teal-500/60 dark:border-teal-700 text-teal-950 dark:text-teal-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-700 shrink-0 shadow-2xs font-bold text-sm">
+                <div className="w-10 h-10 rounded-2xl bg-teal-100 dark:bg-teal-900/70 flex items-center justify-center text-teal-700 dark:text-teal-300 shrink-0 shadow-2xs font-bold text-sm">
                   {pendingSuggestions.length}
                 </div>
                 <div>
                   <span className="font-extrabold text-sm block">
                     {language === 'ar' ? `يوجد ${pendingSuggestions.length} حرف وخدمات جديدة مقترحة من الحرفيين بانتظار الاعتماد` : `${pendingSuggestions.length} New Service Suggestions Awaiting Approval`}
                   </span>
-                  <span className="text-xs text-teal-800">
+                  <span className="text-xs text-teal-800 dark:text-teal-300">
                     {language === 'ar' ? 'يمكنك فحص الحرف المقترحة واعتمادها لإضافتها فوراً لدليل المنصة وتعيينها للحرفي.' : 'Review proposed services and approve them to add them to catalog.'}
                   </span>
                 </div>
@@ -931,9 +931,9 @@ export const AdminDashboardScreen: React.FC = () => {
 
           {/* Unpaid Cancellation Fines Alert Card in Overview */}
           {usersWithFines.length > 0 && (
-            <div className="p-4 rounded-3xl bg-rose-500/10 border-2 border-rose-300 text-rose-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+            <div className="p-4 rounded-3xl bg-rose-500/10 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-800/70 text-rose-950 dark:text-rose-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-700 shrink-0 shadow-2xs font-bold text-sm">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-900/70 flex items-center justify-center text-rose-700 dark:text-rose-300 shrink-0 shadow-2xs font-bold text-sm">
                   {usersWithFines.length}
                 </div>
                 <div>
@@ -942,7 +942,7 @@ export const AdminDashboardScreen: React.FC = () => {
                       ? `يوجد ${usersWithFines.length} مستخدم عليهم غرامات إلغاء مستحقة (${totalUnpaidFinesSDG.toLocaleString()} ج.س)`
                       : `${usersWithFines.length} users have unpaid cancellation fines (${totalUnpaidFinesSDG.toLocaleString()} SDG)`}
                   </span>
-                  <span className="text-xs text-rose-800">
+                  <span className="text-xs text-rose-800 dark:text-rose-300">
                     {language === 'ar'
                       ? 'يمكن للإدارة مراجعة الغرامات وإعفاء أي مستخدم منها مباشرة.'
                       : 'Admins can review unpaid fines and waive them for any user.'}
@@ -966,22 +966,22 @@ export const AdminDashboardScreen: React.FC = () => {
           {/* Quick Management Shortcuts */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Box 1: Users & Deactivation */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3 flex flex-col justify-between">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-teal-700" />
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-teal-700 dark:text-teal-400" />
                     <span>{language === 'ar' ? 'إدارة وتفعيل الحسابات' : 'Users & Accounts'}</span>
                   </h3>
                   <button
                     onClick={handleOpenAddUser}
-                    className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-800 cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>{t('addUser')}</span>
                   </button>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                   {language === 'ar'
                     ? 'التحكم في تفعيل أو تجميد/تعطيل حسابات المستخدمين والمهنيين المخالفين، وفحص وثائق الهوية الوطنية الخاصة.'
                     : 'Activate or deactivate users, verify private NIDs, and manage profile credentials.'}
@@ -989,25 +989,25 @@ export const AdminDashboardScreen: React.FC = () => {
               </div>
               <button
                 onClick={() => setActiveAdminTab('users')}
-                className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               >
                 {language === 'ar' ? 'إدارة المستخدمين والحسابات' : 'Manage User Accounts'}
               </button>
             </div>
 
             {/* Box 2: Ongoing & Completed Services */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3 flex flex-col justify-between">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-600" />
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     <span>{language === 'ar' ? 'الخدمات الجارية والمكتملة' : 'Ongoing & Completed'}</span>
                   </h3>
-                  <span className="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 text-[10px] font-bold border border-amber-200">
+                  <span className="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-bold border border-amber-200 dark:border-amber-800/70">
                     {ongoingRequests.length} جارية
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                   {language === 'ar'
                     ? 'متابعة مسار الخدمات النشطة (قبول، بدء، إنهاء، أو إلغاء)، ومراجعة إثباتات توريد العمولات للخدمات المكتملة.'
                     : 'Manage active jobs lifecycle, complete jobs with payment methods, and inspect commission receipts.'}
@@ -1018,25 +1018,25 @@ export const AdminDashboardScreen: React.FC = () => {
                   setRequestFilterMode('ongoing');
                   setActiveAdminTab('requests');
                 }}
-                className="w-full py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-xs border border-teal-200 transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-800 dark:text-teal-300 font-bold text-xs border border-teal-200 dark:border-teal-800/70 transition-colors cursor-pointer"
               >
                 {language === 'ar' ? 'متابعة الخدمات الجارية الآن' : 'View Ongoing Services'}
               </button>
             </div>
 
             {/* Box 3: Thursday Deposits */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3 flex flex-col justify-between">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3 flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                    <Wallet className="w-4 h-4 text-emerald-600" />
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     <span>{language === 'ar' ? 'توريدات عمولات الخميس' : 'Thursday Settlements'}</span>
                   </h3>
-                  <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
+                  <span className="px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800/70">
                     بنكك 2334155
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                   {language === 'ar'
                     ? 'تدقيق إشعارات التحويل البنكية المرفوعة من الحرفيين كل خميس واعتمادها بعد التأكد من الرقم المرجعي.'
                     : 'Audit uploaded Bankak transfer receipts and verify Thursday commission payments.'}
@@ -1044,7 +1044,7 @@ export const AdminDashboardScreen: React.FC = () => {
               </div>
               <button
                 onClick={() => setActiveAdminTab('deposits')}
-                className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 transition-colors cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               >
                 {language === 'ar' ? 'فحص واعتماد التوريدات' : 'Audit Thursday Deposits'}
               </button>
@@ -1055,13 +1055,13 @@ export const AdminDashboardScreen: React.FC = () => {
 
       {/* TAB 2: USER MANAGEMENT (ADD, UPDATE, REMOVE, DEACTIVATE/REACTIVATE, PRIVATE NID) */}
       {activeAdminTab === 'users' && (
-        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-4 p-5">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs space-y-4 p-5">
           
           {/* Header & Action Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900">{t('adminManageUsers')}</h2>
-              <span className="text-xs text-slate-500">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{t('adminManageUsers')}</h2>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {language === 'ar' 
                   ? 'إضافة وتعديل وحذف الحسابات، تعطيل وتفعيل المستخدمين، وتدقيق وثائق الهوية الوطنية (خاص بالإدارة)' 
                   : 'Add, update, remove users, deactivate/reactivate accounts, and inspect private NID'}
@@ -1079,9 +1079,9 @@ export const AdminDashboardScreen: React.FC = () => {
 
           {/* Pending NID Providers Verification Alert Banner */}
           {pendingNidProviders.length > 0 && (
-            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800/70 text-amber-900 dark:text-amber-100 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-200 flex items-center justify-center text-amber-800 shrink-0 font-bold">
+                <div className="w-8 h-8 rounded-xl bg-amber-200 dark:bg-amber-900/70 flex items-center justify-center text-amber-800 dark:text-amber-300 shrink-0 font-bold">
                   {pendingNidProviders.length}
                 </div>
                 <div>
@@ -1090,7 +1090,7 @@ export const AdminDashboardScreen: React.FC = () => {
                       ? `يوجد ${pendingNidProviders.length} مقدم خدمة بانتظار مراجعة واعتماد الرقم الوطني أو جواز السفر` 
                       : `${pendingNidProviders.length} providers awaiting National ID / Passport verification`}
                   </span>
-                  <span className="text-[11px] text-amber-700">
+                  <span className="text-[11px] text-amber-700 dark:text-amber-300">
                     {language === 'ar' ? 'حسابات المهنيين الجدد معطلة افتراضياً حتى تعتمدها الإدارة بعد تدقيق الهوية' : 'New provider accounts are deactivated by default until verified by admin'}
                   </span>
                 </div>
@@ -1110,21 +1110,21 @@ export const AdminDashboardScreen: React.FC = () => {
 
           {/* Search & Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div className="relative flex items-center bg-slate-50 rounded-xl border border-slate-200">
-              <Search className="w-4 h-4 text-slate-400 ms-3 shrink-0" />
+            <div className="relative flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 ms-3 shrink-0" />
               <input
                 type="text"
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
                 placeholder={language === 'ar' ? 'ابحث بالاسم، رقم الهاتف، الحي، أو الرقم الوطني...' : 'Search by name, phone, or NID...'}
-                className="w-full px-3 py-2 bg-transparent text-slate-900 focus:outline-none"
+                className="w-full px-3 py-2 bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
               />
             </div>
 
             <select
               value={userRoleFilter}
               onChange={(e) => setUserRoleFilter(e.target.value as any)}
-              className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-medium focus:outline-none cursor-pointer"
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium focus:outline-none cursor-pointer"
             >
               <option value="all">{language === 'ar' ? 'جميع الأدوار (الكل)' : 'All Roles'}</option>
               <option value="customer">{t('totalCustomers')}</option>
@@ -1133,8 +1133,8 @@ export const AdminDashboardScreen: React.FC = () => {
             </select>
 
             {fineActionFeedback && (
-              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 text-emerald-900 dark:text-emerald-200 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{fineActionFeedback}</span>
               </div>
             )}
@@ -1142,7 +1142,7 @@ export const AdminDashboardScreen: React.FC = () => {
             <select
               value={userStatusFilter}
               onChange={(e) => setUserStatusFilter(e.target.value as any)}
-              className="px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 font-medium focus:outline-none cursor-pointer"
+              className="px-3 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-medium focus:outline-none cursor-pointer"
             >
               <option value="all">{language === 'ar' ? 'كل حالات الحساب (نشط ومعطل)' : 'All Statuses'}</option>
               <option value="pending_nid">
@@ -1157,9 +1157,9 @@ export const AdminDashboardScreen: React.FC = () => {
           </div>
 
           {/* Users Table */}
-          <div className="overflow-x-auto rounded-2xl border border-slate-100">
+          <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800">
             <table className="w-full text-start text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="p-3 text-start">المستخدم</th>
                   <th className="p-3 text-start">الدور</th>
@@ -1170,26 +1170,26 @@ export const AdminDashboardScreen: React.FC = () => {
                   <th className="p-3 text-end">إجراءات الإدارة</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredUsers.map((user) => {
                   const isProv = user.role === 'provider';
                   const activeCount = isProv ? getProviderActiveServicesCount(user.id) : 0;
                   const isActive = user.isActive !== false;
 
                   return (
-                    <tr key={user.id} className={`hover:bg-slate-50/80 transition-colors ${!isActive ? 'bg-rose-50/30' : ''}`}>
+                    <tr key={user.id} className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${!isActive ? 'bg-rose-50/30 dark:bg-rose-950/20' : ''}`}>
                       {/* Name & Avatar */}
                       <td className="p-3">
                         <div className="flex items-center gap-2.5">
                           <img
                             src={user.avatarUrl}
                             alt={user.name}
-                            className={`w-9 h-9 rounded-xl object-cover border ${!isActive ? 'border-rose-300 opacity-60' : 'border-slate-200'}`}
+                            className={`w-9 h-9 rounded-xl object-cover border ${!isActive ? 'border-rose-300 dark:border-rose-700 opacity-60' : 'border-slate-200 dark:border-slate-700'}`}
                             referrerPolicy="no-referrer"
                           />
                           <div>
-                            <span className="font-bold text-slate-900 block">{user.name}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">ID: {user.id}</span>
+                            <span className="font-bold text-slate-900 dark:text-slate-100 block">{user.name}</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">ID: {user.id}</span>
                           </div>
                         </div>
                       </td>
@@ -1197,17 +1197,17 @@ export const AdminDashboardScreen: React.FC = () => {
                       {/* Role Badge */}
                       <td className="p-3">
                         {user.role === 'admin' && (
-                          <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 font-bold border border-purple-200 text-[10px]">
+                          <span className="px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold border border-purple-200 dark:border-purple-800/70 text-[10px]">
                             {t('adminRole')}
                           </span>
                         )}
                         {user.role === 'provider' && (
-                          <span className="px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 font-bold border border-teal-200 text-[10px]">
+                          <span className="px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800/70 text-[10px]">
                             {t('totalProviders')}
                           </span>
                         )}
                         {user.role === 'customer' && (
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold border border-slate-200 text-[10px]">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700 text-[10px]">
                             {t('totalCustomers')}
                           </span>
                         )}
@@ -1217,18 +1217,18 @@ export const AdminDashboardScreen: React.FC = () => {
                       <td className="p-3">
                         <div className="flex items-center gap-1.5">
                           {isActive ? (
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 text-[10px] flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800/70 text-[10px] flex items-center gap-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                               <span>{t('accountActive')}</span>
                             </span>
                           ) : (
                             <div>
-                              <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 font-bold border border-rose-200 text-[10px] flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 font-bold border border-rose-200 dark:border-rose-800/70 text-[10px] flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                                 <span>{t('accountDeactivated')}</span>
                               </span>
                               {user.deactivatedReason && (
-                                <span className="text-[9px] text-rose-600 block mt-0.5 max-w-[120px] truncate" title={user.deactivatedReason}>
+                                <span className="text-[9px] text-rose-600 dark:text-rose-400 block mt-0.5 max-w-[120px] truncate" title={user.deactivatedReason}>
                                   {user.deactivatedReason}
                                 </span>
                               )}
@@ -1240,8 +1240,8 @@ export const AdminDashboardScreen: React.FC = () => {
                             onClick={() => handleToggleUserActiveStatus(user)}
                             className={`p-1 rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
                               isActive 
-                                ? 'hover:bg-rose-100 text-rose-700' 
-                                : 'hover:bg-emerald-100 text-emerald-700'
+                                ? 'hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-400' 
+                                : 'hover:bg-emerald-100 dark:hover:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400'
                             }`}
                             title={isActive ? t('deactivateAccount') : t('reactivateAccount')}
                           >
@@ -1251,17 +1251,17 @@ export const AdminDashboardScreen: React.FC = () => {
                       </td>
 
                       {/* Phone Number & Email */}
-                      <td className="p-3 font-mono font-medium text-slate-800">
+                      <td className="p-3 font-mono font-medium text-slate-800 dark:text-slate-200">
                         <div>{user.phone}</div>
                         {user.email && (
-                          <div className="text-[10px] font-sans text-slate-500 mt-0.5 truncate max-w-[160px]" dir="ltr" title={user.email}>
+                          <div className="text-[10px] font-sans text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[160px]" dir="ltr" title={user.email}>
                             {user.email}
                           </div>
                         )}
                       </td>
 
                       {/* Location */}
-                      <td className="p-3 text-slate-600">
+                      <td className="p-3 text-slate-600 dark:text-slate-400">
                         {user.city} · {user.neighborhood}
                       </td>
 
@@ -1270,11 +1270,11 @@ export const AdminDashboardScreen: React.FC = () => {
                         <div className="space-y-1.5">
                           {isProv ? (
                             <div className="space-y-1">
-                              <span className="text-teal-700 font-semibold block">{user.tradeTitleAr || 'حرفي'}</span>
-                              <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                                <span className="tabular-nums font-bold text-slate-700">{user.basePriceSDG?.toLocaleString()} ج.س</span>
+                              <span className="text-teal-700 dark:text-teal-400 font-semibold block">{user.tradeTitleAr || 'حرفي'}</span>
+                              <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+                                <span className="tabular-nums font-bold text-slate-700 dark:text-slate-200">{user.basePriceSDG?.toLocaleString()} ج.س</span>
                                 <span>·</span>
-                                <span className={activeCount >= 2 ? 'text-amber-700 font-bold' : 'text-emerald-700'}>
+                                <span className={activeCount >= 2 ? 'text-amber-700 dark:text-amber-400 font-bold' : 'text-emerald-700 dark:text-emerald-400'}>
                                   {activeCount}/2 طلبات جارية
                                 </span>
                               </div>
@@ -1282,19 +1282,19 @@ export const AdminDashboardScreen: React.FC = () => {
                               {/* Private NID for Admin & Verification status */}
                               <div className="flex items-center gap-1.5 text-[10px] pt-0.5 flex-wrap">
                                 {user.nidNumber ? (
-                                  <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
+                                  <span className="font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                                     {user.nidNumber}
                                   </span>
                                 ) : (
-                                  <span className="text-slate-400">بدون NID</span>
+                                  <span className="text-slate-400 dark:text-slate-500">بدون NID</span>
                                 )}
                                 {user.nidStatus === 'reupload_requested' && (
-                                  <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 text-[9px] font-bold">
+                                  <span className="px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70 text-[9px] font-bold">
                                     بانتظار إعادة الرفع
                                   </span>
                                 )}
                                 {!isActive && (user.deactivatedReason?.includes('المحدثة') || (user.nidStatus === 'pending' && user.nidSubmittedAt)) && (
-                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-[9px] font-bold">
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70 text-[9px] font-bold">
                                     ✨ مستند محدث
                                   </span>
                                 )}
@@ -1306,12 +1306,12 @@ export const AdminDashboardScreen: React.FC = () => {
                                   }}
                                   className={`font-bold px-2 py-0.5 rounded cursor-pointer transition-colors ${
                                     user.nidStatus === 'reupload_requested'
-                                      ? 'bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300'
+                                      ? 'bg-rose-100 dark:bg-rose-950/70 hover:bg-rose-200 dark:hover:bg-rose-900/70 text-rose-900 dark:text-rose-200 border border-rose-300 dark:border-rose-800/70'
                                       : !isActive && user.deactivatedReason?.includes('المحدثة')
-                                      ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300'
+                                      ? 'bg-emerald-100 dark:bg-emerald-950/70 hover:bg-emerald-200 dark:hover:bg-emerald-900/70 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800/70'
                                       : !isActive 
-                                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300' 
-                                      : 'text-teal-700 hover:text-teal-800 underline'
+                                      ? 'bg-amber-100 dark:bg-amber-950/70 hover:bg-amber-200 dark:hover:bg-amber-900/70 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800/70' 
+                                      : 'text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 underline'
                                   }`}
                                   title="عرض وتدقيق مستند الهوية المرفوع"
                                 >
@@ -1327,7 +1327,7 @@ export const AdminDashboardScreen: React.FC = () => {
                             </div>
                           ) : (
                             ((user.unpaidCancellationFeeSDG || 0) + (activeRequestFinesByUserId[user.id] || 0)) <= 0 && (
-                              <span className="text-slate-400 text-[11px]">—</span>
+                              <span className="text-slate-400 dark:text-slate-500 text-[11px]">—</span>
                             )
                           )}
 
@@ -1338,7 +1338,7 @@ export const AdminDashboardScreen: React.FC = () => {
                             const totalUserFine = accountFine + activeReqFine;
                             return (
                               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                                <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-bold tabular-nums">
+                                <span className="px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70 text-[10px] font-bold tabular-nums">
                                   {language === 'ar'
                                     ? `غرامة إلغاء: ${totalUserFine.toLocaleString()} ج.س${activeReqFine > 0 ? ' (تشمل طلبات جارية)' : ''}`
                                     : `Penalty: ${totalUserFine.toLocaleString()} SDG${activeReqFine > 0 ? ' (incl. active)' : ''}`}
@@ -1361,7 +1361,7 @@ export const AdminDashboardScreen: React.FC = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEditUser(user)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 cursor-pointer"
+                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 cursor-pointer"
                             title={t('editUser')}
                           >
                             <Edit className="w-4 h-4" />
@@ -1372,8 +1372,8 @@ export const AdminDashboardScreen: React.FC = () => {
                             disabled={user.phone === '0900000000'}
                             className={`p-1.5 rounded-lg cursor-pointer ${
                               user.phone === '0900000000'
-                                ? 'text-slate-300 cursor-not-allowed'
-                                : 'hover:bg-rose-50 text-rose-600 hover:text-rose-700'
+                                ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
+                                : 'hover:bg-rose-50 dark:hover:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300'
                             }`}
                             title={t('deleteUser')}
                           >
@@ -1394,21 +1394,21 @@ export const AdminDashboardScreen: React.FC = () => {
       {activeAdminTab === 'services' && (
         <div className="space-y-6">
           {/* Section A: Provider Service Suggestions Review Board */}
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-4 p-5">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs space-y-4 p-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-base font-bold text-slate-900">
+                  <Sparkles className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                     {language === 'ar' ? 'مقترحات الحرف والخدمات الجديدة من مقدمي الخدمات' : 'Provider Service Suggestions'}
                   </h2>
                   {pendingSuggestions.length > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60">
                       {pendingSuggestions.length} {language === 'ar' ? 'بانتظار المراجعة' : 'pending'}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   {language === 'ar'
                     ? 'الخدمات التي يقترحها الحرفيون غير المتوفرة بالمنصة؛ يمكنك مراجعة تفاصيلها واعتمادها لإضافتها تلقائياً كمهنة رسمية وتعيينها للحرفي فوراً.'
                     : 'Review trade suggestions submitted by providers. Approving creates the category and assigns it to the provider.'}
@@ -1417,7 +1417,7 @@ export const AdminDashboardScreen: React.FC = () => {
             </div>
 
             {serviceSuggestions.length === 0 ? (
-              <div className="text-center py-6 text-xs text-slate-400">
+              <div className="text-center py-6 text-xs text-slate-400 dark:text-slate-500">
                 {language === 'ar' ? 'لا توجد مقترحات خدمات حالياً.' : 'No service suggestions yet.'}
               </div>
             ) : (
@@ -1429,23 +1429,23 @@ export const AdminDashboardScreen: React.FC = () => {
                       key={sug.id}
                       className={`p-4 rounded-2xl border transition-all space-y-3 ${
                         sug.status === 'pending'
-                          ? 'border-amber-300 bg-amber-50/40'
+                          ? 'border-amber-300 dark:border-amber-800/60 bg-amber-50/40 dark:bg-amber-950/25'
                           : sug.status === 'approved'
-                          ? 'border-emerald-200 bg-emerald-50/20'
-                          : 'border-slate-200 bg-slate-50/50'
+                          ? 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/20 dark:bg-emerald-950/20'
+                          : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-sm text-slate-900">{sug.nameAr}</h3>
+                            <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">{sug.nameAr}</h3>
                             {sug.nameEn && (
-                              <span className="text-xs text-slate-400 font-normal">({sug.nameEn})</span>
+                              <span className="text-xs text-slate-400 dark:text-slate-500 font-normal">({sug.nameEn})</span>
                             )}
                           </div>
-                          <span className="text-[11px] text-teal-700 font-semibold block mt-0.5">
+                          <span className="text-[11px] text-teal-700 dark:text-teal-400 font-semibold block mt-0.5">
                             مقدم الاقتراح: {sug.providerName}
-                            <span className="font-mono text-slate-600 ms-1.5" dir="ltr">{sug.providerPhone}</span>
+                            <span className="font-mono text-slate-600 dark:text-slate-400 ms-1.5" dir="ltr">{sug.providerPhone}</span>
                             {operator && (
                               <span className={`ms-1.5 px-1.5 py-0.2 rounded text-[9px] font-bold border ${operator.badgeBg}`}>
                                 {operator.nameAr}
@@ -1456,32 +1456,32 @@ export const AdminDashboardScreen: React.FC = () => {
 
                         <div>
                           {sug.status === 'pending' && (
-                            <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold border border-amber-300">
+                            <span className="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-extrabold border border-amber-300 dark:border-amber-800/60">
                               ⏳ قيد الانتظار
                             </span>
                           )}
                           {sug.status === 'approved' && (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-300">
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold border border-emerald-300 dark:border-emerald-800/60">
                               ✅ معتمدة بالمنصة
                             </span>
                           )}
                           {sug.status === 'rejected' && (
-                            <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-[10px] font-extrabold border border-rose-300">
+                            <span className="px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 text-[10px] font-extrabold border border-rose-300 dark:border-rose-800/60">
                               ❌ مرفوضة
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-600 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-slate-200/80">
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white/80 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700">
                         {sug.descriptionAr}
                       </p>
 
-                      <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60">
-                        <span className="text-slate-500 text-[11px]">
-                          السعر المقترح: <strong className="text-slate-900">{sug.suggestedRateSDG?.toLocaleString()} ج.س</strong>
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+                          السعر المقترح: <strong className="text-slate-900 dark:text-slate-100">{sug.suggestedRateSDG?.toLocaleString()} ج.س</strong>
                         </span>
-                        <span className="text-[10px] text-slate-400">{sug.createdAt}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">{sug.createdAt}</span>
                       </div>
 
                       {sug.status === 'pending' && (
@@ -1506,7 +1506,7 @@ export const AdminDashboardScreen: React.FC = () => {
                               const reason = prompt('يرجى تحديد سبب رفض الاقتراح (اختياري):');
                               await rejectServiceSuggestion(sug.id, reason || undefined);
                             }}
-                            className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs cursor-pointer transition-colors"
+                            className="px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 font-bold text-xs cursor-pointer transition-colors"
                           >
                             رفض
                           </button>
@@ -1520,11 +1520,11 @@ export const AdminDashboardScreen: React.FC = () => {
           </div>
 
           {/* Section B: Official Categories Catalog */}
-          <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-4 p-5">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs space-y-4 p-5">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-slate-900">{t('adminManageServices')}</h2>
-                <span className="text-xs text-slate-500">
+                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{t('adminManageServices')}</h2>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {language === 'ar' ? 'إضافة تصنيفات حرفية جديدة، وتحديث الأسعار التقديرية، وحذف المهن' : 'Add, update, or remove trades and services'}
                 </span>
               </div>
@@ -1539,14 +1539,14 @@ export const AdminDashboardScreen: React.FC = () => {
             </div>
 
           {/* Search Field */}
-          <div className="relative flex items-center bg-slate-50 rounded-xl border border-slate-200 max-w-sm">
-            <Search className="w-4 h-4 text-slate-400 ms-3 shrink-0" />
+          <div className="relative flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 max-w-sm">
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 ms-3 shrink-0" />
             <input
               type="text"
               value={serviceSearch}
               onChange={(e) => setServiceSearch(e.target.value)}
               placeholder={language === 'ar' ? 'ابحث عن مهنة أو تصنيف...' : 'Search category...'}
-              className="w-full px-3 py-2 text-xs bg-transparent text-slate-900 focus:outline-none"
+              className="w-full px-3 py-2 text-xs bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
             />
           </div>
 
@@ -1558,19 +1558,19 @@ export const AdminDashboardScreen: React.FC = () => {
               return (
                 <div
                   key={cat.id}
-                  className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all flex flex-col justify-between space-y-3"
+                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex flex-col justify-between space-y-3"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 flex items-center justify-center shrink-0">
                         <CategoryIcon iconName={cat.iconName} className="w-5 h-5" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-sm text-slate-900">
+                        <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">
                           {cat.nameAr}
-                          <span className="text-slate-400 font-normal text-xs ms-1.5">({cat.nameEn})</span>
+                          <span className="text-slate-400 dark:text-slate-500 font-normal text-xs ms-1.5">({cat.nameEn})</span>
                         </h3>
-                        <p className="text-xs text-slate-500 mt-1 leading-snug">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">
                           {cat.descriptionAr}
                         </p>
                       </div>
@@ -1580,14 +1580,14 @@ export const AdminDashboardScreen: React.FC = () => {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => handleOpenEditCategory(cat)}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 cursor-pointer"
+                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-pointer"
                         title={t('editCategory')}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteCategory(cat)}
-                        className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer"
+                        className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 cursor-pointer"
                         title={t('deleteCategory')}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1596,16 +1596,16 @@ export const AdminDashboardScreen: React.FC = () => {
                   </div>
 
                   {/* Footer stats: Workers count & Avg Rate */}
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                     <div>
                       <span>المهنيون المسجلون: </span>
-                      <span className="font-bold text-slate-900 tabular-nums">{assignedWorkersCount}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">{assignedWorkersCount}</span>
                     </div>
 
                     <div>
                       <span>متوسط السعر: </span>
-                      <span className="font-extrabold text-teal-700 tabular-nums">{cat.averageRateSDG.toLocaleString()}</span>
-                      <span className="text-[10px] text-slate-400 ms-1">{t('sdg')}</span>
+                      <span className="font-extrabold text-teal-700 dark:text-teal-400 tabular-nums">{cat.averageRateSDG.toLocaleString()}</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 ms-1">{t('sdg')}</span>
                     </div>
                   </div>
                 </div>
@@ -1618,13 +1618,13 @@ export const AdminDashboardScreen: React.FC = () => {
 
       {/* TAB 4: REQUESTS MANAGEMENT & COMMISSION AUDIT (ONGOING & COMPLETED SERVICES) */}
       {activeAdminTab === 'requests' && (
-        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-4 p-5">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs space-y-4 p-5">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                 {language === 'ar' ? 'إدارة ومتابعة الخدمات والحجوزات' : 'Manage Services & Bookings'}
               </h2>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {language === 'ar' 
                   ? 'متابعة وإدارة الخدمات الجارية، وتدقيق الخدمات المكتملة وإثباتات عمولات الخميس (8%)' 
                   : 'Manage ongoing jobs and inspect commission payment proofs for completed jobs'}
@@ -1632,13 +1632,13 @@ export const AdminDashboardScreen: React.FC = () => {
             </div>
 
             {/* Sub-Filters: All, Ongoing, Completed, Cancelled */}
-            <div className="flex gap-1.5 text-xs">
+            <div className="flex flex-wrap gap-1.5 text-xs">
               <button
                 onClick={() => setRequestFilterMode('all')}
                 className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${
                   requestFilterMode === 'all'
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                    : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
                 {language === 'ar' ? 'الكل' : 'All'} ({requests.length})
@@ -1649,7 +1649,7 @@ export const AdminDashboardScreen: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-1 ${
                   requestFilterMode === 'ongoing'
                     ? 'bg-amber-500 text-slate-950'
-                    : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200'
+                    : 'bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" />
@@ -1661,7 +1661,7 @@ export const AdminDashboardScreen: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-1 ${
                   requestFilterMode === 'completed'
                     ? 'bg-emerald-700 text-white'
-                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200'
+                    : 'bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
                 }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -1673,7 +1673,7 @@ export const AdminDashboardScreen: React.FC = () => {
                 className={`px-3 py-1.5 rounded-xl font-bold transition-colors cursor-pointer ${
                   requestFilterMode === 'cancelled'
                     ? 'bg-rose-700 text-white'
-                    : 'bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200'
+                    : 'bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-900 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60'
                 }`}
               >
                 {language === 'ar' ? 'الملغية' : 'Cancelled'} ({cancelledRequests.length})
@@ -1682,21 +1682,21 @@ export const AdminDashboardScreen: React.FC = () => {
           </div>
 
           {/* Search Box */}
-          <div className="relative flex items-center bg-slate-50 rounded-xl border border-slate-200 max-w-sm text-xs">
-            <Search className="w-4 h-4 text-slate-400 ms-3 shrink-0" />
+          <div className="relative flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 max-w-sm text-xs">
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 ms-3 shrink-0" />
             <input
               type="text"
               value={requestSearch}
               onChange={(e) => setRequestSearch(e.target.value)}
               placeholder={language === 'ar' ? 'ابحث باسم العميل أو المهني أو التفاصيل...' : 'Search by client or worker...'}
-              className="w-full px-3 py-2 bg-transparent text-slate-900 focus:outline-none"
+              className="w-full px-3 py-2 bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
             />
           </div>
 
           {/* Table of Requests */}
-          <div className="overflow-x-auto rounded-2xl border border-slate-100">
+          <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800">
             <table className="w-full text-start text-xs">
-              <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="p-3 text-start">رقم الطلب</th>
                   <th className="p-3 text-start">العميل</th>
@@ -1708,7 +1708,7 @@ export const AdminDashboardScreen: React.FC = () => {
                   <th className="p-3 text-end">إجراءات الإدارة</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredRequests.map((req) => {
                   const isPending = req.status === 'pending';
                   const isAccepted = req.status === 'accepted';
@@ -1723,30 +1723,30 @@ export const AdminDashboardScreen: React.FC = () => {
                     : null;
 
                   return (
-                    <tr key={req.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={req.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
                       {/* Request ID */}
-                      <td className="p-3 font-mono font-medium text-slate-500">
+                      <td className="p-3 font-mono font-medium text-slate-500 dark:text-slate-400">
                         #{req.id}
                       </td>
 
                       {/* Client */}
                       <td className="p-3">
-                        <span className="font-bold text-slate-900 block">{req.clientName}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{req.clientPhone}</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 block">{req.clientName}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{req.clientPhone}</span>
                       </td>
 
                       {/* Provider */}
                       <td className="p-3">
-                        <span className="font-bold text-slate-900 block">{req.providerName}</span>
-                        <span className="text-[10px] text-teal-700 font-medium">{req.providerTradeAr}</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 block">{req.providerName}</span>
+                        <span className="text-[10px] text-teal-700 dark:text-teal-400 font-medium">{req.providerTradeAr}</span>
                       </td>
 
                       {/* Details & Scheduled Note */}
                       <td className="p-3">
-                        <span className="text-slate-800 font-medium block truncate max-w-xs">{req.problemDescription}</span>
-                        <span className="text-[10px] text-slate-400 block">{req.city} - {req.neighborhood}</span>
+                        <span className="text-slate-800 dark:text-slate-200 font-medium block truncate max-w-xs">{req.problemDescription}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block">{req.city} - {req.neighborhood}</span>
                         {req.scheduledTimeNote && (
-                          <span className="text-[9px] text-teal-800 bg-teal-50 px-1 py-0.5 rounded border border-teal-100 block mt-0.5 w-fit">
+                          <span className="text-[9px] text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/50 px-1 py-0.5 rounded border border-teal-100 dark:border-teal-800/60 block mt-0.5 w-fit">
                             الموعد: {req.scheduledTimeNote}
                           </span>
                         )}
@@ -1754,15 +1754,15 @@ export const AdminDashboardScreen: React.FC = () => {
 
                       {/* Financial Price & Commission */}
                       <td className="p-3">
-                        <span className="font-bold text-slate-900 tabular-nums">{req.agreedPriceSDG.toLocaleString()} ج.س</span>
-                        <span className="text-[10px] text-amber-700 font-semibold block">عمولة المنصة: {req.commissionFeeSDG} ج.س</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">{req.agreedPriceSDG.toLocaleString()} ج.س</span>
+                        <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold block">عمولة المنصة: {req.commissionFeeSDG} ج.س</span>
                         {(req.cancellationFeePenaltySDG || 0) > 0 && (
-                          <span className="text-[10px] text-rose-700 font-bold block tabular-nums">
+                          <span className="text-[10px] text-rose-700 dark:text-rose-400 font-bold block tabular-nums">
                             + غرامة إلغاء: {req.cancellationFeePenaltySDG.toLocaleString()} ج.س
                           </span>
                         )}
                         {req.paymentMethod && (
-                          <span className="text-[9px] text-slate-500 block">
+                          <span className="text-[9px] text-slate-500 dark:text-slate-400 block">
                             سداد العميل: {req.paymentMethod === 'bankak' ? 'بنكك' : 'كاش'}
                           </span>
                         )}
@@ -1771,27 +1771,27 @@ export const AdminDashboardScreen: React.FC = () => {
                       {/* Status */}
                       <td className="p-3">
                         {isPending && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
                             {t('statusPending')}
                           </span>
                         )}
                         {isAccepted && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-50 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60">
                             {t('statusAccepted')}
                           </span>
                         )}
                         {isInProgress && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-800 border border-indigo-200">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
                             {t('statusInProgress')}
                           </span>
                         )}
                         {isCompleted && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                             {t('statusCompleted')}
                           </span>
                         )}
                         {isCancelled && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
                             {t('statusCancelled')}
                           </span>
                         )}
@@ -1805,31 +1805,31 @@ export const AdminDashboardScreen: React.FC = () => {
                               <div className="flex items-center gap-1.5">
                                 <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
                                   providerDeposit.status === 'verified' 
-                                    ? 'bg-emerald-100 text-emerald-800' 
-                                    : 'bg-amber-100 text-amber-800'
+                                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' 
+                                    : 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
                                 }`}>
                                   {providerDeposit.status === 'verified' ? 'عمولة معتمدة' : 'بانتظار الاعتماد'}
                                 </span>
-                                <span className="font-mono text-[9px] text-slate-500">
+                                <span className="font-mono text-[9px] text-slate-500 dark:text-slate-400">
                                   {providerDeposit.bankakReferenceNumber}
                                 </span>
                               </div>
                               <button
                                 onClick={() => setInspectDeposit(providerDeposit)}
-                                className="text-[10px] text-teal-700 hover:text-teal-900 font-bold underline flex items-center gap-1 cursor-pointer"
+                                className="text-[10px] text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 font-bold underline flex items-center gap-1 cursor-pointer"
                               >
                                 <Eye className="w-3 h-3" />
                                 <span>{t('viewCommissionProof')}</span>
                               </button>
                             </div>
                           ) : (
-                            <div className="text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                            <div className="text-[10px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-1 rounded border border-amber-200 dark:border-amber-800/60">
                               <span>{t('noCommissionProofYet')}</span>
                               <span className="block font-bold text-[9px]">مستحق: {req.commissionFeeSDG} ج.س</span>
                             </div>
                           )
                         ) : (
-                          <span className="text-slate-400 text-[10px]">—</span>
+                          <span className="text-slate-400 dark:text-slate-500 text-[10px]">—</span>
                         )}
                       </td>
 
@@ -1871,7 +1871,7 @@ export const AdminDashboardScreen: React.FC = () => {
                               )}
                               <button
                                 onClick={() => handleAdminCancelRequest(req)}
-                                className="px-2 py-1 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold text-[10px] cursor-pointer"
+                                className="px-2 py-1 rounded-lg border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-[10px] cursor-pointer"
                                 title="إلغاء الطلب"
                               >
                                 <span>إلغاء</span>
@@ -1898,7 +1898,7 @@ export const AdminDashboardScreen: React.FC = () => {
                                 adminDeleteRequest(req.id);
                               }
                             }}
-                            className="p-1 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer"
+                            className="p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 cursor-pointer"
                             title="حذف السجل"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1916,12 +1916,12 @@ export const AdminDashboardScreen: React.FC = () => {
 
       {/* TAB 5: THURSDAY COMMISSION DEPOSITS AUDITING (ALL TYPES: NOT UPLOADED, PENDING REVIEW, REJECTED, VERIFIED) */}
       {activeAdminTab === 'deposits' && (
-        <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs space-y-5 p-5">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xs space-y-5 p-5">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900">{t('adminManageDeposits')}</h2>
-              <span className="text-xs text-slate-500">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">{t('adminManageDeposits')}</h2>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {language === 'ar'
                   ? 'متابعة جميع توريدات عمولات الـ 8%: المستحقات التي لم تُرفع بعد، الإشعارات قيد المراجعة، المرفوضة، والمعتمدة لحساب بنكك (2334155)'
                   : 'Audit all 8% Thursday deposits: unuploaded obligations, pending reviews, rejected slips, and verified Bankak transfers (2334155)'}
@@ -1936,19 +1936,19 @@ export const AdminDashboardScreen: React.FC = () => {
               onClick={() => setDepositFilterMode('not_uploaded')}
               className={`p-3.5 rounded-2xl border text-start transition-all cursor-pointer ${
                 depositFilterMode === 'not_uploaded'
-                  ? 'border-orange-400 bg-orange-50/70 ring-1 ring-orange-300'
-                  : 'border-slate-200 bg-slate-50/60 hover:bg-orange-50/40'
+                  ? 'border-orange-400 dark:border-orange-600 bg-orange-50/70 dark:bg-orange-950/35 ring-1 ring-orange-300 dark:ring-orange-700'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-orange-50/40 dark:hover:bg-orange-950/20'
               }`}
             >
-              <div className="flex items-center justify-between text-[11px] font-bold text-orange-800">
+              <div className="flex items-center justify-between text-[11px] font-bold text-orange-800 dark:text-orange-300">
                 <span>{language === 'ar' ? 'مطلوبة ولم تُرفع بعد' : 'Due (Not Uploaded)'}</span>
-                <Clock className="w-3.5 h-3.5 text-orange-600" />
+                <Clock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1">
+              <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums mt-1">
                 {depositSummary.notUploadedSDG.toLocaleString()}{' '}
-                <span className="text-[11px] font-semibold text-slate-500">{t('sdg')}</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('sdg')}</span>
               </div>
-              <span className="text-[10px] text-orange-700 font-semibold tabular-nums">
+              <span className="text-[10px] text-orange-700 dark:text-orange-400 font-semibold tabular-nums">
                 {depositSummary.notUploadedCount}{' '}
                 {language === 'ar' ? 'مهني مطلوب منه توريد' : 'providers owing'}
               </span>
@@ -1959,19 +1959,19 @@ export const AdminDashboardScreen: React.FC = () => {
               onClick={() => setDepositFilterMode('pending_verification')}
               className={`p-3.5 rounded-2xl border text-start transition-all cursor-pointer ${
                 depositFilterMode === 'pending_verification'
-                  ? 'border-amber-400 bg-amber-50/70 ring-1 ring-amber-300'
-                  : 'border-slate-200 bg-slate-50/60 hover:bg-amber-50/40'
+                  ? 'border-amber-400 dark:border-amber-600 bg-amber-50/70 dark:bg-amber-950/35 ring-1 ring-amber-300 dark:ring-amber-700'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-amber-50/40 dark:hover:bg-amber-950/20'
               }`}
             >
-              <div className="flex items-center justify-between text-[11px] font-bold text-amber-800">
+              <div className="flex items-center justify-between text-[11px] font-bold text-amber-800 dark:text-amber-300">
                 <span>{language === 'ar' ? 'بانتظار الاعتماد' : 'Pending Review'}</span>
-                <FileCheck className="w-3.5 h-3.5 text-amber-600" />
+                <FileCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1">
+              <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums mt-1">
                 {depositSummary.pendingSDG.toLocaleString()}{' '}
-                <span className="text-[11px] font-semibold text-slate-500">{t('sdg')}</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('sdg')}</span>
               </div>
-              <span className="text-[10px] text-amber-700 font-semibold tabular-nums">
+              <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold tabular-nums">
                 {depositSummary.pendingCount}{' '}
                 {language === 'ar' ? 'إشعار مرفوع للمراجعة' : 'uploaded receipts'}
               </span>
@@ -1982,19 +1982,19 @@ export const AdminDashboardScreen: React.FC = () => {
               onClick={() => setDepositFilterMode('rejected')}
               className={`p-3.5 rounded-2xl border text-start transition-all cursor-pointer ${
                 depositFilterMode === 'rejected'
-                  ? 'border-rose-400 bg-rose-50/70 ring-1 ring-rose-300'
-                  : 'border-slate-200 bg-slate-50/60 hover:bg-rose-50/40'
+                  ? 'border-rose-400 dark:border-rose-600 bg-rose-50/70 dark:bg-rose-950/35 ring-1 ring-rose-300 dark:ring-rose-700'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-rose-50/40 dark:hover:bg-rose-950/20'
               }`}
             >
-              <div className="flex items-center justify-between text-[11px] font-bold text-rose-800">
+              <div className="flex items-center justify-between text-[11px] font-bold text-rose-800 dark:text-rose-300">
                 <span>{language === 'ar' ? 'مرفوضة / غير صالحة' : 'Rejected / Invalid'}</span>
-                <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                <XCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1">
+              <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums mt-1">
                 {depositSummary.rejectedSDG.toLocaleString()}{' '}
-                <span className="text-[11px] font-semibold text-slate-500">{t('sdg')}</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('sdg')}</span>
               </div>
-              <span className="text-[10px] text-rose-700 font-semibold tabular-nums">
+              <span className="text-[10px] text-rose-700 dark:text-rose-400 font-semibold tabular-nums">
                 {depositSummary.rejectedCount}{' '}
                 {language === 'ar' ? 'بانتظار إعادة الرفع' : 'awaiting re-upload'}
               </span>
@@ -2005,19 +2005,19 @@ export const AdminDashboardScreen: React.FC = () => {
               onClick={() => setDepositFilterMode('verified')}
               className={`p-3.5 rounded-2xl border text-start transition-all cursor-pointer ${
                 depositFilterMode === 'verified'
-                  ? 'border-emerald-400 bg-emerald-50/70 ring-1 ring-emerald-300'
-                  : 'border-slate-200 bg-slate-50/60 hover:bg-emerald-50/40'
+                  ? 'border-emerald-400 dark:border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/35 ring-1 ring-emerald-300 dark:ring-emerald-700'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20'
               }`}
             >
-              <div className="flex items-center justify-between text-[11px] font-bold text-emerald-800">
+              <div className="flex items-center justify-between text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
                 <span>{language === 'ar' ? 'توريدات معتمدة' : 'Verified'}</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1">
+              <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums mt-1">
                 {depositSummary.verifiedSDG.toLocaleString()}{' '}
-                <span className="text-[11px] font-semibold text-slate-500">{t('sdg')}</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{t('sdg')}</span>
               </div>
-              <span className="text-[10px] text-emerald-700 font-semibold tabular-nums">
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold tabular-nums">
                 {depositSummary.verifiedCount}{' '}
                 {language === 'ar' ? 'تحويل مؤكد' : 'confirmed transfers'}
               </span>
@@ -2042,8 +2042,8 @@ export const AdminDashboardScreen: React.FC = () => {
                   onClick={() => setDepositFilterMode(tab.id)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-colors ${
                     depositFilterMode === tab.id
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   {language === 'ar' ? tab.labelAr : tab.labelEn}
@@ -2052,13 +2052,13 @@ export const AdminDashboardScreen: React.FC = () => {
             </div>
 
             <div className="relative w-full md:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute top-1/2 -translate-y-1/2 start-3" />
+              <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute top-1/2 -translate-y-1/2 start-3" />
               <input
                 type="text"
                 value={depositSearch}
                 onChange={(e) => setDepositSearch(e.target.value)}
                 placeholder={language === 'ar' ? 'ابحث باسم المهني، الهاتف، أو رقم بنكك...' : 'Search provider, phone, or ref...'}
-                className="w-full ps-9 pe-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full ps-9 pe-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none"
               />
             </div>
           </div>
@@ -2066,23 +2066,23 @@ export const AdminDashboardScreen: React.FC = () => {
           {/* SECTION 1: UNUPLOADED / DUE OBLIGATIONS */}
           {(depositFilterMode === 'all' || depositFilterMode === 'not_uploaded') && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 className="text-xs font-extrabold text-orange-900 flex items-center gap-1.5">
-                  <AlertCircle className="w-4 h-4 text-orange-600" />
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 className="text-xs font-extrabold text-orange-900 dark:text-orange-300 flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <span>
                     {language === 'ar'
                       ? 'مستحقات مطلوب رفع إشعارها (لم تُرفع بعد أو بانتظار إعادة الرفع)'
                       : 'Due Commissions Requiring Upload (Not Uploaded / Awaiting Re-upload)'}
                   </span>
                 </h3>
-                <span className="text-[11px] font-bold text-orange-700 tabular-nums">
+                <span className="text-[11px] font-bold text-orange-700 dark:text-orange-400 tabular-nums">
                   {filteredUnuploadedDueProviders.length}{' '}
                   {language === 'ar' ? 'حالة' : 'items'}
                 </span>
               </div>
 
               {filteredUnuploadedDueProviders.length === 0 ? (
-                <div className="p-5 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-500">
+                <div className="p-5 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500 dark:text-slate-400">
                   {language === 'ar'
                     ? 'لا توجد مستحقات عمولة غير مرفوعة حالياً — جميع المهنيين قاموا برفع إشعاراتهم أو تمت تسويتها.'
                     : 'No unuploaded Thursday commission obligations at the moment.'}
@@ -2103,12 +2103,12 @@ export const AdminDashboardScreen: React.FC = () => {
                         key={`due-${provider.id}`}
                         className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                           awaitingReupload
-                            ? 'border-rose-200 bg-rose-50/40'
-                            : 'border-orange-200 bg-orange-50/40'
+                            ? 'border-rose-200 dark:border-rose-800/60 bg-rose-50/40 dark:bg-rose-950/25'
+                            : 'border-orange-200 dark:border-orange-800/60 bg-orange-50/40 dark:bg-orange-950/25'
                         }`}
                       >
                         <div className="flex items-start gap-3">
-                          <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-extrabold text-slate-700 text-sm shrink-0 overflow-hidden">
+                          <div className="w-11 h-11 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-extrabold text-slate-700 dark:text-slate-200 text-sm shrink-0 overflow-hidden">
                             {provider.avatarUrl ? (
                               <img
                                 src={provider.avatarUrl}
@@ -2122,9 +2122,9 @@ export const AdminDashboardScreen: React.FC = () => {
                           </div>
                           <div className="space-y-1 text-xs">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h4 className="font-bold text-slate-900 text-sm">{provider.name}</h4>
+                              <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{provider.name}</h4>
                               {awaitingReupload ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
                                   <AlertTriangle className="w-3 h-3" />
                                   <span>
                                     {language === 'ar'
@@ -2133,7 +2133,7 @@ export const AdminDashboardScreen: React.FC = () => {
                                   </span>
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 dark:bg-orange-950/60 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
                                   <Clock className="w-3 h-3" />
                                   <span>
                                     {language === 'ar'
@@ -2144,7 +2144,7 @@ export const AdminDashboardScreen: React.FC = () => {
                               )}
                             </div>
 
-                            <div className="text-[11px] text-slate-600 flex flex-wrap items-center gap-x-3 gap-y-0.5 tabular-nums">
+                            <div className="text-[11px] text-slate-600 dark:text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-0.5 tabular-nums">
                               <span className="font-mono">{provider.phone}</span>
                               {provider.city && <span>· {provider.city}</span>}
                               <span>
@@ -2152,13 +2152,13 @@ export const AdminDashboardScreen: React.FC = () => {
                                 {language === 'ar' ? 'خدمة مكتملة' : 'completed jobs'}
                               </span>
                               {verifiedSum > 0 && (
-                                <span className="text-emerald-700 font-semibold">
+                                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
                                   · {language === 'ar' ? 'مورّد سابقاً:' : 'Verified:'}{' '}
                                   {verifiedSum.toLocaleString()} {t('sdg')}
                                 </span>
                               )}
                               {pendingReviewSum > 0 && (
-                                <span className="text-amber-700 font-semibold">
+                                <span className="text-amber-700 dark:text-amber-400 font-semibold">
                                   · {language === 'ar' ? 'قيد المراجعة:' : 'Pending:'}{' '}
                                   {pendingReviewSum.toLocaleString()} {t('sdg')}
                                 </span>
@@ -2166,7 +2166,7 @@ export const AdminDashboardScreen: React.FC = () => {
                             </div>
 
                             {awaitingReupload && latestRejected?.rejectionReason && (
-                              <p className="text-[11px] text-rose-700 bg-white/80 border border-rose-200 rounded-lg px-2.5 py-1 inline-block">
+                              <p className="text-[11px] text-rose-700 dark:text-rose-300 bg-white/80 dark:bg-slate-800/80 border border-rose-200 dark:border-rose-800/60 rounded-lg px-2.5 py-1 inline-block">
                                 <strong>{language === 'ar' ? 'سبب الرفض السابق:' : 'Last rejection:'}</strong>{' '}
                                 {latestRejected.rejectionReason}
                               </p>
@@ -2176,10 +2176,10 @@ export const AdminDashboardScreen: React.FC = () => {
 
                         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                           <div className="text-end">
-                            <span className="text-[11px] text-slate-500 block">
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
                               {language === 'ar' ? 'المطلوب رفعه الآن' : 'Amount Due'}
                             </span>
-                            <span className="text-base font-extrabold text-orange-700 tabular-nums">
+                            <span className="text-base font-extrabold text-orange-700 dark:text-orange-400 tabular-nums">
                               {uncoveredDue.toLocaleString()} {t('sdg')}
                             </span>
                           </div>
@@ -2205,22 +2205,22 @@ export const AdminDashboardScreen: React.FC = () => {
           {/* SECTION 2: UPLOADED DEPOSIT RECEIPTS (PENDING, REJECTED, VERIFIED) */}
           {depositFilterMode !== 'not_uploaded' && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
-                  <FileCheck className="w-4 h-4 text-teal-700" />
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 className="text-xs font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <FileCheck className="w-4 h-4 text-teal-700 dark:text-teal-400" />
                   <span>
                     {language === 'ar'
                       ? 'الإشعارات المرفوعة من المهنيين'
                       : 'Uploaded Deposit Receipts'}
                   </span>
                 </h3>
-                <span className="text-[11px] font-bold text-slate-500 tabular-nums">
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
                   {filteredDeposits.length} {language === 'ar' ? 'إشعار' : 'receipts'}
                 </span>
               </div>
 
               {filteredDeposits.length === 0 ? (
-                <div className="p-6 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-500">
+                <div className="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500 dark:text-slate-400">
                   {language === 'ar'
                     ? 'لا توجد إشعارات توريد مطابقة لهذا التصنيف حالياً.'
                     : 'No uploaded deposit receipts match the selected filter.'}
@@ -2231,18 +2231,18 @@ export const AdminDashboardScreen: React.FC = () => {
                     const statusBadge =
                       dep.status === 'verified'
                         ? {
-                            cls: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                            cls: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
                             icon: <CheckCircle2 className="w-3 h-3" />,
                             label: language === 'ar' ? 'توريد معتمد' : 'Verified',
                           }
                         : dep.status === 'rejected'
                           ? {
-                              cls: 'bg-rose-100 text-rose-800 border-rose-200',
+                              cls: 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/60',
                               icon: <XCircle className="w-3 h-3" />,
                               label: language === 'ar' ? 'إشعار مرفوض — غير صالح' : 'Rejected / Invalid',
                             }
                           : {
-                              cls: 'bg-amber-100 text-amber-800 border-amber-200',
+                              cls: 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
                               icon: <Clock className="w-3 h-3" />,
                               label: language === 'ar' ? 'بانتظار الاعتماد' : 'Pending Review',
                             };
@@ -2252,10 +2252,10 @@ export const AdminDashboardScreen: React.FC = () => {
                         key={dep.id}
                         className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                           dep.status === 'rejected'
-                            ? 'border-rose-200 bg-rose-50/30'
+                            ? 'border-rose-200 dark:border-rose-800/60 bg-rose-50/30 dark:bg-rose-950/25'
                             : dep.status === 'pending_verification'
-                              ? 'border-amber-200 bg-amber-50/30'
-                              : 'border-slate-200 bg-slate-50/50'
+                              ? 'border-amber-200 dark:border-amber-800/60 bg-amber-50/30 dark:bg-amber-950/25'
+                              : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -2264,13 +2264,13 @@ export const AdminDashboardScreen: React.FC = () => {
                               src={dep.receiptFileUrl}
                               alt="Deposit receipt"
                               onClick={() => setInspectDeposit(dep)}
-                              className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 cursor-pointer hover:opacity-90"
+                              className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 cursor-pointer hover:opacity-90"
                               referrerPolicy="no-referrer"
                             />
                           )}
                           <div className="space-y-1 text-xs">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="font-bold text-slate-900 text-sm">{dep.providerName}</h3>
+                              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{dep.providerName}</h3>
                               <span
                                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold ${statusBadge.cls}`}
                               >
@@ -2279,18 +2279,18 @@ export const AdminDashboardScreen: React.FC = () => {
                               </span>
                             </div>
 
-                            <div className="font-mono text-slate-500 text-[11px] tabular-nums">
+                            <div className="font-mono text-slate-500 dark:text-slate-400 text-[11px] tabular-nums">
                               {language === 'ar' ? 'رقم العملية:' : 'Ref:'} {dep.bankakReferenceNumber} ·{' '}
                               {language === 'ar' ? 'التاريخ:' : 'Date:'} {dep.depositDate}
                             </div>
 
                             {dep.notes && (
-                              <p className="text-slate-600 text-xs">{dep.notes}</p>
+                              <p className="text-slate-600 dark:text-slate-300 text-xs">{dep.notes}</p>
                             )}
 
                             {dep.status === 'rejected' && dep.rejectionReason && (
-                              <div className="p-2 rounded-xl bg-rose-100/70 border border-rose-200 text-rose-900 text-[11px] flex items-start gap-1.5">
-                                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                              <div className="p-2 rounded-xl bg-rose-100/70 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-900 dark:text-rose-200 text-[11px] flex items-start gap-1.5">
+                                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                                 <span>
                                   <strong>{language === 'ar' ? 'سبب الرفض:' : 'Rejection reason:'}</strong>{' '}
                                   {dep.rejectionReason}
@@ -2301,7 +2301,7 @@ export const AdminDashboardScreen: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => setInspectDeposit(dep)}
-                              className="text-teal-700 font-bold underline text-[11px] flex items-center gap-1 cursor-pointer pt-0.5"
+                              className="text-teal-700 dark:text-teal-400 font-bold underline text-[11px] flex items-center gap-1 cursor-pointer pt-0.5"
                             >
                               <Eye className="w-3 h-3" />
                               <span>{t('viewCommissionProof')}</span>
@@ -2311,8 +2311,8 @@ export const AdminDashboardScreen: React.FC = () => {
 
                         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
                           <div className="text-end">
-                            <span className="text-xs text-slate-400 block">{t('depositAmount')}</span>
-                            <span className="text-base font-extrabold text-teal-800 tabular-nums">
+                            <span className="text-xs text-slate-400 dark:text-slate-500 block">{t('depositAmount')}</span>
+                            <span className="text-base font-extrabold text-teal-800 dark:text-teal-300 tabular-nums">
                               {dep.amountSDG.toLocaleString()} {t('sdg')}
                             </span>
                           </div>
@@ -2338,7 +2338,7 @@ export const AdminDashboardScreen: React.FC = () => {
                                     'صورة إشعار بنكك غير واضحة أو الرقم المرجعي غير مطابق لكشف الحساب، يرجى إعادة رفع إشعار صحيح'
                                   );
                                 }}
-                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs cursor-pointer flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 font-bold text-xs cursor-pointer flex items-center gap-1"
                               >
                                 <XCircle className="w-3.5 h-3.5" />
                                 <span>{t('rejectDeposit')}</span>
@@ -2349,7 +2349,7 @@ export const AdminDashboardScreen: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => verifyDeposit(dep.id, 'pending_verification')}
-                                className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs cursor-pointer"
+                                className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold text-xs cursor-pointer"
                               >
                                 {language === 'ar' ? 'إلغاء الاعتماد' : 'Unverify'}
                               </button>
@@ -2362,7 +2362,7 @@ export const AdminDashboardScreen: React.FC = () => {
                                   deleteDeposit(dep.id);
                                 }
                               }}
-                              className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 cursor-pointer"
+                              className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 cursor-pointer"
                               title={language === 'ar' ? 'حذف الإشعار' : 'Delete receipt'}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -2382,25 +2382,25 @@ export const AdminDashboardScreen: React.FC = () => {
       {/* MODAL 1: ADD / EDIT USER */}
       {userModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl space-y-4 my-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-base text-slate-900">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">
                 {editingUser ? t('editUser') : t('addUser')}
               </h3>
-              <button onClick={() => setUserModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setUserModalOpen(false)} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveUser} className="space-y-3.5 max-h-[75vh] overflow-y-auto text-xs">
               {/* Profile Photo: Upload or choose presets */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-800 flex items-center gap-1.5">
-                    <Camera className="w-3.5 h-3.5 text-teal-700" />
+                  <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400" />
                     <span>صورة الملف الشخصي (Profile Photo)</span>
                   </label>
-                  <span className="text-[10px] text-slate-400">تعديل فوري</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">تعديل فوري</span>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -2410,8 +2410,8 @@ export const AdminDashboardScreen: React.FC = () => {
                     className="w-12 h-12 rounded-xl object-cover border-2 border-teal-600 shadow-2xs shrink-0"
                   />
                   <div className="flex-1 space-y-1.5">
-                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-[11px] font-medium cursor-pointer w-fit shadow-2xs">
-                      <Upload className="w-3.5 h-3.5 text-slate-500" />
+                    <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 text-[11px] font-medium cursor-pointer w-fit shadow-2xs">
+                      <Upload className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                       <span>رفع صورة من الجهاز</span>
                       <input
                         type="file"
@@ -2437,7 +2437,7 @@ export const AdminDashboardScreen: React.FC = () => {
                           onClick={() => setUserFormData(prev => ({ ...prev, avatarUrl: av.url }))}
                           title={language === 'ar' ? av.labelAr : av.labelEn}
                           className={`w-7 h-7 rounded-lg overflow-hidden border-2 transition-transform cursor-pointer shrink-0 ${
-                            userFormData.avatarUrl === av.url ? 'border-teal-600 ring-2 ring-teal-200 scale-105' : 'border-slate-200'
+                            userFormData.avatarUrl === av.url ? 'border-teal-600 ring-2 ring-teal-200 dark:ring-teal-800 scale-105' : 'border-slate-200 dark:border-slate-700'
                           }`}
                         >
                           <img
@@ -2455,19 +2455,19 @@ export const AdminDashboardScreen: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('name')} *</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('name')} *</label>
                   <input
                     type="text"
                     value={userFormData.name}
                     onChange={(e) => setUserFormData({ ...userFormData, name: e.target.value })}
                     required
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="font-bold text-slate-800 block">{t('phone')} *</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('phone')} *</label>
                     {detectSudanOperator(userFormData.phone) && (
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${detectSudanOperator(userFormData.phone)?.badgeBg}`}>
                         📶 {detectSudanOperator(userFormData.phone)?.nameAr}
@@ -2481,17 +2481,17 @@ export const AdminDashboardScreen: React.FC = () => {
                     onChange={(e) => setUserFormData({ ...userFormData, phone: e.target.value })}
                     placeholder="0912345678"
                     required
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 font-mono focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
-                  <span className="text-[9px] text-slate-400 block">
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 block">
                     10 أرقام (زين: 090, 091, 096 | MTN: 092, 093, 099 | سوداني: 010, 011, 012)
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-800 block">
-                  {t('email')} <span className="text-[10px] text-slate-400 font-normal">({language === 'ar' ? 'اختياري - فريد بدون تكرار' : 'optional - unique'})</span>
+                <label className="font-bold text-slate-800 dark:text-slate-200 block">
+                  {t('email')} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">({language === 'ar' ? 'اختياري - فريد بدون تكرار' : 'optional - unique'})</span>
                 </label>
                 <input
                   type="email"
@@ -2499,17 +2499,17 @@ export const AdminDashboardScreen: React.FC = () => {
                   value={userFormData.email}
                   onChange={(e) => setUserFormData({ ...userFormData, email: e.target.value })}
                   placeholder={t('emailPlaceholder')}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                  className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('role')} *</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('role')} *</label>
                   <select
                     value={userFormData.role}
                     onChange={(e) => setUserFormData({ ...userFormData, role: e.target.value as UserRole })}
-                    className="w-full px-2.5 py-2 border border-slate-200 rounded-xl bg-white font-medium"
+                    className="w-full px-2.5 py-2 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   >
                     <option value="customer">{t('customerRole')}</option>
                     <option value="provider">{t('providerRole')}</option>
@@ -2518,21 +2518,21 @@ export const AdminDashboardScreen: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('password')}</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('password')}</label>
                   <input
                     type="text"
                     value={userFormData.password}
                     onChange={(e) => setUserFormData({ ...userFormData, password: e.target.value })}
                     placeholder="••••••••"
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Status Switch (Active / Deactivated) */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-800">حالة الحساب والتفعيل:</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200">حالة الحساب والتفعيل:</label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -2540,7 +2540,7 @@ export const AdminDashboardScreen: React.FC = () => {
                       className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${
                         userFormData.isActive 
                           ? 'bg-emerald-600 text-white' 
-                          : 'bg-slate-200 text-slate-600'
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                       }`}
                     >
                       {t('accountActive')}
@@ -2551,7 +2551,7 @@ export const AdminDashboardScreen: React.FC = () => {
                       className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${
                         !userFormData.isActive 
                           ? 'bg-rose-600 text-white' 
-                          : 'bg-slate-200 text-slate-600'
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                       }`}
                     >
                       {t('accountDeactivated')}
@@ -2561,13 +2561,13 @@ export const AdminDashboardScreen: React.FC = () => {
 
                 {!userFormData.isActive && (
                   <div className="space-y-1 pt-1">
-                    <label className="font-semibold text-rose-800 text-[11px] block">سبب التعطيل / التجميد:</label>
+                    <label className="font-semibold text-rose-800 dark:text-rose-300 text-[11px] block">سبب التعطيل / التجميد:</label>
                     <input
                       type="text"
                       value={userFormData.deactivatedReason}
                       onChange={(e) => setUserFormData({ ...userFormData, deactivatedReason: e.target.value })}
                       placeholder="مثال: مخالفة شروط الاستخدام أو عدم سداد العمولات"
-                      className="w-full px-3 py-1.5 text-xs border border-rose-200 rounded-lg bg-white"
+                      className="w-full px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 border border-rose-200 dark:border-rose-800/60 rounded-lg bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                 )}
@@ -2575,30 +2575,30 @@ export const AdminDashboardScreen: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('state')}</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('state')}</label>
                   <input
                     type="text"
                     value={userFormData.city}
                     onChange={(e) => setUserFormData({ ...userFormData, city: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('neighborhood')}</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('neighborhood')}</label>
                   <input
                     type="text"
                     value={userFormData.neighborhood}
                     onChange={(e) => setUserFormData({ ...userFormData, neighborhood: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Unpaid Cancellation Fine (Edit User & Waive Option) */}
               {editingUser && (
-                <div className="p-3 bg-rose-50/60 rounded-2xl border border-rose-200 space-y-2">
+                <div className="p-3 bg-rose-50/60 dark:bg-rose-950/30 rounded-2xl border border-rose-200 dark:border-rose-800/60 space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <label className="font-bold text-slate-800">
+                    <label className="font-bold text-slate-800 dark:text-slate-200">
                       {t('unpaidFines')} ({t('sdg')}):
                     </label>
                     {Number(userFormData.unpaidCancellationFeeSDG) > 0 && (
@@ -2616,18 +2616,18 @@ export const AdminDashboardScreen: React.FC = () => {
                     min={0}
                     value={userFormData.unpaidCancellationFeeSDG}
                     onChange={(e) => setUserFormData({ ...userFormData, unpaidCancellationFeeSDG: e.target.value })}
-                    className="w-full px-3 py-2 border border-rose-200 rounded-xl bg-white font-mono"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 border border-rose-200 dark:border-rose-800/60 rounded-xl bg-white dark:bg-slate-800 font-mono focus:ring-2 focus:ring-rose-500 focus:outline-none"
                   />
                 </div>
               )}
 
               {/* Provider Specific Inputs */}
               {userFormData.role === 'provider' && (
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-                  <span className="font-bold text-teal-800 block">بيانات الحرفة والمهنة:</span>
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                  <span className="font-bold text-teal-800 dark:text-teal-300 block">بيانات الحرفة والمهنة:</span>
 
                   <div className="space-y-1">
-                    <label className="font-bold text-slate-800 block">{t('selectCategory')}</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('selectCategory')}</label>
                     <select
                       value={userFormData.tradeCategoryId}
                       onChange={(e) => {
@@ -2639,7 +2639,7 @@ export const AdminDashboardScreen: React.FC = () => {
                           tradeTitleEn: sel?.nameEn || userFormData.tradeTitleEn,
                         });
                       }}
-                      className="w-full px-2.5 py-2 border border-slate-200 rounded-xl bg-white"
+                      className="w-full px-2.5 py-2 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800"
                     >
                       {categories.map(c => (
                         <option key={c.id} value={c.id}>{c.nameAr}</option>
@@ -2649,43 +2649,43 @@ export const AdminDashboardScreen: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="font-bold text-slate-800 block">{t('servicePrice')} ({t('sdg')})</label>
+                      <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('servicePrice')} ({t('sdg')})</label>
                       <input
                         type="number"
                         value={userFormData.basePriceSDG}
                         onChange={(e) => setUserFormData({ ...userFormData, basePriceSDG: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                        className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="font-bold text-slate-800 block">{t('nationalId')} (خاص)</label>
+                      <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('nationalId')} (خاص)</label>
                       <input
                         type="text"
                         value={userFormData.nidNumber}
                         onChange={(e) => setUserFormData({ ...userFormData, nidNumber: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono"
+                        className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-bold text-slate-800 block">رابط وثيقة الهوية (NID Doc URL):</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block">رابط وثيقة الهوية (NID Doc URL):</label>
                     <input
                       type="text"
                       value={userFormData.nidUrl}
                       onChange={(e) => setUserFormData({ ...userFormData, nidUrl: e.target.value })}
                       placeholder="/src/assets/images/..."
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl font-mono"
+                      className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 font-mono"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="font-bold text-slate-800 block">{t('bio')}</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('bio')}</label>
                     <textarea
                       rows={2}
                       value={userFormData.bioAr}
                       onChange={(e) => setUserFormData({ ...userFormData, bioAr: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                      className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
                     />
                   </div>
                 </div>
@@ -2695,7 +2695,7 @@ export const AdminDashboardScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setUserModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold cursor-pointer"
                 >
                   {language === 'ar' ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -2714,12 +2714,12 @@ export const AdminDashboardScreen: React.FC = () => {
       {/* MODAL 2: ADD / EDIT SERVICE CATEGORY */}
       {categoryModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl space-y-4 my-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-base text-slate-900">
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">
                 {editingCategory ? t('editCategory') : t('addCategory')}
               </h3>
-              <button onClick={() => setCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+              <button onClick={() => setCategoryModalOpen(false)} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2727,47 +2727,47 @@ export const AdminDashboardScreen: React.FC = () => {
             <form onSubmit={handleSaveCategory} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('categoryNameAr')} *</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('categoryNameAr')} *</label>
                   <input
                     type="text"
                     value={categoryFormData.nameAr}
                     onChange={(e) => setCategoryFormData({ ...categoryFormData, nameAr: e.target.value })}
                     placeholder="مثال: صيانة غسالات ومجففات"
                     required
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('categoryNameEn')} *</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('categoryNameEn')} *</label>
                   <input
                     type="text"
                     value={categoryFormData.nameEn}
                     onChange={(e) => setCategoryFormData({ ...categoryFormData, nameEn: e.target.value })}
                     placeholder="e.g. Washing Machines Repair"
                     required
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('categoryAverageRate')} *</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('categoryAverageRate')} *</label>
                   <input
                     type="number"
                     value={categoryFormData.averageRateSDG}
                     onChange={(e) => setCategoryFormData({ ...categoryFormData, averageRateSDG: e.target.value })}
                     required
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                    className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-800 block">{t('categoryIcon')}</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('categoryIcon')}</label>
                   <select
                     value={categoryFormData.iconName}
                     onChange={(e) => setCategoryFormData({ ...categoryFormData, iconName: e.target.value })}
-                    className="w-full px-2.5 py-2 border border-slate-200 rounded-xl bg-white"
+                    className="w-full px-2.5 py-2 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                   >
                     <option value="Wrench">مفتاح صيانة (Wrench)</option>
                     <option value="Zap">كهرباء وطاقة (Zap)</option>
@@ -2784,35 +2784,35 @@ export const AdminDashboardScreen: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-800 block">{t('categoryDescAr')}</label>
+                <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('categoryDescAr')}</label>
                 <textarea
                   rows={2}
                   value={categoryFormData.descriptionAr}
                   onChange={(e) => setCategoryFormData({ ...categoryFormData, descriptionAr: e.target.value })}
                   placeholder="وصف مختصر للخدمة..."
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                  className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-800 block">{t('categoryDescEn')}</label>
+                <label className="font-bold text-slate-800 dark:text-slate-200 block">{t('categoryDescEn')}</label>
                 <textarea
                   rows={2}
                   value={categoryFormData.descriptionEn}
                   onChange={(e) => setCategoryFormData({ ...categoryFormData, descriptionEn: e.target.value })}
                   placeholder="Short description in English..."
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                  className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-800 block">مناطق التغطية الشائعة</label>
+                <label className="font-bold text-slate-800 dark:text-slate-200 block">مناطق التغطية الشائعة</label>
                 <input
                   type="text"
                   value={categoryFormData.popularLocations}
                   onChange={(e) => setCategoryFormData({ ...categoryFormData, popularLocations: e.target.value })}
                   placeholder="الخرطوم، أم درمان، بحري، بورتسودان"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl"
+                  className="w-full px-3 py-2 text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
 
@@ -2820,7 +2820,7 @@ export const AdminDashboardScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCategoryModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold cursor-pointer"
                 >
                   {language === 'ar' ? 'إلغاء' : 'Cancel'}
                 </button>
@@ -3004,44 +3004,44 @@ export const AdminDashboardScreen: React.FC = () => {
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 space-y-4 my-6"
+            className="w-full max-w-lg bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-3xl shadow-2xl p-6 space-y-4 my-6"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-teal-700" />
+                <ShieldCheck className="w-5 h-5 text-teal-700 dark:text-teal-400" />
                 <div>
-                  <h3 className="font-extrabold text-base text-slate-900">
+                  <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">
                     {language === 'ar' ? 'وثيقة الرقم الوطني أو جواز السفر (بيانات خاصة)' : 'National ID / Passport Document (Private)'}
                   </h3>
-                  <span className="text-[10px] text-amber-700 font-semibold block">
+                  <span className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold block">
                     {t('nidPrivateNotice')}
                   </span>
                 </div>
               </div>
               <button 
                 onClick={() => setInspectNidUser(null)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div>
-                  <span className="text-slate-500 block">اسم صاحب الحساب:</span>
-                  <span className="font-bold text-slate-900 text-sm">{inspectNidUser.name}</span>
+                  <span className="text-slate-500 dark:text-slate-400 block">اسم صاحب الحساب:</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{inspectNidUser.name}</span>
                 </div>
                 <div className="text-end">
-                  <span className="text-slate-500 block">الرقم الوطني (NID):</span>
-                  <span className="font-mono font-extrabold text-teal-800 text-sm">
+                  <span className="text-slate-500 dark:text-slate-400 block">الرقم الوطني (NID):</span>
+                  <span className="font-mono font-extrabold text-teal-800 dark:text-teal-300 text-sm">
                     {inspectNidUser.nidNumber || 'غير مدخل'}
                   </span>
                 </div>
               </div>
 
               {inspectNidUser.nidSubmittedAt && (
-                <div className="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-slate-700">
                   <span>تاريخ رفع المستند الحالي:</span>
                   <span className="font-mono font-medium">
                     {new Date(inspectNidUser.nidSubmittedAt).toLocaleString('ar-SD')}
@@ -3050,19 +3050,19 @@ export const AdminDashboardScreen: React.FC = () => {
               )}
 
               {inspectNidUser.nidStatus === 'pending' && inspectNidUser.nidRejectionReason && (
-                <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-emerald-800">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-950 dark:text-emerald-200 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span>تم تحديث وإعادة رفع المستند من قِبل المهني</span>
                   </div>
-                  <p className="text-[11px] text-emerald-800">
+                  <p className="text-[11px] text-emerald-800 dark:text-emerald-300">
                     الملاحظة السابقة: <em>{inspectNidUser.nidRejectionReason}</em>
                   </p>
                 </div>
               )}
 
               {/* NID Document / Card Image */}
-              <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 max-h-[50vh] flex items-center justify-center">
+              <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 max-h-[50vh] flex items-center justify-center">
                 {inspectNidUser.nidUrl ? (
                   <img
                     src={inspectNidUser.nidUrl}
@@ -3071,14 +3071,14 @@ export const AdminDashboardScreen: React.FC = () => {
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="p-8 text-center text-slate-400">
+                  <div className="p-8 text-center text-slate-400 dark:text-slate-500">
                     {language === 'ar' ? 'لم يتم إرفاق ملف الرقم الوطني أو جواز السفر' : 'No ID / Passport document attached'}
                   </div>
                 )}
               </div>
 
-              <div className="p-2.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-[11px] flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-teal-700 shrink-0" />
+              <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 text-teal-900 dark:text-teal-200 text-[11px] flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-teal-700 dark:text-teal-400 shrink-0" />
                 <span>
                   {language === 'ar' 
                     ? 'هذه البيانات مشفرة ولا تظهر لأي عميل أو مستخدم آخر حفاظاً على الخصوصية التامة.' 
@@ -3087,12 +3087,12 @@ export const AdminDashboardScreen: React.FC = () => {
               </div>
 
               {inspectNidUser.nidStatus === 'reupload_requested' && (
-                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-800">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 text-amber-900 dark:text-amber-200 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                     <span>تم طلب إعادة رفع الهوية من المهني مسبقاً</span>
                   </div>
-                  <p className="text-[11px] text-amber-800">
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300">
                     الملاحظة الموجهة للمهني: <strong>{inspectNidUser.nidRejectionReason || inspectNidUser.deactivatedReason}</strong>
                   </p>
                 </div>
@@ -3100,28 +3100,28 @@ export const AdminDashboardScreen: React.FC = () => {
 
               {/* Request Re-upload Form Prompt */}
               {showNidReuploadPrompt ? (
-                <div className="p-4 rounded-2xl bg-slate-50 border border-amber-300 space-y-3">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-amber-300 dark:border-amber-800/60 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <span className="font-bold text-xs text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>طلب إعادة رفع الهوية وإرسال ملاحظة للمهني</span>
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowNidReuploadPrompt(false)}
-                      className="text-[11px] text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="text-[11px] text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
                     >
                       إلغاء
                     </button>
                   </div>
 
-                  <p className="text-[11px] text-slate-600 leading-relaxed">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                     سيتم إشعار المهني في ملفه الشخصي وإتاحة خيار إعادة الرفع مع إرفاق الملاحظة التالية:
                   </p>
 
                   {/* Preset quick reasons */}
                   <div className="space-y-1">
-                    <span className="text-[10px] text-slate-400 block font-semibold">اختر سبباً جاهزاً أو اكتب ملاحظة مخصصة:</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-semibold">اختر سبباً جاهزاً أو اكتب ملاحظة مخصصة:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {[
                         'صورة المستند غير واضحة وباهتة ولا يمكن قراءة الاسم أو الرقم الوطني',
@@ -3132,7 +3132,7 @@ export const AdminDashboardScreen: React.FC = () => {
                           key={idx}
                           type="button"
                           onClick={() => setNidReuploadReasonText(preset)}
-                          className="px-2.5 py-1 rounded-lg text-[10px] bg-white border border-slate-200 hover:border-teal-500 hover:text-teal-700 text-slate-700 transition-colors cursor-pointer text-start"
+                          className="px-2.5 py-1 rounded-lg text-[10px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-teal-500 hover:text-teal-700 dark:hover:text-teal-300 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-start"
                         >
                           {preset}
                         </button>
@@ -3145,14 +3145,14 @@ export const AdminDashboardScreen: React.FC = () => {
                     value={nidReuploadReasonText}
                     onChange={(e) => setNidReuploadReasonText(e.target.value)}
                     placeholder="اكتب سبب رفض المستند الحالي ليعرف المهني المطلوب..."
-                    className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-amber-500 focus:outline-none"
                   />
 
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setShowNidReuploadPrompt(false)}
-                      className="flex-1 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs cursor-pointer transition-colors"
+                      className="flex-1 py-2 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold text-xs cursor-pointer transition-colors"
                     >
                       تراجع
                     </button>
@@ -3180,7 +3180,7 @@ export const AdminDashboardScreen: React.FC = () => {
               ) : null}
 
               {/* Admin Actions: Approve NID & Activate Provider / Request Re-upload / Deactivate */}
-              <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-2">
                 {inspectNidUser.isActive === false ? (
                   <>
                     <button
@@ -3212,9 +3212,9 @@ export const AdminDashboardScreen: React.FC = () => {
                         setShowNidReuploadPrompt(true);
                         setNidReuploadReasonText('صورة المستند غير واضحة أو باهتة ولا يمكن قراءة الاسم أو الرقم الوطني');
                       }}
-                      className="py-2.5 px-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      className="py-2.5 px-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800/60 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>{language === 'ar' ? 'طلب إعادة رفع الهوية' : 'Request Re-upload'}</span>
                     </button>
                   </>
@@ -3225,7 +3225,7 @@ export const AdminDashboardScreen: React.FC = () => {
                       await adminToggleUserActive(inspectNidUser.id, 'تم تعليق الحساب مؤقتاً لمراجعة إضافية للبيانات');
                       setInspectNidUser(prev => prev ? { ...prev, isActive: false, deactivatedReason: 'تم تعليق الحساب مؤقتاً لمراجعة إضافية للبيانات' } : null);
                     }}
-                    className="flex-1 py-2.5 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    className="flex-1 py-2.5 px-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold text-xs border border-rose-200 dark:border-rose-800/60 flex items-center justify-center gap-2 transition-colors cursor-pointer"
                   >
                     <PowerOff className="w-4 h-4" />
                     <span>{language === 'ar' ? 'تعطيل الحساب وتجميده' : 'Deactivate Account'}</span>
@@ -3237,7 +3237,7 @@ export const AdminDashboardScreen: React.FC = () => {
                     setInspectNidUser(null);
                     setShowNidReuploadPrompt(false);
                   }}
-                  className="py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                  className="py-2.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors cursor-pointer"
                 >
                   {language === 'ar' ? 'إغلاق' : 'Close'}
                 </button>
@@ -3250,13 +3250,13 @@ export const AdminDashboardScreen: React.FC = () => {
       {/* MODAL 5: ADMIN COMPLETE ONGOING SERVICE & RECORD CLIENT PAYMENT */}
       {completeServiceModalReq && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
-            <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-2xl">
+            <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               <span>{language === 'ar' ? 'إنهاء الخدمة وتوثيق السداد الإداري' : 'Complete Job & Record Payment'}</span>
             </h3>
 
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               {language === 'ar'
                 ? `يرجى تحديد طريقة الدفع التي سدد بها العميل مبلغ الخدمة (${completeServiceModalReq.agreedPriceSDG.toLocaleString()} ج.س) للمهني (${completeServiceModalReq.providerName}):`
                 : `Select the payment method used by client for this completed service:`}
@@ -3264,9 +3264,9 @@ export const AdminDashboardScreen: React.FC = () => {
 
             <div className="space-y-2">
               <label className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer ${
-                selectedPayMethod === 'bankak' ? 'border-teal-600 bg-teal-50/50' : 'border-slate-200'
+                selectedPayMethod === 'bankak' ? 'border-teal-600 bg-teal-50/50 dark:bg-teal-950/35' : 'border-slate-200 dark:border-slate-700'
               }`}>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100">
                   <input
                     type="radio"
                     name="adminPayMethod"
@@ -3276,13 +3276,13 @@ export const AdminDashboardScreen: React.FC = () => {
                   />
                   <span>{t('payBankak')}</span>
                 </div>
-                <CreditCard className="w-4 h-4 text-teal-600" />
+                <CreditCard className="w-4 h-4 text-teal-600 dark:text-teal-400" />
               </label>
 
               <label className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer ${
-                selectedPayMethod === 'cash' ? 'border-teal-600 bg-teal-50/50' : 'border-slate-200'
+                selectedPayMethod === 'cash' ? 'border-teal-600 bg-teal-50/50 dark:bg-teal-950/35' : 'border-slate-200 dark:border-slate-700'
               }`}>
-                <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100">
                   <input
                     type="radio"
                     name="adminPayMethod"
@@ -3292,18 +3292,18 @@ export const AdminDashboardScreen: React.FC = () => {
                   />
                   <span>{t('payCash')}</span>
                 </div>
-                <Banknote className="w-4 h-4 text-emerald-600" />
+                <Banknote className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </label>
             </div>
 
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900">
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/60 text-[11px] text-amber-900 dark:text-amber-200">
               <span>سيتم احتساب عمولة المنصة 8% ({Math.round(completeServiceModalReq.agreedPriceSDG * 0.08).toLocaleString()} {t('sdg')}) على المهني لتوريدها يوم الخميس القادم.</span>
             </div>
 
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setCompleteServiceModalReq(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold cursor-pointer"
               >
                 {language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
@@ -3328,38 +3328,38 @@ export const AdminDashboardScreen: React.FC = () => {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white rounded-3xl p-6 space-y-4 shadow-2xl border border-rose-200"
+            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 space-y-4 shadow-2xl border border-rose-200 dark:border-rose-800/60"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <XCircle className="w-5 h-5 text-rose-600" />
-                <h3 className="font-extrabold text-base text-slate-900">
+                <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-slate-100">
                   {language === 'ar' ? 'رفض إشعار التوريد وطلب إعادة الرفع' : 'Reject Receipt & Request Re-upload'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setRejectDepositTarget(null)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs flex items-center justify-between">
               <div>
-                <span className="font-bold text-slate-900 block">{rejectDepositTarget.providerName}</span>
-                <span className="font-mono text-[11px] text-slate-500">
+                <span className="font-bold text-slate-900 dark:text-slate-100 block">{rejectDepositTarget.providerName}</span>
+                <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
                   {rejectDepositTarget.bankakReferenceNumber} · {rejectDepositTarget.depositDate}
                 </span>
               </div>
-              <span className="font-extrabold text-teal-800 tabular-nums">
+              <span className="font-extrabold text-teal-800 dark:text-teal-300 tabular-nums">
                 {rejectDepositTarget.amountSDG.toLocaleString()} {t('sdg')}
               </span>
             </div>
 
             <div className="space-y-1.5">
-              <span className="text-[11px] font-bold text-slate-700 block">
+              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">
                 {language === 'ar' ? 'أسباب رفض سريعة (اختر أو عدّل):' : 'Quick rejection reasons:'}
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -3381,7 +3381,7 @@ export const AdminDashboardScreen: React.FC = () => {
                     key={preset}
                     type="button"
                     onClick={() => setRejectDepositReason(preset)}
-                    className="px-2.5 py-1 rounded-lg text-[10px] bg-slate-50 border border-slate-200 hover:border-rose-400 hover:text-rose-700 text-slate-700 transition-colors cursor-pointer text-start"
+                    className="px-2.5 py-1 rounded-lg text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-rose-400 hover:text-rose-700 dark:hover:text-rose-300 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer text-start"
                   >
                     {preset}
                   </button>
@@ -3390,7 +3390,7 @@ export const AdminDashboardScreen: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 block">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                 {language === 'ar' ? 'سبب الرفض الذي سيظهر للمهني:' : 'Rejection message shown to provider:'}
               </label>
               <textarea
@@ -3402,7 +3402,7 @@ export const AdminDashboardScreen: React.FC = () => {
                     ? 'اكتب سبب عدم صلاحية الإشعار ليعيد المهني رفعه بشكل صحيح...'
                     : 'Explain why this proof is invalid so the provider can re-upload...'
                 }
-                className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-rose-500 focus:outline-none"
+                className="w-full px-3 py-2 text-xs text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-rose-500 focus:outline-none"
               />
             </div>
 
@@ -3411,7 +3411,7 @@ export const AdminDashboardScreen: React.FC = () => {
                 type="button"
                 onClick={() => setRejectDepositTarget(null)}
                 disabled={isRejectingDeposit}
-                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold cursor-pointer"
               >
                 {language === 'ar' ? 'تراجع' : 'Cancel'}
               </button>

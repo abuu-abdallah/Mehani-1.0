@@ -119,6 +119,10 @@ interface AppContextType {
     providerId: string,
     categoryId: string
   ) => Promise<{ success: boolean; error?: string }>;
+  setPrimaryProviderService: (
+    providerId: string,
+    categoryId: string
+  ) => Promise<{ success: boolean; error?: string }>;
   removeProviderService: (
     providerId: string,
     categoryId: string
@@ -413,8 +417,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [latestBootstrap]);
 
-  // Load local preview inbox when signed in without remote PHP backend, and clear on logout
+  // Load local preview inbox when signed in without remote PHP backend, and reset transient UI state on logout
+  const prevUserIdRef = useRef<string | null>(currentUser?.id ?? null);
   useEffect(() => {
+    const previousId = prevUserIdRef.current;
+    const nextId = currentUser?.id ?? null;
+    prevUserIdRef.current = nextId;
+
+    if (previousId !== null && nextId === null) {
+      setShowNotificationInbox(false);
+      setBookingModalProvider(null);
+      setBookingModalPreSelectedServiceId(undefined);
+      setShowAuthModal(false);
+      setSelectedProviderId(null);
+      setActiveTab('home');
+      if (isRemoteApi) {
+        setRequests([]);
+        setDeposits([]);
+      }
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
     if (!currentUser || isGuest) {
       setNotifications([]);
       setUnreadNotificationsCount(0);
@@ -1047,6 +1072,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true };
   };
 
+  const setPrimaryProviderService = async (
+    providerId: string,
+    categoryId: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    const res = await maharaApi.setPrimaryProviderService(providerId, categoryId);
+    if (res.available) {
+      if (!res.ok) {
+        return { success: false, error: res.error || 'فشل تغيير التخصص الرئيسي' };
+      }
+      setAllUsers(prev => prev.map(u => (u.id === providerId ? res.data.user : u)));
+      if (currentUser?.id === providerId) {
+        setCurrentUser(res.data.user);
+      }
+      return { success: true };
+    }
+
+    const targetUser = allUsers.find(u => u.id === providerId);
+    if (!targetUser) return { success: false, error: 'مقدم الخدمة غير موجود' };
+
+    const cat = categories.find(c => c.id === categoryId);
+    if (!cat) return { success: false, error: 'التصنيف الحرفي المختار غير موجود' };
+
+    const currentList =
+      targetUser.serviceCategoryIds && targetUser.serviceCategoryIds.length > 0
+        ? targetUser.serviceCategoryIds
+        : ([targetUser.tradeCategoryId].filter(Boolean) as string[]);
+
+    const updatedList = currentList.includes(categoryId) ? currentList : [categoryId, ...currentList];
+
+    await adminUpdateUser(providerId, {
+      serviceCategoryIds: updatedList,
+      tradeCategoryId: cat.id,
+      tradeTitleAr: cat.nameAr,
+      tradeTitleEn: cat.nameEn,
+    });
+
+    return { success: true };
+  };
+
   const removeProviderService = async (
     providerId: string,
     categoryId: string
@@ -1081,10 +1145,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updatedList = currentList.filter(id => id !== categoryId);
     const nextPrimaryCategory =
       targetUser.tradeCategoryId === categoryId ? updatedList[0] : targetUser.tradeCategoryId;
+    const nextPrimaryCatObj = categories.find(c => c.id === nextPrimaryCategory);
 
     await adminUpdateUser(providerId, {
       serviceCategoryIds: updatedList,
       tradeCategoryId: nextPrimaryCategory,
+      ...(targetUser.tradeCategoryId === categoryId && nextPrimaryCatObj
+        ? {
+            tradeTitleAr: nextPrimaryCatObj.nameAr,
+            tradeTitleEn: nextPrimaryCatObj.nameEn,
+          }
+        : {}),
     });
 
     return { success: true };
@@ -1422,6 +1493,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         adminCancelRequest,
         adminWaiveFine,
         addProviderService,
+        setPrimaryProviderService,
         removeProviderService,
         addCustomService,
         updateCustomService,

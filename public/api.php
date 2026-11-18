@@ -240,6 +240,24 @@ function ensureNotificationsTable(PDO $pdo): void {
     }
 }
 
+function ensureRevokedTokensTable(PDO $pdo): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    try {
+        $pdo->exec('CREATE TABLE IF NOT EXISTS `revoked_tokens` (
+            `token_hash` CHAR(64) NOT NULL,
+            `user_id` VARCHAR(64) NOT NULL,
+            `expires_at` BIGINT NOT NULL,
+            `revoked_at` BIGINT NOT NULL,
+            PRIMARY KEY (`token_hash`),
+            KEY `idx_rt_exp` (`expires_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    } catch (Throwable $e) {
+        error_log('[Mehani API] ensureRevokedTokensTable error: ' . $e->getMessage());
+    }
+}
+
 function createNotificationRecord(
     PDO $pdo,
     string $userId,
@@ -808,6 +826,16 @@ function getAuthenticatedUser(PDO $pdo, array $config): ?array {
     if (!$token) return null;
     $claims = verifyToken($token, $config);
     if (!$claims) return null;
+    ensureRevokedTokensTable($pdo);
+    try {
+        $revStmt = $pdo->prepare('SELECT 1 FROM revoked_tokens WHERE token_hash = ? LIMIT 1');
+        $revStmt->execute([hash('sha256', $token)]);
+        if ($revStmt->fetchColumn()) {
+            return null;
+        }
+    } catch (Throwable $e) {
+        error_log('[Mehani API] revoked_tokens lookup error: ' . $e->getMessage());
+    }
     $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
     $stmt->execute([$claims['sub']]);
     $user = $stmt->fetch();
@@ -1231,6 +1259,25 @@ try {
             ]);
         }
 
+        case 'auth_logout': {
+            $token = getBearerToken();
+            if ($token) {
+                $claims = verifyToken($token, $config);
+                if ($claims) {
+                    ensureRevokedTokensTable($pdo);
+                    $now = time();
+                    try {
+                        $pdo->prepare('INSERT IGNORE INTO `revoked_tokens` (`token_hash`, `user_id`, `expires_at`, `revoked_at`) VALUES (?, ?, ?, ?)')
+                            ->execute([hash('sha256', $token), (string) $claims['sub'], (int) $claims['exp'], $now]);
+                        $pdo->prepare('DELETE FROM `revoked_tokens` WHERE `expires_at` < ?')->execute([$now]);
+                    } catch (Throwable $e) {
+                        error_log('[Mehani API] auth_logout revoke error: ' . $e->getMessage());
+                    }
+                }
+            }
+            sendJson(['ok' => true, 'loggedOut' => true]);
+        }
+
         case 'auth_register_customer': {
             ensureUtf8mb4TextColumns($pdo);
             $name = trim((string) ($body['name'] ?? ''));
@@ -1502,20 +1549,49 @@ try {
                 $fields[] = 'password_hash = ?';
                 $params[] = password_hash((string) $body['password'], PASSWORD_BCRYPT);
             }
+            $newPrimaryCategoryId = null;
+            if ($authUser['role'] === 'provider' && array_key_exists('tradeCategoryId', $body)) {
+                $candidateCatId = trim((string) ($body['tradeCategoryId'] ?? ''));
+                if ($candidateCatId === '') {
+                    sendJson(['ok' => false, 'error' => 'يرجى اختيار التصنيف الحرفي الرئيسي'], 400);
+                }
+                $catStmt = $pdo->prepare('SELECT id, name_ar, name_en FROM categories WHERE id = ? LIMIT 1');
+                $catStmt->execute([$candidateCatId]);
+                $catRow = $catStmt->fetch();
+                if (!$catRow) {
+                    sendJson(['ok' => false, 'error' => 'التصنيف الحرفي المختار غير موجود'], 400);
+                }
+                $newPrimaryCategoryId = (string) $catRow['id'];
+                $fields[] = 'trade_category_id = ?';
+                $params[] = $newPrimaryCategoryId;
+                $fields[] = 'trade_title_ar = ?';
+                $params[] = trim((string) ($body['tradeTitleAr'] ?? '')) ?: (string) $catRow['name_ar'];
+                $fields[] = 'trade_title_en = ?';
+                $params[] = trim((string) ($body['tradeTitleEn'] ?? '')) ?: (string) $catRow['name_en'];
+            }
+
             foreach ([
                 'city' => 'city',
                 'state' => 'state',
                 'neighborhood' => 'neighborhood',
                 'avatarUrl' => 'avatar_url',
                 'bioAr' => 'bio_ar',
-                'tradeTitleAr' => 'trade_title_ar',
-                'tradeTitleEn' => 'trade_title_en',
-                'tradeCategoryId' => 'trade_category_id',
                 'lastThursdayDepositDate' => 'last_thursday_deposit_date',
             ] as $jsonKey => $col) {
                 if (array_key_exists($jsonKey, $body)) {
                     $fields[] = "$col = ?";
                     $params[] = $body[$jsonKey];
+                }
+            }
+            if ($newPrimaryCategoryId === null) {
+                foreach ([
+                    'tradeTitleAr' => 'trade_title_ar',
+                    'tradeTitleEn' => 'trade_title_en',
+                ] as $jsonKey => $col) {
+                    if (array_key_exists($jsonKey, $body)) {
+                        $fields[] = "$col = ?";
+                        $params[] = $body[$jsonKey];
+                    }
                 }
             }
             foreach ([
@@ -1538,6 +1614,11 @@ try {
                 $params[] = $uid;
                 $sql = 'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?';
                 $pdo->prepare($sql)->execute($params);
+            }
+
+            if ($newPrimaryCategoryId !== null) {
+                $pdo->prepare('INSERT IGNORE INTO provider_categories (provider_id, category_id) VALUES (?, ?)')
+                    ->execute([$uid, $newPrimaryCategoryId]);
             }
 
             sendJson(['ok' => true, 'user' => hydrateSingleUser($pdo, $uid, true)]);
@@ -1625,6 +1706,28 @@ try {
             sendJson(['ok' => true, 'user' => hydrateSingleUser($pdo, $providerId, true)]);
         }
 
+        case 'set_primary_provider_service': {
+            $authUser = requireAuth($pdo, $config);
+            $providerId = (string) ($body['providerId'] ?? $authUser['id']);
+            $categoryId = trim((string) ($body['categoryId'] ?? ''));
+            if ($providerId !== $authUser['id'] && $authUser['role'] !== 'admin') {
+                sendJson(['ok' => false, 'error' => 'غير مصرح'], 403);
+            }
+            if ($categoryId === '') {
+                sendJson(['ok' => false, 'error' => 'يرجى اختيار التصنيف الحرفي الرئيسي'], 400);
+            }
+            $catStmt = $pdo->prepare('SELECT id, name_ar, name_en FROM categories WHERE id = ? LIMIT 1');
+            $catStmt->execute([$categoryId]);
+            $catRow = $catStmt->fetch();
+            if (!$catRow) {
+                sendJson(['ok' => false, 'error' => 'التصنيف الحرفي المختار غير موجود'], 400);
+            }
+            $pdo->prepare('INSERT IGNORE INTO provider_categories (provider_id, category_id) VALUES (?, ?)')->execute([$providerId, $categoryId]);
+            $pdo->prepare('UPDATE users SET trade_category_id = ?, trade_title_ar = ?, trade_title_en = ? WHERE id = ?')
+                ->execute([(string) $catRow['id'], (string) $catRow['name_ar'], (string) $catRow['name_en'], $providerId]);
+            sendJson(['ok' => true, 'user' => hydrateSingleUser($pdo, $providerId, true)]);
+        }
+
         case 'remove_provider_service': {
             $authUser = requireAuth($pdo, $config);
             $providerId = (string) ($body['providerId'] ?? '');
@@ -1641,7 +1744,18 @@ try {
             $pdo->prepare('DELETE FROM provider_categories WHERE provider_id = ? AND category_id = ?')->execute([$providerId, $categoryId]);
             $remaining = array_values(array_filter($cats, fn($c) => $c !== $categoryId));
             $nextPrimary = $remaining[0] ?? null;
-            $pdo->prepare('UPDATE users SET trade_category_id = IF(trade_category_id = ?, ?, trade_category_id) WHERE id = ?')->execute([$categoryId, $nextPrimary, $providerId]);
+            if ($nextPrimary !== null) {
+                $catStmt = $pdo->prepare('SELECT name_ar, name_en FROM categories WHERE id = ? LIMIT 1');
+                $catStmt->execute([$nextPrimary]);
+                $nextCat = $catStmt->fetch();
+                if ($nextCat) {
+                    $pdo->prepare('UPDATE users SET trade_category_id = ?, trade_title_ar = ?, trade_title_en = ? WHERE id = ? AND trade_category_id = ?')
+                        ->execute([$nextPrimary, (string) $nextCat['name_ar'], (string) $nextCat['name_en'], $providerId, $categoryId]);
+                } else {
+                    $pdo->prepare('UPDATE users SET trade_category_id = IF(trade_category_id = ?, ?, trade_category_id) WHERE id = ?')
+                        ->execute([$categoryId, $nextPrimary, $providerId]);
+                }
+            }
             sendJson(['ok' => true, 'user' => hydrateSingleUser($pdo, $providerId, true)]);
         }
 

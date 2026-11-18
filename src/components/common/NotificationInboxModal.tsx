@@ -57,7 +57,9 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
       return (
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            isRead ? 'bg-rose-50 text-rose-500' : 'bg-rose-600 text-white shadow-xs'
+            isRead
+              ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400'
+              : 'bg-rose-600 text-white shadow-xs'
           }`}
         >
           <AlertTriangle className="w-5 h-5" />
@@ -68,7 +70,9 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
       return (
         <div
           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            isRead ? 'bg-emerald-50 text-emerald-500' : 'bg-emerald-600 text-white shadow-xs'
+            isRead
+              ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-500 dark:text-emerald-400'
+              : 'bg-emerald-600 text-white shadow-xs'
           }`}
         >
           <CheckCircle2 className="w-5 h-5" />
@@ -78,7 +82,9 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
     return (
       <div
         className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-          isRead ? 'bg-teal-50 text-teal-600' : 'bg-teal-700 text-white shadow-xs'
+          isRead
+            ? 'bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400'
+            : 'bg-teal-700 text-white shadow-xs'
         }`}
       >
         <Briefcase className="w-5 h-5" />
@@ -102,10 +108,10 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
         role="dialog"
         aria-modal="true"
         aria-label={t('notificationsInbox')}
-        className="w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[88vh]"
+        className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[88vh]"
       >
         {/* Header */}
-        <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between gap-3 shrink-0">
+        <div className="bg-slate-900 dark:bg-slate-950 text-white px-5 py-4 flex items-center justify-between gap-3 shrink-0 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
               <Bell className="w-5 h-5" />
@@ -137,15 +143,15 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Filter Tabs & Mark All Read Bar */}
-        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
-          <div className="inline-flex bg-slate-200/70 p-1 rounded-xl gap-1">
+        <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="inline-flex bg-slate-200/70 dark:bg-slate-800 p-1 rounded-xl gap-1">
             <button
               type="button"
               onClick={() => setFilterMode('all')}
               className={`min-h-[38px] px-3.5 rounded-lg text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
                 filterMode === 'all'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {t('allNotifications')} ({notifications.length})
@@ -155,8 +161,8 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
               onClick={() => setFilterMode('unread')}
               className={`min-h-[38px] px-3.5 rounded-lg text-xs font-bold transition-colors cursor-pointer whitespace-nowrap tabular-nums ${
                 filterMode === 'unread'
-                  ? 'bg-white text-teal-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-teal-800 dark:text-teal-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {t('unread')} ({unreadNotificationsCount})
@@ -167,7 +173,7 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
             <button
               type="button"
               onClick={() => void markAllNotificationsRead()}
-              className="min-h-[38px] px-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+              className="min-h-[38px] px-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
             >
               <CheckCheck className="w-4 h-4 shrink-0" />
               <span>{t('markAllRead')}</span>
@@ -176,16 +182,16 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Notifications List */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 bg-slate-50/40">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5 bg-slate-50/40 dark:bg-slate-950/60">
           {displayedNotifications.length === 0 ? (
             <div className="py-14 px-4 text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
                 <Bell className="w-7 h-7" />
               </div>
-              <p className="text-sm font-bold text-slate-700">
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
                 {filterMode === 'unread' ? t('noUnreadNotifications') : t('noNotifications')}
               </p>
-              <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
                 {isAr
                   ? 'ستظهر هنا جميع تنبيهات الطلبات، الاعتمادات، والرسائل الإدارية فور حدوثها.'
                   : 'All service updates, approvals, and administrative notices will appear here.'}
@@ -204,8 +210,8 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
                   onClick={() => void handleNotificationClick(item)}
                   className={`w-full text-start p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer ${
                     isUnread
-                      ? 'bg-teal-50/70 border-teal-200 hover:bg-teal-50 shadow-2xs'
-                      : 'bg-white border-slate-200/80 hover:bg-slate-50'
+                      ? 'bg-teal-50/70 dark:bg-teal-950/40 border-teal-200 dark:border-teal-800/70 hover:bg-teal-50 dark:hover:bg-teal-950/60 shadow-2xs'
+                      : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/70'
                   }`}
                 >
                   {renderCategoryIcon(item.category, item.isRead)}
@@ -215,15 +221,15 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
                       <p
                         className={`text-xs sm:text-sm leading-snug ${
                           isUnread
-                            ? 'font-extrabold text-slate-950'
-                            : 'font-medium text-slate-700'
+                            ? 'font-extrabold text-slate-950 dark:text-white'
+                            : 'font-medium text-slate-700 dark:text-slate-300'
                         }`}
                       >
                         {title}
                       </p>
                       {isUnread && (
                         <span
-                          className="w-2.5 h-2.5 rounded-full bg-teal-600 shrink-0 mt-1"
+                          className="w-2.5 h-2.5 rounded-full bg-teal-600 dark:bg-teal-400 shrink-0 mt-1"
                           aria-label={t('newNotification')}
                         />
                       )}
@@ -232,24 +238,24 @@ export const NotificationInboxModal: React.FC<Props> = ({ isOpen, onClose }) => 
                     <p
                       className={`text-xs leading-relaxed ${
                         isUnread
-                          ? 'font-bold text-slate-800'
-                          : 'font-normal text-slate-500'
+                          ? 'font-bold text-slate-800 dark:text-slate-200'
+                          : 'font-normal text-slate-500 dark:text-slate-400'
                       }`}
                     >
                       {body}
                     </p>
 
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pt-0.5 tabular-nums">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 pt-0.5 tabular-nums">
                       <Clock className="w-3 h-3 shrink-0" />
                       <span>{item.createdAt}</span>
                       <span>·</span>
-                      <span className={isUnread ? 'text-teal-700 font-bold' : ''}>
+                      <span className={isUnread ? 'text-teal-700 dark:text-teal-400 font-bold' : ''}>
                         {getCategoryLabel(item.category)}
                       </span>
                       {isUnread && (
                         <>
                           <span>·</span>
-                          <span className="text-teal-700 font-extrabold">
+                          <span className="text-teal-700 dark:text-teal-400 font-extrabold">
                             {t('newNotification')}
                           </span>
                         </>

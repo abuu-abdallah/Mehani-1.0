@@ -100,7 +100,7 @@ define(['./workbox-d667eb67'], (function (workbox) { 'use strict';
     "revision": "08d78c2568bfeb32b44ef59a67d99288"
   }, {
     "url": "index.html",
-    "revision": "b39cb2f073b8dfb45c7e081265a6e6db"
+    "revision": "30b1b0eb812bca2451a8635035cc4497"
   }, {
     "url": "apple-touch-icon.png",
     "revision": "bc7e6e7907c01f06d9d05c32934bd4e5"
@@ -123,10 +123,10 @@ define(['./workbox-d667eb67'], (function (workbox) { 'use strict';
     "url": "avatars/avatar-1.jpg",
     "revision": "93ec189b6f8c1ab848ef7b131eec661f"
   }, {
-    "url": "assets/web-sfT9YQc8.js",
+    "url": "assets/web-SQ7lCcuL.js",
     "revision": null
   }, {
-    "url": "assets/web-B_n-J6V7.js",
+    "url": "assets/web-52GXIh1k.js",
     "revision": null
   }, {
     "url": "assets/tailor_embroidery_craft_1791698438179-9CQ9IcMz.jpg",
@@ -135,10 +135,10 @@ define(['./workbox-d667eb67'], (function (workbox) { 'use strict';
     "url": "assets/mahara_trades_hero_1791698414128-w15QG52V.jpg",
     "revision": null
   }, {
-    "url": "assets/index-COcRvHuh.js",
+    "url": "assets/index-CbUGVKfm.css",
     "revision": null
   }, {
-    "url": "assets/index-B3RLU_Bp.css",
+    "url": "assets/index-CSS9h2Hv.js",
     "revision": null
   }, {
     "url": "assets/henna_beauty_craft_1791698427609-CguPx93K.jpg",
@@ -151,6 +151,9 @@ define(['./workbox-d667eb67'], (function (workbox) { 'use strict';
     "revision": null
   }, {
     "url": "assets/aistudio/image_f1dce030.png",
+    "revision": null
+  }, {
+    "url": "assets/aistudio/image_7846bf5d.png",
     "revision": null
   }, {
     "url": "assets/aistudio/image_74e22939.png",

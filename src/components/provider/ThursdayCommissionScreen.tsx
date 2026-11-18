@@ -56,20 +56,20 @@ export const ThursdayCommissionScreen: React.FC = () => {
   if (!isProviderOrAdmin) {
     return (
       <div className="pb-28 max-w-md mx-auto px-4 pt-16 text-center space-y-4">
-        <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-          <ShieldAlert className="w-8 h-8 text-slate-500" />
+        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-500">
+          <ShieldAlert className="w-8 h-8 text-slate-500 dark:text-slate-400" />
         </div>
-        <h2 className="text-base font-bold text-slate-800">
+        <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">
           {language === 'ar' ? 'قسم مخصص لأصحاب المهن ومقدمي الخدمات' : 'Reserved for Service Providers'}
         </h2>
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
           {language === 'ar'
             ? 'هذه الصفحة مخصصة للمهنيين المستقلين لمتابعة حساباتهم وتوريداتهم الأسبوعية.'
             : 'This section is reserved for verified trade providers to manage weekly settlements.'}
         </p>
         <button
           onClick={() => setActiveTab('home')}
-          className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer shadow-xs"
+          className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-teal-600 hover:bg-slate-800 dark:hover:bg-teal-500 text-white font-bold text-xs cursor-pointer shadow-xs"
         >
           {t('navHome')}
         </button>
@@ -199,42 +199,42 @@ export const ThursdayCommissionScreen: React.FC = () => {
       <div className="flex items-center justify-between gap-3">
         <button
           onClick={goBack}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 text-xs font-bold transition-all shadow-2xs cursor-pointer group"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group"
           title={language === 'ar' ? 'الرجوع للرئيسية' : 'Back to Home'}
         >
-          <BackArrowIcon className="w-4 h-4 text-teal-600 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
+          <BackArrowIcon className="w-4 h-4 text-teal-600 dark:text-teal-400 transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5" />
           <span>{language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}</span>
         </button>
       </div>
 
       {/* Page Title */}
       <div className="space-y-1">
-        <div className="flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg w-fit border border-amber-200">
+        <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-lg w-fit border border-amber-200 dark:border-amber-800">
           <Calendar className="w-3.5 h-3.5" />
           <span>{language === 'ar' ? 'موعد التوريد الأسبوعي: كل يوم خميس' : 'Weekly Settlement: Every Thursday'}</span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
           {t('thursdayCommissionTitle')}
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
           {t('thursdayCommissionSubtitle')}
         </p>
       </div>
 
       {/* URGENT REJECTED DEPOSIT ALERT BANNER */}
       {rejectedDeposits.length > 0 && (
-        <div className="rounded-3xl bg-rose-50 border border-rose-300 p-5 space-y-3 shadow-xs">
+        <div className="rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 p-5 space-y-3 shadow-xs">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div className="flex-1 space-y-1">
-              <h2 className="text-sm sm:text-base font-extrabold text-rose-950">
+              <h2 className="text-sm sm:text-base font-extrabold text-rose-950 dark:text-rose-200">
                 {language === 'ar'
                   ? `تنبيه هام: يوجد (${rejectedDeposits.length}) إشعار توريد مرفوض ويحتاج إلى إعادة رفع`
                   : `Action Required: ${rejectedDeposits.length} Deposit Proof(s) Rejected — Please Re-upload`}
               </h2>
-              <p className="text-xs text-rose-900 leading-relaxed">
+              <p className="text-xs text-rose-900 dark:text-rose-300/90 leading-relaxed">
                 {language === 'ar'
                   ? 'راجعت الإدارة إشعار التحويل المرفق وتبين أنه غير صالح أو غير مطابق. لا يتم خصم العمولة المستحقة إلا بعد اعتماد إشعار تحويل صحيح.'
                   : 'An administrator reviewed your deposit receipt and marked it invalid. Your commission due remains unpaid until a valid receipt is uploaded and approved.'}
@@ -246,20 +246,20 @@ export const ThursdayCommissionScreen: React.FC = () => {
             {rejectedDeposits.map(dep => (
               <div
                 key={dep.id}
-                className="p-3.5 rounded-2xl bg-white border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
               >
                 <div className="space-y-1 text-xs">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-extrabold text-slate-900 tabular-nums">
+                    <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">
                       {dep.amountSDG.toLocaleString()} {t('sdg')}
                     </span>
-                    <span className="text-slate-400">·</span>
-                    <span className="font-mono text-slate-600">{dep.bankakReferenceNumber}</span>
-                    <span className="text-slate-400">·</span>
-                    <span className="text-slate-500">{dep.depositDate}</span>
+                    <span className="text-slate-400 dark:text-slate-600">·</span>
+                    <span className="font-mono text-slate-600 dark:text-slate-300">{dep.bankakReferenceNumber}</span>
+                    <span className="text-slate-400 dark:text-slate-600">·</span>
+                    <span className="text-slate-500 dark:text-slate-400">{dep.depositDate}</span>
                   </div>
-                  <div className="text-rose-800 font-semibold flex items-start gap-1.5">
-                    <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                  <div className="text-rose-800 dark:text-rose-300 font-semibold flex items-start gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                     <span>
                       {language === 'ar' ? 'سبب الرفض: ' : 'Rejection reason: '}
                       {dep.rejectionReason ||
@@ -310,54 +310,54 @@ export const ThursdayCommissionScreen: React.FC = () => {
         </div>
 
         {/* Gross Revenue */}
-        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-bold uppercase tracking-wide">
               {t('totalGrossEarnings')}
             </span>
-            <TrendingUp className="w-5 h-5 text-emerald-600" />
+            <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight tabular-nums">
+          <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
             {totalEarned.toLocaleString()}
-            <span className="text-xs font-medium text-slate-400 ms-1.5">{t('sdg')}</span>
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 ms-1.5">{t('sdg')}</span>
           </div>
-          <span className="text-[11px] text-slate-500 block">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
             {completedRequests.length} {language === 'ar' ? 'خدمات منجزة ومستلمة' : 'completed jobs'}
           </span>
         </div>
 
         {/* Settlement Status */}
-        <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-500">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-xs font-bold uppercase tracking-wide">
               {language === 'ar' ? 'حالة توريد هذا الأسبوع' : 'This Week Settlement'}
             </span>
-            <Clock className="w-5 h-5 text-sky-600" />
+            <Clock className="w-5 h-5 text-sky-600 dark:text-sky-400" />
           </div>
-          <div className="text-base sm:text-lg font-bold text-slate-800">
+          <div className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
             {rejectedDeposits.length > 0 ? (
-              <span className="text-rose-700 flex items-center gap-1.5">
+              <span className="text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
                 {language === 'ar' ? 'إشعار مرفوض — يلزم إعادة الرفع' : 'Invalid Proof — Re-upload'}
               </span>
             ) : pendingReviewDeposits.length > 0 ? (
-              <span className="text-amber-700 flex items-center gap-1.5">
+              <span className="text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                 <Clock className="w-5 h-5 shrink-0" />
                 {language === 'ar' ? 'قيد مراجعة واعتماد الإدارة' : 'Pending Admin Review'}
               </span>
             ) : pendingDue === 0 ? (
-              <span className="text-emerald-600 flex items-center gap-1.5">
+              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
                 {language === 'ar' ? 'مكتمل ومسدد بالكامل' : 'All Settled'}
               </span>
             ) : (
-              <span className="text-amber-700 flex items-center gap-1.5">
+              <span className="text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                 <Calendar className="w-5 h-5 shrink-0" />
                 {language === 'ar' ? 'بانتظار إيداع الخميس' : 'Due this Thursday'}
               </span>
             )}
           </div>
-          <span className="text-[11px] text-slate-500 block">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
             {rejectedDeposits.length > 0
               ? language === 'ar'
                 ? 'اضغط إعادة رفع إشعار صحيح أدناه لتحديث الطلب'
@@ -370,7 +370,7 @@ export const ThursdayCommissionScreen: React.FC = () => {
       </div>
 
       {/* Official Mehani Bankak Account Details Card */}
-      <div className="bg-slate-900 text-white rounded-3xl p-5 shadow-lg space-y-4">
+      <div className="bg-slate-900 dark:bg-slate-900/95 border border-transparent dark:border-slate-800 text-white rounded-3xl p-5 shadow-lg space-y-4">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Building2 className="w-5 h-5 text-teal-400" />
@@ -424,40 +424,40 @@ export const ThursdayCommissionScreen: React.FC = () => {
       </div>
 
       {/* Thursday Deposit Proof Upload Form */}
-      <div id="deposit-upload-form" className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div id="deposit-upload-form" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-teal-700" />
+            <Receipt className="w-5 h-5 text-teal-700 dark:text-teal-400" />
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">
                 {resubmitDepositId
                   ? language === 'ar'
                     ? 'إعادة رفع إشعار التوريد المصحح'
                     : 'Re-upload Corrected Deposit Proof'
                   : t('depositProofUpload')}
               </h2>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
                 {language === 'ar'
                   ? 'توثيق سداد عمولة الـ 8% وغرامات الإلغاء المحصلة لحساب مهني'
                   : 'Record 8% commission & collected penalty settlement with screenshot'}
               </span>
             </div>
           </div>
-          <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg">
+          <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-transparent dark:border-teal-800 px-2.5 py-1 rounded-lg">
             {language === 'ar' ? 'العمولة 8% + الغرامات' : '8% + Penalties'}
           </span>
         </div>
 
         {activeRejectedTarget && (
-          <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-3 text-xs">
+          <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-between gap-3 text-xs">
             <div className="space-y-0.5">
-              <span className="font-bold text-amber-950 block">
+              <span className="font-bold text-amber-950 dark:text-amber-200 block">
                 {language === 'ar'
                   ? `أنت تقوم الآن بتحديث الإشعار المرفوض (${activeRejectedTarget.bankakReferenceNumber})`
                   : `Updating rejected receipt (${activeRejectedTarget.bankakReferenceNumber})`}
               </span>
               {activeRejectedTarget.rejectionReason && (
-                <span className="text-amber-900 block">
+                <span className="text-amber-900 dark:text-amber-300 block">
                   {activeRejectedTarget.rejectionReason}
                 </span>
               )}
@@ -465,7 +465,7 @@ export const ThursdayCommissionScreen: React.FC = () => {
             <button
               type="button"
               onClick={handleCancelReupload}
-              className="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold hover:bg-amber-100 cursor-pointer flex items-center gap-1 shrink-0"
+              className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-bold hover:bg-amber-100 dark:hover:bg-slate-700 cursor-pointer flex items-center gap-1 shrink-0"
             >
               <X className="w-3.5 h-3.5" />
               <span>{language === 'ar' ? 'إلغاء' : 'Cancel'}</span>
@@ -474,15 +474,15 @@ export const ThursdayCommissionScreen: React.FC = () => {
         )}
 
         {submittedSuccess && (
-          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span className="font-bold">{t('depositSubmittedSuccess')}</span>
           </div>
         )}
 
         {formError && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
             <span className="font-semibold">{formError}</span>
           </div>
         )}
@@ -491,7 +491,7 @@ export const ThursdayCommissionScreen: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Amount (SDG) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-800 block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
                 {t('depositAmount')} *
               </label>
               <div className="relative">
@@ -501,9 +501,9 @@ export const ThursdayCommissionScreen: React.FC = () => {
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="25000"
                   required
-                  className="w-full px-3 py-2.5 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none tabular-nums"
+                  className="w-full px-3 py-2.5 text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none tabular-nums"
                 />
-                <span className="absolute end-3 top-2.5 text-xs text-slate-400 font-bold">
+                <span className="absolute end-3 top-2.5 text-xs text-slate-400 dark:text-slate-500 font-bold">
                   {t('sdg')}
                 </span>
               </div>
@@ -511,7 +511,7 @@ export const ThursdayCommissionScreen: React.FC = () => {
 
             {/* Bankak Reference Number */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-800 block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
                 {t('bankakRefNumber')} *
               </label>
               <input
@@ -520,13 +520,13 @@ export const ThursdayCommissionScreen: React.FC = () => {
                 onChange={(e) => setBankakRef(e.target.value)}
                 placeholder="BK-984310284"
                 required
-                className="w-full px-3 py-2.5 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono"
+                className="w-full px-3 py-2.5 text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono"
               />
             </div>
 
             {/* Deposit Date */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-800 block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
                 {language === 'ar' ? 'تاريخ التحويل / الإيداع *' : 'Deposit Date *'}
               </label>
               <input
@@ -534,13 +534,13 @@ export const ThursdayCommissionScreen: React.FC = () => {
                 value={depositDate}
                 onChange={(e) => setDepositDate(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2.5 text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
               />
             </div>
 
             {/* Notes */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-800 block">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
                 {language === 'ar' ? 'ملاحظات إضافية (اختياري)' : 'Additional Notes (Optional)'}
               </label>
               <input
@@ -548,21 +548,21 @@ export const ThursdayCommissionScreen: React.FC = () => {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={language === 'ar' ? 'مثال: عمولة أسبوع 8 أكتوبر عن صيانة مكيفات' : 'e.g. October 8 week settlement'}
-                className="w-full px-3 py-2.5 text-xs text-slate-900 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-3 py-2.5 text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
               />
             </div>
           </div>
 
           {/* Screenshot Upload with Live Preview */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-800 block">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
               {t('depositReceiptImage')} *
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-2xl bg-slate-50 cursor-pointer transition-colors text-center group">
-                <Upload className="w-8 h-8 text-slate-400 group-hover:text-teal-600 mb-2 transition-colors" />
-                <span className="text-xs font-bold text-slate-700">
+              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-500 rounded-2xl bg-slate-50 dark:bg-slate-800/60 cursor-pointer transition-colors text-center group">
+                <Upload className="w-8 h-8 text-slate-400 dark:text-slate-500 group-hover:text-teal-600 dark:group-hover:text-teal-400 mb-2 transition-colors" />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
                   {receiptUrl
                     ? language === 'ar'
                       ? 'اضغط لتغيير صورة إشعار بنكك'
@@ -571,7 +571,7 @@ export const ThursdayCommissionScreen: React.FC = () => {
                       ? 'اضغط لاختيار صورة إشعار بنكك'
                       : 'Click to select Bankak receipt'}
                 </span>
-                <span className="text-[10px] text-slate-400 mt-0.5">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                   PNG, JPG, Screenshot (BOK / Bankak)
                 </span>
                 <input
@@ -583,25 +583,25 @@ export const ThursdayCommissionScreen: React.FC = () => {
               </label>
 
               {receiptUrl ? (
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-3">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center gap-3">
                   <img
                     src={receiptUrl}
                     alt="Receipt preview"
-                    className="w-20 h-20 rounded-xl object-cover border border-slate-200 shrink-0"
+                    className="w-20 h-20 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                     referrerPolicy="no-referrer"
                   />
                   <div className="text-xs space-y-1">
-                    <span className="font-bold text-slate-800 block">
+                    <span className="font-bold text-slate-800 dark:text-slate-100 block">
                       {language === 'ar' ? 'معاينة الإشعار المرفق' : 'Receipt Preview'}
                     </span>
-                    <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       {language === 'ar' ? 'جاهز للإرسال والمراجعة' : 'Ready for review'}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-xs text-slate-400 text-center">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-xs text-slate-400 dark:text-slate-500 text-center">
                   {language === 'ar'
                     ? 'لم يتم اختيار صورة الإشعار بعد'
                     : 'No receipt screenshot selected yet'}
@@ -629,18 +629,18 @@ export const ThursdayCommissionScreen: React.FC = () => {
       </div>
 
       {/* History of Past Thursday Deposits */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 space-y-3">
-        <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-          <FileCheck className="w-4 h-4 text-teal-700" />
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 space-y-3">
+        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <FileCheck className="w-4 h-4 text-teal-700 dark:text-teal-400" />
           <span>{language === 'ar' ? 'سجل توريدات الخميس السابقة' : 'Past Thursday Deposit Receipts'}</span>
         </h2>
 
         {myDeposits.length === 0 ? (
-          <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">
+          <div className="p-6 text-center text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/60 rounded-2xl">
             {language === 'ar' ? 'لا توجد توريدات مسجلة بعد' : 'No deposits recorded yet'}
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {myDeposits.map((dep) => {
               const isVerified = dep.status === 'verified';
               const isRejected = dep.status === 'rejected';
@@ -648,40 +648,40 @@ export const ThursdayCommissionScreen: React.FC = () => {
                 <div key={dep.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div className="space-y-1 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-slate-900 tabular-nums">
+                      <span className="font-bold text-slate-900 dark:text-white tabular-nums">
                         {dep.amountSDG.toLocaleString()} {t('sdg')}
                       </span>
 
                       {isVerified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[10px] border border-emerald-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px] border border-emerald-200 dark:border-emerald-800">
                           <CheckCircle2 className="w-3 h-3" />
                           {language === 'ar' ? 'معتمد' : 'Verified'}
                         </span>
                       ) : isRejected ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-semibold text-[10px] border border-rose-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-semibold text-[10px] border border-rose-200 dark:border-rose-800">
                           <AlertTriangle className="w-3 h-3" />
                           {language === 'ar' ? 'مرفوض - غير صالح (يلزم إعادة الرفع)' : 'Rejected - Re-upload Required'}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-semibold text-[10px] border border-amber-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold text-[10px] border border-amber-200 dark:border-amber-800">
                           <Clock className="w-3 h-3" />
                           {language === 'ar' ? 'قيد المراجعة' : 'Pending Review'}
                         </span>
                       )}
                     </div>
 
-                    <span className="text-[11px] text-slate-500 font-mono block">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono block">
                       {dep.bankakReferenceNumber} · {dep.depositDate}
                     </span>
 
                     {dep.notes && (
-                      <span className="text-[11px] text-slate-600 block">{dep.notes}</span>
+                      <span className="text-[11px] text-slate-600 dark:text-slate-300 block">{dep.notes}</span>
                     )}
 
                     {isRejected && (
-                      <div className="mt-1.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-[11px] space-y-1.5">
+                      <div className="mt-1.5 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-[11px] space-y-1.5">
                         <div className="font-semibold flex items-start gap-1.5">
-                          <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                          <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                           <span>
                             {language === 'ar' ? 'ملاحظة الإدارة: ' : 'Admin note: '}
                             {dep.rejectionReason ||
@@ -706,7 +706,7 @@ export const ThursdayCommissionScreen: React.FC = () => {
                     <img
                       src={dep.receiptFileUrl}
                       alt="Receipt"
-                      className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0"
+                      className="w-14 h-14 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                       referrerPolicy="no-referrer"
                     />
                   )}

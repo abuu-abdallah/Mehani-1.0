@@ -1,5 +1,6 @@
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
+import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
@@ -18,11 +19,11 @@ import { SwipeBackGesture } from './components/common/SwipeBackGesture';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { CapacitorNativeBridge } from './components/common/CapacitorNativeBridge';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
-import { AlertTriangle, WifiOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, WifiOff, X } from 'lucide-react';
 
 const MainContent: React.FC = () => {
-  const { dir, language } = useLanguage();
-  const { currentUser } = useAuth();
+  const { dir, language, t } = useLanguage();
+  const { currentUser, logoutSuccessVisible, dismissLogoutSuccess } = useAuth();
   const isOnline = useOnlineStatus();
   const isNativeAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
   const {
@@ -39,7 +40,7 @@ const MainContent: React.FC = () => {
   // In the Android app, when offline nothing should load and a top message should appear
   if (isNativeAndroid && !isOnline) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans" dir="ltr">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans transition-colors" dir="ltr">
         <header
           role="alert"
           className="w-full bg-rose-700 text-white px-4 py-3.5 pt-[calc(env(safe-area-inset-top,0px)+14px)] shadow-md border-b border-rose-600"
@@ -72,7 +73,7 @@ const MainContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans" dir={dir}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors" dir={dir}>
       {/* Mobile Edge Swipe Back Navigation Gesture Handler */}
       <SwipeBackGesture />
       <CapacitorNativeBridge />
@@ -82,6 +83,31 @@ const MainContent: React.FC = () => {
 
       {/* Persistent Navbar across all screens */}
       <Navbar />
+
+      {/* Graceful Logout Confirmation Banner */}
+      {logoutSuccessVisible && (
+        <div className="fixed top-16 inset-x-0 z-50 px-3 pointer-events-none flex justify-center">
+          <div
+            role="status"
+            className="pointer-events-auto max-w-md w-full rounded-2xl bg-emerald-50 dark:bg-emerald-950/95 border border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 p-3.5 shadow-xl flex items-center gap-3"
+          >
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <p className="text-xs font-bold flex-1 leading-snug">
+              {t('loggedOutSuccess')}
+            </p>
+            <button
+              type="button"
+              onClick={dismissLogoutSuccess}
+              aria-label="Close"
+              className="p-1.5 rounded-lg text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Top Urgent Alert Banner for Providers whose NID requires re-upload or whose account is inactive */}
       {currentUser?.role === 'provider' && (currentUser?.nidStatus === 'reupload_requested' || currentUser?.isActive === false) && (
@@ -150,13 +176,15 @@ const MainContent: React.FC = () => {
 export default function App() {
   return (
     <ErrorBoundary>
-      <LanguageProvider>
-        <AuthProvider>
-          <AppProvider>
-            <MainContent />
-          </AppProvider>
-        </AuthProvider>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppProvider>
+              <MainContent />
+            </AppProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

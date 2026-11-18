@@ -130,11 +130,11 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
     >
       <div 
         onClick={(e) => e.stopPropagation()} 
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-6"
+        className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-6"
       >
         
         {/* Header */}
-        <div className="bg-slate-900 text-white p-5 flex items-center justify-between">
+        <div className="bg-slate-900 dark:bg-slate-950 text-white p-5 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
             <img
               src={provider.avatarUrl}
@@ -145,7 +145,7 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
             <div>
               <h2 className="font-bold text-base text-white">{t('confirmBooking')}</h2>
               <span className="text-xs text-teal-300 font-medium block">
-                {provider.name} · {provider.tradeTitleAr}
+                {provider.name} · {language === 'ar' ? provider.tradeTitleAr : (provider.tradeTitleEn || provider.tradeTitleAr)}
               </span>
             </div>
           </div>
@@ -161,8 +161,8 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/70 text-rose-800 dark:text-rose-200 text-xs flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
           )}
@@ -171,11 +171,11 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
           {customServicesList.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Tag className="w-3.5 h-3.5 text-teal-700" />
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400" />
                   <span>{language === 'ar' ? 'اختر الخدمة أو الخدمات المطلوبة من قائمة المهني:' : 'Select Services from Provider Menu:'}</span>
                 </label>
-                <span className="text-[10px] text-teal-800 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+                <span className="text-[10px] text-teal-800 dark:text-teal-300 font-bold bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-md border border-teal-200 dark:border-teal-800/70">
                   {selectedServiceIds.length} {language === 'ar' ? 'مختارة' : 'selected'}
                 </span>
               </div>
@@ -189,23 +189,23 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
                       onClick={() => toggleServiceSelection(service.id)}
                       className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
                         isSelected 
-                          ? 'border-teal-600 bg-teal-50/70 shadow-2xs' 
-                          : 'border-slate-200 bg-white hover:border-slate-300'
+                          ? 'border-teal-600 dark:border-teal-500 bg-teal-50/70 dark:bg-teal-950/50 shadow-2xs' 
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/70 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 border ${
-                          isSelected ? 'bg-teal-700 border-teal-700 text-white' : 'border-slate-300 bg-white'
+                          isSelected ? 'bg-teal-700 dark:bg-teal-600 border-teal-700 dark:border-teal-500 text-white' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900'
                         }`}>
                           {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                         </div>
-                        <span className={`truncate ${isSelected ? 'text-teal-950 font-bold' : 'text-slate-800'}`}>
+                        <span className={`truncate ${isSelected ? 'text-teal-950 dark:text-teal-200 font-bold' : 'text-slate-800 dark:text-slate-200'}`}>
                           {service.nameAr}
                         </span>
                       </div>
 
-                      <span className="font-mono font-bold text-teal-800 shrink-0 text-xs">
-                        {service.priceSDG.toLocaleString()} <span className="text-[10px] text-slate-500 font-normal">{t('sdg')}</span>
+                      <span className="font-mono font-bold text-teal-800 dark:text-teal-400 shrink-0 text-xs">
+                        {service.priceSDG.toLocaleString()} <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">{t('sdg')}</span>
                       </span>
                     </div>
                   );
@@ -215,37 +215,37 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
           )}
 
           {/* Pricing & Fee Breakdown */}
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2 text-xs">
-            <div className="flex items-center justify-between font-medium text-slate-700">
+          <div className="bg-slate-50 dark:bg-slate-800/70 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+            <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-300">
               <span>{language === 'ar' ? 'سعر الخدمات المختارة' : 'Selected Services Fee'}:</span>
-              <span className="font-bold text-slate-900 font-mono">{activeBasePrice.toLocaleString()} {t('sdg')}</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100 font-mono">{activeBasePrice.toLocaleString()} {t('sdg')}</span>
             </div>
 
             {/* If 5% cancellation penalty applies */}
             {priorCancellationPenalty > 0 && (
-              <div className="flex items-center justify-between p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-medium">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 text-amber-900 dark:text-amber-200 font-medium">
                 <div className="flex items-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   <span>{t('cancellationPenaltyNote')} (5%)</span>
                 </div>
                 <span className="font-bold">+{priorCancellationPenalty.toLocaleString()} {t('sdg')}</span>
               </div>
             )}
 
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-sm font-extrabold text-slate-900">
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-sm font-extrabold text-slate-900 dark:text-slate-100">
               <span>{language === 'ar' ? 'المجموع المستحق عند الإتمام' : 'Total Due upon Completion'}:</span>
-              <span className="text-teal-800 text-base font-mono">{totalPrice.toLocaleString()} {t('sdg')}</span>
+              <span className="text-teal-800 dark:text-teal-400 text-base font-mono">{totalPrice.toLocaleString()} {t('sdg')}</span>
             </div>
 
-            <div className="text-[11px] text-slate-500 pt-1 flex items-center gap-1.5">
-              <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 flex items-center gap-1.5">
+              <Banknote className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               <span>{language === 'ar' ? 'يتم الدفع للمهني مباشرة بعد انتهاء العمل: كاش أو عبر تطبيق بنكك' : 'Pay worker upon completion: Cash or Bankak'}</span>
             </div>
           </div>
 
           {/* Problem / Work Description */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-800 block">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
               {language === 'ar' ? 'تفاصيل الخدمة أو العطل المطلوب *' : 'Service / Work Details *'}
             </label>
             <textarea
@@ -254,13 +254,13 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
               onChange={(e) => setProblemDescription(e.target.value)}
               placeholder={t('problemDescPlaceholder')}
               required
-              className="w-full px-3 py-2 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-3 py-2 text-xs text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
             />
           </div>
 
           {/* Time Arrangement Note (Mutual agreement) */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-800 block">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
               {language === 'ar' ? 'الموعد المقترح (تنسيق متبادل)' : 'Proposed Schedule (Mutual Agreement)'}
             </label>
             <input
@@ -268,9 +268,9 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
               value={scheduledTimeNote}
               onChange={(e) => setScheduledTimeNote(e.target.value)}
               placeholder={t('scheduledNotePlaceholder')}
-              className="w-full px-3 py-2 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-3 py-2 text-xs text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
             />
-            <span className="text-[10px] text-slate-400 block">
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 block">
               {t('scheduleAgreementNote')}
             </span>
           </div>
@@ -278,28 +278,28 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
           {/* Location / Address */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-800 block">{t('state')}</label>
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{t('state')}</label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full px-3 py-2 text-xs text-slate-800 border border-slate-200 rounded-xl focus:outline-none"
+                className="w-full px-3 py-2 text-xs text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-800 block">{t('neighborhood')}</label>
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">{t('neighborhood')}</label>
               <input
                 type="text"
                 value={neighborhood}
                 onChange={(e) => setNeighborhood(e.target.value)}
-                className="w-full px-3 py-2 text-xs text-slate-800 border border-slate-200 rounded-xl focus:outline-none"
+                className="w-full px-3 py-2 text-xs text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none"
               />
             </div>
           </div>
 
           {/* Detailed Street Address */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-800 block">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
               {language === 'ar' ? 'العنوان بالتفصيل ورقم المنزل أو المعلم *' : 'Detailed Address & Landmark *'}
             </label>
             <input
@@ -308,12 +308,12 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
               onChange={(e) => setAddressDetails(e.target.value)}
               placeholder={t('addressPlaceholder')}
               required
-              className="w-full px-3 py-2 text-xs text-slate-800 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-3 py-2 text-xs text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 focus:outline-none"
             />
           </div>
 
           {/* Cancellation Notice */}
-          <div className="p-3 rounded-xl bg-slate-100 text-[11px] text-slate-600 leading-relaxed border border-slate-200">
+          <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed border border-slate-200 dark:border-slate-700">
             {t('clientCancellationNotice')}
           </div>
 
@@ -322,7 +322,7 @@ export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelect
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               {language === 'ar' ? 'إلغاء' : 'Cancel'}
             </button>

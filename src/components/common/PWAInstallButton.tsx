@@ -50,11 +50,11 @@ export const PWAInstallButton: React.FC = () => {
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 text-slate-900 space-y-4"
+              className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 space-y-4"
             >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
-                  <Smartphone className="w-5 h-5 text-teal-700" />
+                  <Smartphone className="w-5 h-5 text-teal-700 dark:text-teal-400" />
                   <h3 className="text-base font-extrabold">
                     {language === 'ar' ? 'تثبيت مهني على iPhone / iPad' : 'Install Mehani on iPhone / iPad'}
                   </h3>
@@ -62,33 +62,33 @@ export const PWAInstallButton: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowIOSGuide(false)}
-                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+              <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 <p className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 font-bold flex items-center justify-center shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 font-bold flex items-center justify-center shrink-0">
                     1
                   </span>
                   <span>
                     {language === 'ar' ? (
                       <>
                         اضغط على زر <strong>المشاركة (Share)</strong>{' '}
-                        <Share className="w-3.5 h-3.5 inline text-teal-700" /> في شريط متصفح Safari بالأسفل.
+                        <Share className="w-3.5 h-3.5 inline text-teal-700 dark:text-teal-400" /> في شريط متصفح Safari بالأسفل.
                       </>
                     ) : (
                       <>
                         Tap the <strong>Share</strong> button{' '}
-                        <Share className="w-3.5 h-3.5 inline text-teal-700" /> in Safari&apos;s toolbar.
+                        <Share className="w-3.5 h-3.5 inline text-teal-700 dark:text-teal-400" /> in Safari&apos;s toolbar.
                       </>
                     )}
                   </span>
                 </p>
                 <p className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 font-bold flex items-center justify-center shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 font-bold flex items-center justify-center shrink-0">
                     2
                   </span>
                   <span>
@@ -108,7 +108,7 @@ export const PWAInstallButton: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowIOSGuide(false)}
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer transition-colors"
+                className="w-full py-2.5 rounded-xl bg-slate-900 dark:bg-teal-700 hover:bg-slate-800 dark:hover:bg-teal-600 text-white text-xs font-bold cursor-pointer transition-colors"
               >
                 {language === 'ar' ? 'فهمت' : 'Got it'}
               </button>

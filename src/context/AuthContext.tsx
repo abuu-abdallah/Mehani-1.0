@@ -11,7 +11,7 @@ import {
   maharaApi,
   setAuthToken,
 } from '../services/api';
-import { setRealtimeCutoffMs } from '../services/nativeNotifications';
+import { clearBackgroundNotificationSession, setRealtimeCutoffMs } from '../services/nativeNotifications';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -58,7 +58,10 @@ interface AuthContextType {
     newPassword: string;
   }) => Promise<{ success: boolean; error?: string; message?: string }>;
   updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  isLoggingOut: boolean;
+  logoutSuccessVisible: boolean;
+  dismissLogoutSuccess: () => void;
   continueAsGuest: () => void;
   switchUserRole: (newRole: UserRole) => void;
   adminAddUser: (user: Partial<User>) => Promise<{ success: boolean; error?: string }>;
@@ -98,6 +101,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isRemoteApi, setIsRemoteApi] = useState<boolean>(false);
   const [latestBootstrap, setLatestBootstrap] = useState<BootstrapResponse | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+  const [logoutSuccessVisible, setLogoutSuccessVisible] = useState<boolean>(false);
+  const isLoggingOutRef = useRef<boolean>(false);
+  const logoutBannerTimerRef = useRef<number | null>(null);
+
+  const dismissLogoutSuccess = useCallback(() => {
+    setLogoutSuccessVisible(false);
+    if (logoutBannerTimerRef.current !== null) {
+      window.clearTimeout(logoutBannerTimerRef.current);
+      logoutBannerTimerRef.current = null;
+    }
+  }, []);
 
   const [allUsers, setAllUsers] = useState<User[]>(() => {
     try {
@@ -233,6 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: res.error || 'فشل تسجيل الدخول' };
       }
       setAuthToken(res.data.token);
+      dismissLogoutSuccess();
       setRealtimeCutoffMs(res.data.user.id, res.data.serverNowMs || Date.now());
       safeStorage.setItem('mahara_session_authenticated', 'true');
       setCurrentUser(res.data.user);
@@ -606,23 +622,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'البريد الإلكتروني مسجل لمستخدم آخر بالفعل' };
     }
 
-    const updated = { ...currentUser, ...normalizedUpdates };
+    const updated: User = { ...currentUser, ...normalizedUpdates };
+    if (updated.role === 'provider' && normalizedUpdates.tradeCategoryId) {
+      const existingIds = updated.serviceCategoryIds && updated.serviceCategoryIds.length > 0
+        ? updated.serviceCategoryIds
+        : [];
+      if (!existingIds.includes(normalizedUpdates.tradeCategoryId)) {
+        updated.serviceCategoryIds = [normalizedUpdates.tradeCategoryId, ...existingIds];
+      }
+    }
     setCurrentUser(updated);
     setAllUsers(prev => prev.map(u => (u.id === updated.id ? updated : u)));
     return { success: true };
   };
 
-  const logout = () => {
-    setAuthToken(null);
-    setCurrentUser(null);
-    setIsGuest(false);
-    safeStorage.removeItem('mahara_current_user_id');
-    safeStorage.removeItem('mahara_session_authenticated');
-    safeStorage.removeItem('mahara_is_guest');
-    if (isRemoteApi) {
-      void refreshFromServer();
+  const logout = useCallback(async () => {
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
+    setIsLoggingOut(true);
+
+    try {
+      clearBackgroundNotificationSession();
+      const token = getAuthToken();
+      if (token && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
+        try {
+          await maharaApi.logout();
+        } catch {
+          // Proceed with local session teardown regardless of network state
+        }
+      }
+    } finally {
+      setAuthToken(null);
+      setCurrentUser(null);
+      setIsGuest(false);
+      safeStorage.removeItem('mahara_current_user_id');
+      safeStorage.removeItem('mahara_session_authenticated');
+      safeStorage.removeItem('mahara_is_guest');
+
+      isLoggingOutRef.current = false;
+      setIsLoggingOut(false);
+      setLogoutSuccessVisible(true);
+      if (logoutBannerTimerRef.current !== null) {
+        window.clearTimeout(logoutBannerTimerRef.current);
+      }
+      logoutBannerTimerRef.current = window.setTimeout(() => {
+        setLogoutSuccessVisible(false);
+        logoutBannerTimerRef.current = null;
+      }, 4500);
+
+      if (isRemoteApi) {
+        void refreshFromServer();
+      }
     }
-  };
+  }, [isRemoteApi, refreshFromServer]);
 
   const continueAsGuest = () => {
     setAuthToken(null);
@@ -794,7 +846,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setAllUsers(prev => prev.filter(u => u.id !== id));
     if (currentUser?.id === id) {
-      logout();
+      void logout();
     }
   };
 
@@ -954,6 +1006,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetPassword,
         updateProfile,
         logout,
+        isLoggingOut,
+        logoutSuccessVisible,
+        dismissLogoutSuccess,
         continueAsGuest,
         switchUserRole,
         adminAddUser,

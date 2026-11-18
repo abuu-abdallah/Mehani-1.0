@@ -6,6 +6,7 @@ import { Bell, AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { useApp, type NavigationTab } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { getAuthToken } from '../../services/api';
 import { safeStorage } from '../../utils/safeStorage';
 import { useAppNotifications } from '../../hooks/useAppNotifications';
@@ -24,6 +25,7 @@ export const CapacitorNativeBridge: React.FC = () => {
   const { canGoBack, goBack, setActiveTab, setSelectedProviderId } = useApp();
   const { currentUser, isGuest, refreshFromServer } = useAuth();
   const { language } = useLanguage();
+  const { isDark } = useTheme();
   const canGoBackRef = useRef(canGoBack);
   const goBackRef = useRef(goBack);
   const refreshRef = useRef(refreshFromServer);
@@ -40,6 +42,13 @@ export const CapacitorNativeBridge: React.FC = () => {
 
   // Monitor app state transitions and trigger Android Notification Panel & sound alerts
   useAppNotifications();
+
+  // Keep Android status bar color synchronized with theme
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return;
+    StatusBar.setBackgroundColor({ color: isDark ? '#020617' : '#0f172a' }).catch(() => {});
+    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
+  }, [isDark]);
 
   // Keep native Android background service synced with current session, language & realtime cutoff
   useEffect(() => {
@@ -154,10 +163,10 @@ export const CapacitorNativeBridge: React.FC = () => {
         }}
         className={`pointer-events-auto max-w-md w-full rounded-2xl border p-3.5 shadow-xl flex items-start gap-3 cursor-pointer transition-all ${
           isUrgent
-            ? 'bg-rose-50 border-rose-300 text-rose-950'
+            ? 'bg-rose-50 dark:bg-rose-950/95 border-rose-300 dark:border-rose-800 text-rose-950 dark:text-rose-100'
             : isSuccess
-            ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
-            : 'bg-slate-900 border-slate-700 text-white'
+            ? 'bg-emerald-50 dark:bg-emerald-950/95 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100'
+            : 'bg-slate-900 dark:bg-slate-800 border-slate-700 text-white'
         }`}
       >
         <div
@@ -182,7 +191,11 @@ export const CapacitorNativeBridge: React.FC = () => {
           <p className="text-xs font-extrabold leading-snug">{activeToast.title}</p>
           <p
             className={`text-[11px] leading-relaxed mt-0.5 line-clamp-2 ${
-              isUrgent ? 'text-rose-800' : isSuccess ? 'text-emerald-800' : 'text-slate-300'
+              isUrgent
+                ? 'text-rose-800 dark:text-rose-200'
+                : isSuccess
+                ? 'text-emerald-800 dark:text-emerald-200'
+                : 'text-slate-300'
             }`}
           >
             {activeToast.body}
@@ -197,7 +210,9 @@ export const CapacitorNativeBridge: React.FC = () => {
             setActiveToast(null);
           }}
           className={`p-1 rounded-lg shrink-0 ${
-            isUrgent || isSuccess ? 'text-slate-500 hover:bg-black/5' : 'text-slate-400 hover:bg-white/10'
+            isUrgent || isSuccess
+              ? 'text-slate-500 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10'
+              : 'text-slate-400 hover:bg-white/10'
           }`}
         >
           <X className="w-4 h-4" />

@@ -111,8 +111,10 @@ export function describeUnavailableApiError(
 
 async function executeApiFetch<T>(
   action: string,
-  payload?: unknown
+  payload?: unknown,
+  options?: { timeoutMs?: number }
 ): Promise<ApiCallResult<T>> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
   try {
     const token = getAuthToken();
     const headers: Record<string, string> = {};
@@ -124,6 +126,11 @@ async function executeApiFetch<T>(
       headers['X-Auth-Token'] = token;
     }
 
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    if (controller && options?.timeoutMs && options.timeoutMs > 0) {
+      timeoutId = setTimeout(() => controller.abort(), options.timeoutMs);
+    }
+
     const url = `${API_BASE_URL}?action=${encodeURIComponent(action)}`;
     const response = await fetch(url, {
       method: payload !== undefined ? 'POST' : 'GET',
@@ -131,6 +138,7 @@ async function executeApiFetch<T>(
       body: payload !== undefined ? JSON.stringify(payload) : undefined,
       credentials: 'same-origin',
       cache: 'no-store',
+      signal: controller?.signal,
     });
 
     const contentType = (response.headers.get('content-type') || '').toLowerCase();
@@ -184,21 +192,26 @@ async function executeApiFetch<T>(
     };
   } catch {
     return { available: false, error: 'NETWORK_UNREACHABLE' };
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
   }
 }
 
 export async function callApi<T = Record<string, any>>(
   action: string,
-  payload?: unknown
+  payload?: unknown,
+  options?: { noRetry?: boolean; timeoutMs?: number }
 ): Promise<ApiCallResult<T>> {
-  const firstAttempt = await executeApiFetch<T>(action, payload);
-  if (firstAttempt.available || firstAttempt.error === 'PHP_NOT_EXECUTING') {
+  const firstAttempt = await executeApiFetch<T>(action, payload, { timeoutMs: options?.timeoutMs });
+  if (firstAttempt.available || firstAttempt.error === 'PHP_NOT_EXECUTING' || options?.noRetry) {
     return firstAttempt;
   }
 
   // Retry once after a short delay to recover from transient InfinityFree / mobile network hiccups
   await new Promise(resolve => setTimeout(resolve, 400));
-  return executeApiFetch<T>(action, payload);
+  return executeApiFetch<T>(action, payload, { timeoutMs: options?.timeoutMs });
 }
 
 export const maharaApi = {
@@ -206,6 +219,9 @@ export const maharaApi = {
 
   login: (phone: string, password: string) =>
     callApi<{ ok: true; token: string; serverNowMs?: number; user: User }>('auth_login', { phone, password }),
+
+  logout: () =>
+    callApi<{ ok: true; loggedOut: boolean }>('auth_logout', {}, { noRetry: true, timeoutMs: 1500 }),
 
   registerCustomer: (data: {
     name: string;
@@ -267,6 +283,9 @@ export const maharaApi = {
 
   addProviderService: (providerId: string, categoryId: string) =>
     callApi<{ ok: true; user: User }>('add_provider_service', { providerId, categoryId }),
+
+  setPrimaryProviderService: (providerId: string, categoryId: string) =>
+    callApi<{ ok: true; user: User }>('set_primary_provider_service', { providerId, categoryId }),
 
   removeProviderService: (providerId: string, categoryId: string) =>
     callApi<{ ok: true; user: User }>('remove_provider_service', { providerId, categoryId }),
