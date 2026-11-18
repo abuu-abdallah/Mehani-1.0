@@ -11,6 +11,7 @@ import {
   maharaApi,
   setAuthToken,
 } from '../services/api';
+import { setRealtimeCutoffMs } from '../services/nativeNotifications';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -232,6 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: res.error || 'فشل تسجيل الدخول' };
       }
       setAuthToken(res.data.token);
+      setRealtimeCutoffMs(res.data.user.id, res.data.serverNowMs || Date.now());
       safeStorage.setItem('mahara_session_authenticated', 'true');
       setCurrentUser(res.data.user);
       setIsGuest(false);
@@ -265,6 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'كلمة المرور غير صحيحة' };
     }
 
+    setRealtimeCutoffMs(user.id, Date.now());
     safeStorage.setItem('mahara_session_authenticated', 'true');
     setCurrentUser(user);
     setIsGuest(false);
@@ -300,6 +303,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: res.error || 'فشل التسجيل' };
       }
       setAuthToken(res.data.token);
+      setRealtimeCutoffMs(res.data.user.id, res.data.serverNowMs || Date.now());
       safeStorage.setItem('mahara_session_authenticated', 'true');
       setCurrentUser(res.data.user);
       setIsGuest(false);
@@ -337,6 +341,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       unpaidCancellationFeeSDG: 0,
     };
 
+    setRealtimeCutoffMs(newUser.id, Date.now());
     setAllUsers(prev => [...prev, newUser]);
     setCurrentUser(newUser);
     setIsGuest(false);
@@ -381,6 +386,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: res.error || 'فشل تسجيل الحساب' };
       }
       setAuthToken(res.data.token);
+      setRealtimeCutoffMs(res.data.user.id, res.data.serverNowMs || Date.now());
       safeStorage.setItem('mahara_session_authenticated', 'true');
       setCurrentUser(res.data.user);
       setIsGuest(false);
@@ -446,6 +452,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       pendingCommissionDueSDG: 0,
     };
 
+    setRealtimeCutoffMs(newProvider.id, Date.now());
     setAllUsers(prev => [...prev, newProvider]);
     setCurrentUser(newProvider);
     setIsGuest(false);

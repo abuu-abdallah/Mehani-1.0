@@ -12,6 +12,7 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -50,6 +51,8 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
         String apiUrl = call.getString("apiUrl", "https://mehani.gt.tc/api.php");
         String snapshotJson = call.getString("snapshotJson", "");
         JSArray notifiedKeys = call.getArray("notifiedKeys");
+        long incomingCutoff = parseLongOpt(call, "lastRealtimeMs");
+        boolean forceReset = Boolean.TRUE.equals(call.getBoolean("forceResetRealtimeMs", false));
 
         if (token == null || token.isEmpty() || userId == null || userId.isEmpty()) {
             clearSession(call);
@@ -63,13 +66,17 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
         editor.putString(MehaniNotificationWorker.KEY_LANGUAGE, language);
         editor.putString(MehaniNotificationWorker.KEY_API_URL, apiUrl);
 
-        try {
-            String cookies = CookieManager.getInstance().getCookie(apiUrl);
-            if (cookies != null && !cookies.isEmpty()) {
-                editor.putString(MehaniNotificationWorker.KEY_COOKIE, cookies);
+        String cutoffKey = MehaniNotificationWorker.KEY_LAST_REALTIME_MS_PREFIX + userId;
+        long existingCutoff = prefs.getLong(cutoffKey, 0L);
+        if (incomingCutoff > 0L) {
+            if (forceReset || existingCutoff <= 0L || incomingCutoff > existingCutoff) {
+                editor.putLong(cutoffKey, incomingCutoff);
             }
-        } catch (Exception ignored) {
+        } else if (existingCutoff <= 0L) {
+            editor.putLong(cutoffKey, System.currentTimeMillis());
         }
+
+        refreshWebCookies(editor, apiUrl);
 
         try {
             String ua = WebSettings.getDefaultUserAgent(context);
@@ -91,6 +98,7 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
 
         MehaniNotificationWorker.ensureNotificationChannels(context);
         enqueuePeriodicPolling(context, ExistingPeriodicWorkPolicy.UPDATE);
+        MehaniRealtimeService.startIfLoggedIn(context);
 
         JSObject ret = new JSObject();
         ret.put("ok", true);
@@ -106,18 +114,29 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
         );
 
         String userId = call.getString("userId", prefs.getString(MehaniNotificationWorker.KEY_USER_ID, ""));
+        String apiUrl = prefs.getString(MehaniNotificationWorker.KEY_API_URL, "https://mehani.gt.tc/api.php");
         JSArray keys = call.getArray("notifiedKeys");
         String snapshotJson = call.getString("snapshotJson", "");
+        long incomingCutoff = parseLongOpt(call, "lastRealtimeMs");
 
         if (userId != null && !userId.isEmpty()) {
             SharedPreferences.Editor editor = prefs.edit();
+            refreshWebCookies(editor, apiUrl);
             if (keys != null) {
                 mergeNotifiedKeys(prefs, editor, userId, keys);
             }
             if (snapshotJson != null && snapshotJson.startsWith("{")) {
                 editor.putString(MehaniNotificationWorker.KEY_SNAPSHOT_PREFIX + userId, snapshotJson);
             }
+            if (incomingCutoff > 0L) {
+                String cutoffKey = MehaniNotificationWorker.KEY_LAST_REALTIME_MS_PREFIX + userId;
+                long existing = prefs.getLong(cutoffKey, 0L);
+                if (existing <= 0L || incomingCutoff > existing) {
+                    editor.putLong(cutoffKey, incomingCutoff);
+                }
+            }
             editor.apply();
+            MehaniRealtimeService.startIfLoggedIn(context);
         }
 
         JSObject ret = new JSObject();
@@ -134,14 +153,16 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
         );
         String token = prefs.getString(MehaniNotificationWorker.KEY_TOKEN, "");
         if (token != null && !token.isEmpty()) {
+            MehaniRealtimeService.startIfLoggedIn(context);
+
             Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
 
             OneTimeWorkRequest immediate = new OneTimeWorkRequest.Builder(MehaniNotificationWorker.class)
                 .setConstraints(constraints)
-                .setInitialDelay(20, TimeUnit.SECONDS)
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
                 .build();
 
             WorkManager.getInstance(context).enqueueUniqueWork(
@@ -169,6 +190,7 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
             .remove(MehaniNotificationWorker.KEY_ROLE)
             .apply();
 
+        MehaniRealtimeService.stopService(context);
         WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_WORK_NAME);
         WorkManager.getInstance(context).cancelUniqueWork(IMMEDIATE_WORK_NAME);
 
@@ -211,6 +233,26 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
             policy,
             periodic
         );
+    }
+
+    private void refreshWebCookies(SharedPreferences.Editor editor, String apiUrl) {
+        try {
+            String cookies = CookieManager.getInstance().getCookie(apiUrl);
+            if (cookies != null && !cookies.isEmpty()) {
+                editor.putString(MehaniNotificationWorker.KEY_COOKIE, cookies);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private long parseLongOpt(PluginCall call, String key) {
+        try {
+            if (!call.hasOption(key)) return 0L;
+            Double val = call.getDouble(key);
+            return val != null ? val.longValue() : 0L;
+        } catch (Exception ignored) {
+            return 0L;
+        }
     }
 
     private void mergeNotifiedKeys(

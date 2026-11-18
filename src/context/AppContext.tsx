@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import {
+  AppNotificationItem,
   User,
   ServiceRequest,
   ServiceStatus,
@@ -32,6 +33,13 @@ interface AppContextType {
   requests: ServiceRequest[];
   deposits: ThursdayCommissionDeposit[];
   publicReviews: PublicReviewItem[];
+  notifications: AppNotificationItem[];
+  unreadNotificationsCount: number;
+  showNotificationInbox: boolean;
+  setShowNotificationInbox: (show: boolean) => void;
+  markNotificationRead: (notificationId: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
+  appendLocalNotification: (item: AppNotificationItem) => void;
   activeTab: NavigationTab;
   setActiveTab: (tab: NavigationTab) => void;
   canGoBack: boolean;
@@ -105,6 +113,7 @@ interface AppContextType {
   adminWaiveFine: (params: {
     userId?: string;
     requestId?: string;
+    includeActiveRequests?: boolean;
   }) => Promise<{ success: boolean; error?: string }>;
   addProviderService: (
     providerId: string,
@@ -171,6 +180,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register_customer' | 'register_provider' | 'forgot_password'>('login');
+  const [showNotificationInbox, setShowNotificationInbox] = useState<boolean>(false);
   const [bookingModalProvider, setBookingModalProvider] = useState<User | null>(null);
   const [bookingModalPreSelectedServiceId, setBookingModalPreSelectedServiceId] = useState<string | undefined>(undefined);
 
@@ -277,6 +287,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [activeTab, selectedProviderId, bookingModalProvider, showAuthModal]);
 
   const canGoBack =
+    showNotificationInbox ||
     activeTab !== 'home' ||
     selectedProviderId !== null ||
     !!bookingModalProvider ||
@@ -284,6 +295,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     historyIndexRef.current > 0;
 
   const goBack = useCallback(() => {
+    if (showNotificationInbox) {
+      setShowNotificationInbox(false);
+      return;
+    }
     if (historyIndexRef.current > 0 && typeof window !== 'undefined' && window.history.length > 1) {
       window.history.back();
       return;
@@ -308,7 +323,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-  }, [bookingModalProvider, showAuthModal, selectedProviderId, activeTab]);
+  }, [showNotificationInbox, bookingModalProvider, showAuthModal, selectedProviderId, activeTab]);
 
   const closeBookingModal = useCallback(() => {
     if (bookingModalProvider) {
@@ -355,6 +370,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [activeCountsByProvider, setActiveCountsByProvider] = useState<Record<string, number>>({});
   const [publicReviews, setPublicReviews] = useState<PublicReviewItem[]>([]);
+  const [notifications, setNotifications] = useState<AppNotificationItem[]>([]);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
 
   // Hydrate AppContext whenever bootstrap snapshot arrives from InfinityFree MySQL PHP API
   useEffect(() => {
@@ -386,7 +403,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }))
       );
     }
+    if (Array.isArray(latestBootstrap.notifications)) {
+      setNotifications(latestBootstrap.notifications);
+      const serverUnread =
+        typeof latestBootstrap.unreadNotificationsCount === 'number'
+          ? latestBootstrap.unreadNotificationsCount
+          : latestBootstrap.notifications.filter(n => !n.isRead).length;
+      setUnreadNotificationsCount(serverUnread);
+    }
   }, [latestBootstrap]);
+
+  // Load local preview inbox when signed in without remote PHP backend, and clear on logout
+  useEffect(() => {
+    if (!currentUser || isGuest) {
+      setNotifications([]);
+      setUnreadNotificationsCount(0);
+      setShowNotificationInbox(false);
+      return;
+    }
+    if (!isRemoteApi) {
+      const localList = safeStorage.getJSON<AppNotificationItem[]>(
+        `mahara_notifications_${currentUser.id}`,
+        []
+      );
+      setNotifications(localList);
+      setUnreadNotificationsCount(localList.filter(n => !n.isRead).length);
+    }
+  }, [currentUser?.id, isGuest, isRemoteApi]);
 
   // Providers list comes from allUsers filtered by role 'provider' and active status for marketplace
   const providers = allUsers.filter(u => u.role === 'provider' && u.isActive !== false);
@@ -863,6 +906,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const adminWaiveFine = async (params: {
     userId?: string;
     requestId?: string;
+    includeActiveRequests?: boolean;
   }): Promise<{ success: boolean; error?: string }> => {
     const res = await maharaApi.adminWaiveFine(params);
     if (res.available) {
@@ -873,20 +917,98 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: true };
     }
 
+    const includeActive =
+      params.includeActiveRequests !== undefined
+        ? params.includeActiveRequests
+        : Boolean(params.userId && !params.requestId);
+
     if (params.userId) {
       await adminUpdateUser(params.userId, { unpaidCancellationFeeSDG: 0 });
+      if (includeActive) {
+        setRequests(prev =>
+          prev.map(r =>
+            r.clientId === params.userId &&
+            (r.status === 'pending' || r.status === 'accepted' || r.status === 'in_progress') &&
+            (r.cancellationFeePenaltySDG || 0) > 0
+              ? { ...r, cancellationFeePenaltySDG: 0 }
+              : r
+          )
+        );
+      }
     }
     if (params.requestId) {
+      const targetReq = requests.find(r => r.id === params.requestId);
+      const oldPenalty = targetReq?.cancellationFeePenaltySDG || 0;
+      if (targetReq && oldPenalty > 0 && targetReq.status === 'completed') {
+        const provider = allUsers.find(u => u.id === targetReq.providerId);
+        if (provider) {
+          await adminUpdateUser(provider.id, {
+            pendingCommissionDueSDG: Math.max(0, (provider.pendingCommissionDueSDG || 0) - oldPenalty),
+          });
+        }
+      }
       setRequests(prev =>
         prev.map(r =>
-          r.id === params.requestId && r.status !== 'completed' && r.status !== 'cancelled'
-            ? { ...r, cancellationFeePenaltySDG: 0 }
-            : r
+          r.id === params.requestId ? { ...r, cancellationFeePenaltySDG: 0 } : r
         )
       );
     }
     return { success: true };
   };
+
+  const markNotificationRead = async (notificationId: string): Promise<void> => {
+    if (!currentUser || isGuest) return;
+
+    setNotifications(prev => {
+      const updated = prev.map(n =>
+        n.id === notificationId ? { ...n, isRead: true, readAt: n.readAt || new Date().toISOString() } : n
+      );
+      if (!isRemoteApi) {
+        safeStorage.setJSON(`mahara_notifications_${currentUser.id}`, updated);
+      }
+      setUnreadNotificationsCount(updated.filter(n => !n.isRead).length);
+      return updated;
+    });
+
+    const res = await maharaApi.markNotificationRead(notificationId);
+    if (res.available && res.ok) {
+      setUnreadNotificationsCount(res.data.unreadNotificationsCount);
+    }
+  };
+
+  const markAllNotificationsRead = async (): Promise<void> => {
+    if (!currentUser || isGuest) return;
+
+    const nowIso = new Date().toISOString();
+    setNotifications(prev => {
+      const updated = prev.map(n => (n.isRead ? n : { ...n, isRead: true, readAt: nowIso }));
+      if (!isRemoteApi) {
+        safeStorage.setJSON(`mahara_notifications_${currentUser.id}`, updated);
+      }
+      return updated;
+    });
+    setUnreadNotificationsCount(0);
+
+    const res = await maharaApi.markAllNotificationsRead();
+    if (res.available && res.ok) {
+      setUnreadNotificationsCount(res.data.unreadNotificationsCount);
+    }
+  };
+
+  const appendLocalNotification = useCallback(
+    (item: AppNotificationItem): void => {
+      setNotifications(prev => {
+        if (prev.some(n => n.eventKey === item.eventKey)) return prev;
+        const next = [item, ...prev].slice(0, 80);
+        if (!isRemoteApi && item.userId) {
+          safeStorage.setJSON(`mahara_notifications_${item.userId}`, next);
+        }
+        setUnreadNotificationsCount(next.filter(n => !n.isRead).length);
+        return next;
+      });
+    },
+    [isRemoteApi]
+  );
 
   const addProviderService = async (
     providerId: string,
@@ -1253,6 +1375,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         requests,
         deposits,
         publicReviews,
+        notifications,
+        unreadNotificationsCount,
+        showNotificationInbox,
+        setShowNotificationInbox,
+        markNotificationRead,
+        markAllNotificationsRead,
+        appendLocalNotification,
         activeTab,
         setActiveTab,
         canGoBack,

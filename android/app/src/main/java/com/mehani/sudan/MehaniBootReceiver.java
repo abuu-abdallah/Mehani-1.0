@@ -5,7 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
+import androidx.work.WorkManager;
+
+import java.util.concurrent.TimeUnit;
 
 public class MehaniBootReceiver extends BroadcastReceiver {
     @Override
@@ -30,6 +39,22 @@ public class MehaniBootReceiver extends BroadcastReceiver {
                 context,
                 ExistingPeriodicWorkPolicy.KEEP
             );
+            try {
+                Constraints constraints = new Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build();
+                OneTimeWorkRequest bootPoll = new OneTimeWorkRequest.Builder(MehaniNotificationWorker.class)
+                    .setConstraints(constraints)
+                    .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
+                    .build();
+                WorkManager.getInstance(context).enqueueUniqueWork(
+                    "mehani_boot_poll",
+                    ExistingWorkPolicy.REPLACE,
+                    bootPoll
+                );
+            } catch (Throwable ignored) {
+            }
         }
     }
 }

@@ -156,3 +156,20 @@ export interface Review {
   comment: string;
   createdAt: string;
 }
+
+export interface AppNotificationItem {
+  id: string;
+  userId: string;
+  eventKey: string;
+  category: 'urgent' | 'booking' | 'success';
+  titleAr: string;
+  titleEn: string;
+  bodyAr: string;
+  bodyEn: string;
+  targetTab: 'home' | 'search' | 'bookings' | 'commission' | 'profile' | 'admin';
+  isRead: boolean;
+  createdAtMs: number;
+  createdAt: string;
+  readAt?: string | null;
+}
+

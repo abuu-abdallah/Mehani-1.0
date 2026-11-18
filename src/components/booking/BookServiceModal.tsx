@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   MapPin, 
@@ -25,8 +25,12 @@ interface Props {
 
 export const BookServiceModal: React.FC<Props> = ({ provider, onClose, preSelectedServiceId }) => {
   const { t, language } = useLanguage();
-  const { currentUser } = useAuth();
+  const { currentUser, refreshFromServer } = useAuth();
   const { bookService, setActiveTab, setSelectedProviderId } = useApp();
+
+  useEffect(() => {
+    void refreshFromServer();
+  }, [refreshFromServer]);
 
   const customServicesList = provider.customServices || [];
 

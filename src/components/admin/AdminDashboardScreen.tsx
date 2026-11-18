@@ -189,14 +189,33 @@ export const AdminDashboardScreen: React.FC = () => {
     return allUsers.filter(u => u.role === 'provider' && u.isActive === false);
   }, [allUsers]);
 
-  // Users with unpaid cancellation fines
+  // Active-request penalties mapped by clientId (penalties transferred onto pending/accepted/in_progress jobs)
+  const activeRequestFinesByUserId = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const r of requests) {
+      if (
+        (r.status === 'pending' || r.status === 'accepted' || r.status === 'in_progress') &&
+        (r.cancellationFeePenaltySDG || 0) > 0
+      ) {
+        map[r.clientId] = (map[r.clientId] || 0) + (r.cancellationFeePenaltySDG || 0);
+      }
+    }
+    return map;
+  }, [requests]);
+
+  // Users with unpaid cancellation fines (account balance + active request penalties)
   const usersWithFines = useMemo(() => {
-    return allUsers.filter(u => (u.unpaidCancellationFeeSDG || 0) > 0);
-  }, [allUsers]);
+    return allUsers.filter(
+      u => (u.unpaidCancellationFeeSDG || 0) + (activeRequestFinesByUserId[u.id] || 0) > 0
+    );
+  }, [allUsers, activeRequestFinesByUserId]);
 
   const totalUnpaidFinesSDG = useMemo(() => {
-    return usersWithFines.reduce((sum, u) => sum + (u.unpaidCancellationFeeSDG || 0), 0);
-  }, [usersWithFines]);
+    return usersWithFines.reduce(
+      (sum, u) => sum + (u.unpaidCancellationFeeSDG || 0) + (activeRequestFinesByUserId[u.id] || 0),
+      0
+    );
+  }, [usersWithFines, activeRequestFinesByUserId]);
 
   // Pending service suggestions from providers
   const pendingSuggestions = useMemo(() => {
@@ -210,10 +229,11 @@ export const AdminDashboardScreen: React.FC = () => {
 
       // Status filter (active vs deactivated vs pending_nid vs has_fine)
       const isActive = u.isActive !== false;
+      const totalUserFine = (u.unpaidCancellationFeeSDG || 0) + (activeRequestFinesByUserId[u.id] || 0);
       if (userStatusFilter === 'active' && !isActive) return false;
       if (userStatusFilter === 'deactivated' && isActive) return false;
       if (userStatusFilter === 'pending_nid' && (u.role !== 'provider' || isActive)) return false;
-      if (userStatusFilter === 'has_fine' && (u.unpaidCancellationFeeSDG || 0) <= 0) return false;
+      if (userStatusFilter === 'has_fine' && totalUserFine <= 0) return false;
 
       // Search query
       if (userSearch.trim()) {
@@ -228,7 +248,7 @@ export const AdminDashboardScreen: React.FC = () => {
       }
       return true;
     });
-  }, [allUsers, userRoleFilter, userStatusFilter, userSearch]);
+  }, [allUsers, userRoleFilter, userStatusFilter, userSearch, activeRequestFinesByUserId]);
 
   // Filtered Categories
   const filteredCategories = useMemo(() => {
@@ -640,23 +660,26 @@ export const AdminDashboardScreen: React.FC = () => {
   };
 
   const handleWaiveUserFine = async (user: User) => {
-    const fineAmount = user.unpaidCancellationFeeSDG || 0;
+    const accountFine = user.unpaidCancellationFeeSDG || 0;
+    const activeReqFine = activeRequestFinesByUserId[user.id] || 0;
+    const fineAmount = accountFine + activeReqFine;
     if (fineAmount <= 0) return;
+
     const msg =
       language === 'ar'
-        ? `هل ترغب في إعفاء (${user.name}) من غرامة الإلغاء المستحقة (${fineAmount.toLocaleString()} ج.س) وتصفيرها؟`
-        : `Waive unpaid cancellation fine of ${fineAmount.toLocaleString()} SDG for ${user.name}?`;
+        ? `هل ترغب في إعفاء (${user.name}) من غرامات الإلغاء المستحقة (${fineAmount.toLocaleString()} ج.س) وتصفيرها في الحساب والطلبات الجارية؟`
+        : `Exempt ${fineAmount.toLocaleString()} SDG in cancellation fines for ${user.name} across account and active requests?`;
     if (!window.confirm(msg)) return;
 
-    const res = await adminWaiveFine({ userId: user.id });
+    const res = await adminWaiveFine({ userId: user.id, includeActiveRequests: true });
     if (!res.success) {
       alert(res.error || 'تعذر إعفاء الغرامة');
       return;
     }
     setFineActionFeedback(
       language === 'ar'
-        ? `تم إعفاء ${user.name} من غرامة ${fineAmount.toLocaleString()} ج.س بنجاح.`
-        : `Waived ${fineAmount.toLocaleString()} SDG fine for ${user.name}.`
+        ? `تم إعفاء ${user.name} من غرامة ${fineAmount.toLocaleString()} ج.س وتحديث الطلبات بنجاح.`
+        : `Exempted ${fineAmount.toLocaleString()} SDG fine for ${user.name}.`
     );
     setTimeout(() => setFineActionFeedback(null), 4000);
   };
@@ -664,10 +687,12 @@ export const AdminDashboardScreen: React.FC = () => {
   const handleWaiveRequestFine = async (req: ServiceRequest) => {
     const fineAmount = req.cancellationFeePenaltySDG || 0;
     if (fineAmount <= 0) return;
+    const isCompletedNoteAr = req.status === 'completed' ? ' (سيتم خصمها من مستحقات الخميس للمهني أيضاً)' : '';
+    const isCompletedNoteEn = req.status === 'completed' ? ' (Provider Thursday due will also be reduced)' : '';
     const msg =
       language === 'ar'
-        ? `هل ترغب في إعفاء غرامة الإلغاء (${fineAmount.toLocaleString()} ج.س) المضافة على الطلب #${req.id} للعميل (${req.clientName})؟`
-        : `Waive ${fineAmount.toLocaleString()} SDG cancellation fine attached to booking #${req.id} for ${req.clientName}?`;
+        ? `هل ترغب في إعفاء غرامة الإلغاء (${fineAmount.toLocaleString()} ج.س) المضافة على الطلب #${req.id} للعميل (${req.clientName})${isCompletedNoteAr}؟`
+        : `Exempt ${fineAmount.toLocaleString()} SDG cancellation fine attached to booking #${req.id} for ${req.clientName}${isCompletedNoteEn}?`;
     if (!window.confirm(msg)) return;
 
     const res = await adminWaiveFine({ requestId: req.id });
@@ -678,7 +703,7 @@ export const AdminDashboardScreen: React.FC = () => {
     setFineActionFeedback(
       language === 'ar'
         ? `تم إعفاء الغرامة (${fineAmount.toLocaleString()} ج.س) من الطلب #${req.id} بنجاح.`
-        : `Waived ${fineAmount.toLocaleString()} SDG fine on request #${req.id}.`
+        : `Exempted ${fineAmount.toLocaleString()} SDG fine on request #${req.id}.`
     );
     setTimeout(() => setFineActionFeedback(null), 4000);
   };
@@ -1301,28 +1326,33 @@ export const AdminDashboardScreen: React.FC = () => {
                               </div>
                             </div>
                           ) : (
-                            (user.unpaidCancellationFeeSDG || 0) <= 0 && (
+                            ((user.unpaidCancellationFeeSDG || 0) + (activeRequestFinesByUserId[user.id] || 0)) <= 0 && (
                               <span className="text-slate-400 text-[11px]">—</span>
                             )
                           )}
 
-                          {/* Unpaid Cancellation Fine Badge & Waive Action */}
-                          {(user.unpaidCancellationFeeSDG || 0) > 0 && (
-                            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                              <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-bold tabular-nums">
-                                {language === 'ar'
-                                  ? `غرامة إلغاء: ${(user.unpaidCancellationFeeSDG || 0).toLocaleString()} ج.س`
-                                  : `Fine: ${(user.unpaidCancellationFeeSDG || 0).toLocaleString()} SDG`}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleWaiveUserFine(user)}
-                                className="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold cursor-pointer transition-colors"
-                              >
-                                {t('waiveFine')}
-                              </button>
-                            </div>
-                          )}
+                          {/* Unpaid Cancellation Fine Badge & Exempt Action (account + ongoing requests) */}
+                          {((user.unpaidCancellationFeeSDG || 0) + (activeRequestFinesByUserId[user.id] || 0)) > 0 && (() => {
+                            const accountFine = user.unpaidCancellationFeeSDG || 0;
+                            const activeReqFine = activeRequestFinesByUserId[user.id] || 0;
+                            const totalUserFine = accountFine + activeReqFine;
+                            return (
+                              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-bold tabular-nums">
+                                  {language === 'ar'
+                                    ? `غرامة إلغاء: ${totalUserFine.toLocaleString()} ج.س${activeReqFine > 0 ? ' (تشمل طلبات جارية)' : ''}`
+                                    : `Penalty: ${totalUserFine.toLocaleString()} SDG${activeReqFine > 0 ? ' (incl. active)' : ''}`}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleWaiveUserFine(user)}
+                                  className="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold cursor-pointer transition-colors"
+                                >
+                                  {t('waiveFine')}
+                                </button>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </td>
 
@@ -1839,16 +1869,6 @@ export const AdminDashboardScreen: React.FC = () => {
                                   <span>إنهاء</span>
                                 </button>
                               )}
-                              {isOngoing && (req.cancellationFeePenaltySDG || 0) > 0 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleWaiveRequestFine(req)}
-                                  className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] cursor-pointer flex items-center gap-1"
-                                  title={t('waiveFine')}
-                                >
-                                  <span>{t('waiveFine')}</span>
-                                </button>
-                              )}
                               <button
                                 onClick={() => handleAdminCancelRequest(req)}
                                 className="px-2 py-1 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold text-[10px] cursor-pointer"
@@ -1857,6 +1877,18 @@ export const AdminDashboardScreen: React.FC = () => {
                                 <span>إلغاء</span>
                               </button>
                             </>
+                          )}
+
+                          {/* Exempt penalty button for any ongoing or completed request that still carries a penalty */}
+                          {!isCancelled && (req.cancellationFeePenaltySDG || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleWaiveRequestFine(req)}
+                              className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] cursor-pointer flex items-center gap-1"
+                              title={t('waiveFine')}
+                            >
+                              <span>{t('waiveFine')}</span>
+                            </button>
                           )}
 
                           {/* Delete Request record */}

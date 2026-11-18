@@ -210,6 +210,204 @@ function ensurePasswordResetsTable(PDO $pdo): void {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 }
 
+function ensureNotificationsTable(PDO $pdo): void {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    try {
+        $pdo->exec('CREATE TABLE IF NOT EXISTS `notifications` (
+            `id` VARCHAR(80) NOT NULL,
+            `user_id` VARCHAR(64) NOT NULL,
+            `event_key` VARCHAR(191) NOT NULL,
+            `category` VARCHAR(24) NOT NULL DEFAULT "booking",
+            `title_ar` VARCHAR(191) NOT NULL,
+            `title_en` VARCHAR(191) NOT NULL,
+            `body_ar` TEXT NOT NULL,
+            `body_en` TEXT NOT NULL,
+            `target_tab` VARCHAR(32) NOT NULL DEFAULT "home",
+            `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+            `created_at_ms` BIGINT NOT NULL,
+            `created_at` VARCHAR(32) NOT NULL,
+            `read_at` VARCHAR(32) NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `uniq_notif_user_event` (`user_id`, `event_key`),
+            KEY `idx_notif_user_time` (`user_id`, `created_at_ms`),
+            KEY `idx_notif_user_read` (`user_id`, `is_read`),
+            CONSTRAINT `fk_notif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    } catch (Throwable $e) {
+        error_log('[Mehani API] ensureNotificationsTable error: ' . $e->getMessage());
+    }
+}
+
+function createNotificationRecord(
+    PDO $pdo,
+    string $userId,
+    string $eventKey,
+    string $category,
+    string $titleAr,
+    string $titleEn,
+    string $bodyAr,
+    string $bodyEn,
+    string $targetTab = 'home'
+): void {
+    if ($userId === '' || $eventKey === '') return;
+    ensureNotificationsTable($pdo);
+    $nowMs = (int) round(microtime(true) * 1000);
+    $nowStr = date('Y-m-d H:i');
+    $id = 'ntf-' . substr(sha1($userId . ':' . $eventKey), 0, 24);
+    try {
+        $stmt = $pdo->prepare('INSERT IGNORE INTO `notifications` (`id`, `user_id`, `event_key`, `category`, `title_ar`, `title_en`, `body_ar`, `body_en`, `target_tab`, `is_read`, `created_at_ms`, `created_at`, `read_at`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, NULL)');
+        $stmt->execute([
+            $id,
+            $userId,
+            substr($eventKey, 0, 190),
+            $category,
+            mb_substr($titleAr, 0, 190, 'UTF-8'),
+            mb_substr($titleEn, 0, 190, 'UTF-8'),
+            $bodyAr,
+            $bodyEn,
+            $targetTab,
+            $nowMs,
+            $nowStr,
+        ]);
+    } catch (Throwable $e) {
+        error_log('[Mehani API] createNotificationRecord error: ' . $e->getMessage());
+    }
+}
+
+function notifyAllAdmins(
+    PDO $pdo,
+    string $eventKeyPrefix,
+    string $category,
+    string $titleAr,
+    string $titleEn,
+    string $bodyAr,
+    string $bodyEn,
+    string $targetTab = 'admin'
+): void {
+    try {
+        $admins = $pdo->query("SELECT id FROM users WHERE role = 'admin'")->fetchAll();
+        foreach ($admins as $adm) {
+            $aid = (string) ($adm['id'] ?? '');
+            if ($aid !== '') {
+                createNotificationRecord($pdo, $aid, $eventKeyPrefix . ':' . $aid, $category, $titleAr, $titleEn, $bodyAr, $bodyEn, $targetTab);
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('[Mehani API] notifyAllAdmins error: ' . $e->getMessage());
+    }
+}
+
+function hydrateNotificationRow(array $r): array {
+    return [
+        'id' => (string) $r['id'],
+        'userId' => (string) $r['user_id'],
+        'eventKey' => (string) $r['event_key'],
+        'category' => (string) $r['category'],
+        'titleAr' => (string) $r['title_ar'],
+        'titleEn' => (string) $r['title_en'],
+        'bodyAr' => (string) $r['body_ar'],
+        'bodyEn' => (string) $r['body_en'],
+        'targetTab' => (string) $r['target_tab'],
+        'isRead' => ((int) $r['is_read']) === 1,
+        'createdAtMs' => (int) $r['created_at_ms'],
+        'createdAt' => (string) $r['created_at'],
+        'readAt' => $r['read_at'] !== null ? (string) $r['read_at'] : null,
+    ];
+}
+
+function syncBackgroundCheckNotifications(PDO $pdo, array $viewer): void {
+    $uid = (string) ($viewer['id'] ?? '');
+    $role = (string) ($viewer['role'] ?? '');
+    if ($uid === '' || $role !== 'provider') return;
+
+    ensureThursdayDepositsSchema($pdo);
+    ensureNotificationsTable($pdo);
+
+    if (($viewer['nid_status'] ?? '') === 'reupload_requested') {
+        $reason = trim((string) ($viewer['nid_rejection_reason'] ?? ''));
+        $reasonAr = $reason !== '' ? $reason : 'الصورة غير واضحة';
+        $reasonEn = $reason !== '' ? $reason : 'Unclear photo';
+        $sig = (string) ($viewer['nid_submitted_at'] ?? '') . ':' . $reason;
+        createNotificationRecord(
+            $pdo,
+            $uid,
+            'nid_reupload:' . $sig,
+            'urgent',
+            'مطلوب إعادة رفع الرقم الوطني أو جواز السفر',
+            'ID / Passport Re-upload Required',
+            "إدارة مهني: يرجى إعادة رفع صورة الرقم الوطني أو جواز السفر ($reasonAr).",
+            "Mehani Admin: Please re-upload your National ID or Passport ($reasonEn).",
+            'profile'
+        );
+    }
+
+    $depStmt = $pdo->prepare('SELECT id, amount_sdg, status, rejection_reason, reviewed_at FROM thursday_deposits WHERE provider_id = ? AND status IN ("rejected", "pending_verification")');
+    $depStmt->execute([$uid]);
+    $hasPendingDep = false;
+    foreach ($depStmt->fetchAll() as $d) {
+        if ($d['status'] === 'pending_verification') {
+            $hasPendingDep = true;
+        } elseif ($d['status'] === 'rejected') {
+            $amt = number_format((int) $d['amount_sdg']);
+            $depReason = trim((string) ($d['rejection_reason'] ?? ''));
+            $reasonAr = $depReason !== '' ? $depReason : 'يرجى إرفاق إشعار صحيح';
+            $reasonEn = $depReason !== '' ? $depReason : 'Please re-upload valid receipt';
+            $sig = (string) $d['id'] . ':' . (string) ($d['reviewed_at'] ?? '') . ':' . $depReason;
+            createNotificationRecord(
+                $pdo,
+                $uid,
+                'deposit_reupload:' . $sig,
+                'urgent',
+                'مطلوب إعادة رفع إشعار العمولة (بنكك)',
+                'Deposit Proof Re-upload Needed',
+                "تم رفض إشعار توريد $amt ج.س ($reasonAr).",
+                "Your $amt SDG deposit proof was rejected ($reasonEn).",
+                'commission'
+            );
+        }
+    }
+
+    $dueAmount = (int) ($viewer['pending_commission_due_sdg'] ?? 0);
+    if ((int) date('w') === 4 && $dueAmount > 0 && !$hasPendingDep) {
+        $todayKey = date('Y-m-d');
+        $amtFormatted = number_format($dueAmount);
+        createNotificationRecord(
+            $pdo,
+            $uid,
+            "thursday_due:$todayKey:$dueAmount",
+            'booking',
+            'تذكير توريد عمولات وغرامات الخميس',
+            'Thursday Commission & Penalty Deposit Due',
+            "اليوم الخميس: لديك مبلغ مستحق بقيمة $amtFormatted ج.س (العمولة + الغرامات المحصلة). يرجى التحويل عبر بنكك ورفع الإشعار.",
+            "It's Thursday: You have $amtFormatted SDG due (8% commission + collected penalties). Please deposit via Bankak and upload proof.",
+            'commission'
+        );
+    }
+}
+
+function fetchUserNotificationsSummary(PDO $pdo, string $userId, int $sinceMs = 0): array {
+    ensureNotificationsTable($pdo);
+    if ($sinceMs > 0) {
+        $stmt = $pdo->prepare('SELECT * FROM `notifications` WHERE `user_id` = ? AND `created_at_ms` > ? ORDER BY `created_at_ms` ASC LIMIT 50');
+        $stmt->execute([$userId, $sinceMs]);
+    } else {
+        $stmt = $pdo->prepare('SELECT * FROM `notifications` WHERE `user_id` = ? ORDER BY `created_at_ms` DESC LIMIT 80');
+        $stmt->execute([$userId]);
+    }
+    $items = array_map('hydrateNotificationRow', $stmt->fetchAll());
+
+    $cntStmt = $pdo->prepare('SELECT COUNT(*) FROM `notifications` WHERE `user_id` = ? AND `is_read` = 0');
+    $cntStmt->execute([$userId]);
+    $unreadCount = (int) $cntStmt->fetchColumn();
+
+    return [
+        'notifications' => $items,
+        'unreadCount' => $unreadCount,
+    ];
+}
+
 function ensureThursdayDepositsSchema(PDO $pdo): void {
     static $checked = false;
     if ($checked) return;
@@ -965,8 +1163,15 @@ try {
                 $suggestionsOut = array_map('hydrateSuggestion', $sugRows);
             }
 
+            $notifSummary = ['notifications' => [], 'unreadCount' => 0];
+            if ($viewer) {
+                syncBackgroundCheckNotifications($pdo, $viewer);
+                $notifSummary = fetchUserNotificationsSummary($pdo, (string) $viewer['id'], 0);
+            }
+
             sendJson([
                 'ok' => true,
+                'serverNowMs' => (int) round(microtime(true) * 1000),
                 'currentUser' => $currentUserOut,
                 'users' => $users,
                 'categories' => $categories,
@@ -975,6 +1180,8 @@ try {
                 'serviceSuggestions' => $suggestionsOut,
                 'activeCountsByProvider' => $activeCountsByProvider,
                 'publicReviews' => $reviewRows,
+                'notifications' => $notifSummary['notifications'],
+                'unreadNotificationsCount' => $notifSummary['unreadCount'],
             ]);
         }
 
@@ -1019,6 +1226,7 @@ try {
             sendJson([
                 'ok' => true,
                 'token' => $token,
+                'serverNowMs' => (int) round(microtime(true) * 1000),
                 'user' => hydrateSingleUser($pdo, (string) $user['id'], true),
             ]);
         }
@@ -1057,6 +1265,7 @@ try {
             sendJson([
                 'ok' => true,
                 'token' => $token,
+                'serverNowMs' => (int) round(microtime(true) * 1000),
                 'user' => hydrateSingleUser($pdo, $newId, true),
             ]);
         }
@@ -1129,10 +1338,22 @@ try {
             }
             $pdo->commit();
 
+            notifyAllAdmins(
+                $pdo,
+                "admin_nid:$newId:$nowIso",
+                'booking',
+                'طلب مراجعة هوية مهني جديد',
+                'Provider ID / Passport Pending Review',
+                "المهني $name أرفق الرقم الوطني أو جواز السفر بانتظار المراجعة والتفعيل.",
+                "Provider $name submitted an ID/Passport for review.",
+                'admin'
+            );
+
             $token = signToken($newId, 'provider', $config);
             sendJson([
                 'ok' => true,
                 'token' => $token,
+                'serverNowMs' => (int) round(microtime(true) * 1000),
                 'isPendingApproval' => true,
                 'user' => hydrateSingleUser($pdo, $newId, true),
             ]);
@@ -1334,14 +1555,30 @@ try {
                 sendJson(['ok' => false, 'error' => 'يرجى إرفاق صورة المستند الجديد'], 400);
             }
 
+            $submittedAtIso = date('c');
             $upd = $pdo->prepare('UPDATE users SET nid_url = ?, nid_number = ?, nid_status = "pending", nid_submitted_at = ?, is_active = 0, deactivated_reason = ? WHERE id = ?');
             $upd->execute([
                 $newNidUrl,
                 $newNidNumber,
-                date('c'),
+                $submittedAtIso,
                 'تم استلام صورة الرقم الوطني / جواز السفر المحدثة وهي قيد مراجعة وتدقيق الإدارة',
                 $targetUserId,
             ]);
+
+            $uStmt = $pdo->prepare('SELECT name FROM users WHERE id = ? LIMIT 1');
+            $uStmt->execute([$targetUserId]);
+            $uRow = $uStmt->fetch();
+            $pName = (string) ($uRow['name'] ?? $targetUserId);
+            notifyAllAdmins(
+                $pdo,
+                "admin_nid:$targetUserId:$submittedAtIso",
+                'booking',
+                'طلب مراجعة هوية مهني جديد',
+                'Provider ID / Passport Pending Review',
+                "أعاد المهني $pName إرفاق الرقم الوطني أو جواز السفر بانتظار المراجعة والتفعيل.",
+                "Provider $pName re-uploaded an ID/Passport for review.",
+                'admin'
+            );
 
             sendJson(['ok' => true, 'user' => hydrateSingleUser($pdo, $targetUserId, true)]);
         }
@@ -1522,6 +1759,21 @@ try {
             }
             $pdo->commit();
 
+            $priceFmt = number_format($agreedPrice);
+            $reqCity = trim((string) ($body['city'] ?? ''));
+            $reqNeigh = trim((string) ($body['neighborhood'] ?? ''));
+            createNotificationRecord(
+                $pdo,
+                (string) $provider['id'],
+                "req_new:$newId",
+                'booking',
+                'طلب خدمة جديد!',
+                'New Service Request!',
+                "طلب جديد من {$client['name']} ($reqCity - $reqNeigh) بقيمة $priceFmt ج.س.",
+                "New request from {$client['name']} ($reqCity - $reqNeigh) for $priceFmt SDG.",
+                'bookings'
+            );
+
             $rowStmt = $pdo->prepare('SELECT * FROM service_requests WHERE id = ?');
             $rowStmt->execute([$newId]);
             sendJson(['ok' => true, 'request' => hydrateRequest($rowStmt->fetch(), $client)]);
@@ -1548,6 +1800,30 @@ try {
             $pdo->prepare('UPDATE users SET unpaid_cancellation_fee_sdg = unpaid_cancellation_fee_sdg + ? WHERE id = ?')
                 ->execute([$penalty, $req['client_id']]);
             $pdo->commit();
+
+            $reasonSuffix = $reason !== '' ? " ($reason)" : '';
+            createNotificationRecord(
+                $pdo,
+                (string) $req['provider_id'],
+                "req_cancelled:$requestId:{$req['provider_id']}",
+                'urgent',
+                'تم إلغاء طلب الخدمة',
+                'Service Request Cancelled',
+                "تم إلغاء الطلب #$requestId من العميل {$req['client_name']}$reasonSuffix.",
+                "Request #$requestId with client {$req['client_name']} was cancelled$reasonSuffix.",
+                'bookings'
+            );
+            createNotificationRecord(
+                $pdo,
+                (string) $req['client_id'],
+                "req_cancelled:$requestId:{$req['client_id']}",
+                'urgent',
+                'تم إلغاء طلب الخدمة',
+                'Service Request Cancelled',
+                "تم إلغاء طلبك #$requestId مع المهني {$req['provider_name']}$reasonSuffix.",
+                "Your request #$requestId with {$req['provider_name']} was cancelled$reasonSuffix.",
+                'bookings'
+            );
 
             sendJson(['ok' => true, 'penaltyAmount' => $penalty]);
         }
@@ -1594,6 +1870,72 @@ try {
             }
             $pdo->commit();
 
+            if ($newStatus !== $req['status']) {
+                $provName = (string) $req['provider_name'];
+                $clientName = (string) $req['client_name'];
+                $priceFmt = number_format((int) $req['agreed_price_sdg']);
+                if ($newStatus === 'accepted') {
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $req['client_id'],
+                        "req_accepted:$requestId",
+                        'booking',
+                        'تم قبول طلب خدمتك',
+                        'Service Request Accepted',
+                        "قبل المهني $provName طلبك وجاري التنسيق للموعد.",
+                        "$provName accepted your service request and will coordinate timing.",
+                        'bookings'
+                    );
+                } elseif ($newStatus === 'in_progress') {
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $req['client_id'],
+                        "req_started:$requestId",
+                        'booking',
+                        'بدأ المهني تنفيذ الخدمة',
+                        'Service Work Started',
+                        "بدأ $provName العمل على طلبك رقم #$requestId.",
+                        "$provName has started working on request #$requestId.",
+                        'bookings'
+                    );
+                } elseif ($newStatus === 'completed') {
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $req['client_id'],
+                        "req_completed:$requestId",
+                        'booking',
+                        'تم إنهاء الخدمة — يرجى التقييم',
+                        'Service Ended — Please Rate',
+                        "قام المهني $provName بإنهاء الخدمة وتأكيد السداد ($priceFmt ج.س). اضغط لتقييم الخدمة.",
+                        "$provName marked your service ($priceFmt SDG) as completed. Tap to rate your worker.",
+                        'bookings'
+                    );
+                } elseif ($newStatus === 'cancelled') {
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $req['provider_id'],
+                        "req_cancelled:$requestId:{$req['provider_id']}",
+                        'urgent',
+                        'تم إلغاء طلب الخدمة',
+                        'Service Request Cancelled',
+                        "تم إلغاء الطلب #$requestId من العميل $clientName.",
+                        "Request #$requestId with client $clientName was cancelled.",
+                        'bookings'
+                    );
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $req['client_id'],
+                        "req_cancelled:$requestId:{$req['client_id']}",
+                        'urgent',
+                        'تم إلغاء طلب الخدمة',
+                        'Service Request Cancelled',
+                        "تم إلغاء طلبك #$requestId مع المهني $provName.",
+                        "Your request #$requestId with $provName was cancelled.",
+                        'bookings'
+                    );
+                }
+            }
+
             sendJson(['ok' => true]);
         }
 
@@ -1630,6 +1972,19 @@ try {
 
             $pdo->prepare('UPDATE users SET rating = ?, review_count = ? WHERE id = ?')->execute([$avg, $cnt, $req['provider_id']]);
             $pdo->commit();
+
+            $commentSuffix = $comment !== '' ? ": \"$comment\"" : '.';
+            createNotificationRecord(
+                $pdo,
+                (string) $req['provider_id'],
+                "req_rated:$requestId",
+                'success',
+                "تقييم جديد {$rating}/5 نجوم ⭐",
+                "New {$rating}/5 Star Rating ⭐",
+                "قيّم العميل {$req['client_name']} خدمتك بـ $rating نجوم$commentSuffix",
+                "{$req['client_name']} rated your work $rating stars$commentSuffix",
+                'bookings'
+            );
 
             sendJson(['ok' => true, 'rating' => $avg, 'reviewCount' => $cnt]);
         }
@@ -1673,12 +2028,36 @@ try {
                 $pdo->prepare('UPDATE thursday_deposits SET amount_sdg = ?, deposit_date = ?, bankak_reference_number = ?, receipt_file_url = ?, notes = ?, status = "pending_verification", rejection_reason = NULL, reviewed_at = NULL, submitted_at = ? WHERE id = ?')
                     ->execute([$amount, $depositDate, $bankakRef, $receiptUrl, $notes !== '' ? $notes : null, $nowStr, $resubmitId]);
 
+                $amtFmt = number_format($amount);
+                notifyAllAdmins(
+                    $pdo,
+                    "admin_dep:$resubmitId:$nowStr",
+                    'booking',
+                    'إشعار توريد عمولة محدّث (بنكك)',
+                    'Updated Commission Deposit Proof',
+                    "أعاد {$authUser['name']} رفع إشعار بمبلغ $amtFmt ج.س للمراجعة.",
+                    "{$authUser['name']} re-uploaded a $amtFmt SDG deposit proof.",
+                    'admin'
+                );
+
                 sendJson(['ok' => true, 'id' => $resubmitId]);
             }
 
             $newId = 'dep-' . round(microtime(true) * 1000);
             $pdo->prepare('INSERT INTO thursday_deposits (id, provider_id, provider_name, amount_sdg, deposit_date, bankak_reference_number, receipt_file_url, notes, status, rejection_reason, reviewed_at, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "pending_verification", NULL, NULL, ?)')
                 ->execute([$newId, $authUser['id'], $authUser['name'], $amount, $depositDate, $bankakRef, $receiptUrl, $notes !== '' ? $notes : null, $nowStr]);
+
+            $amtFmt = number_format($amount);
+            notifyAllAdmins(
+                $pdo,
+                "admin_dep:$newId:$nowStr",
+                'booking',
+                'إشعار توريد عمولة جديد (بنكك)',
+                'New Commission Deposit Proof',
+                "رفع {$authUser['name']} إشعاراً بمبلغ $amtFmt ج.س للمراجعة.",
+                "{$authUser['name']} uploaded a $amtFmt SDG deposit proof.",
+                'admin'
+            );
 
             sendJson(['ok' => true, 'id' => $newId]);
         }
@@ -1688,6 +2067,7 @@ try {
             $nameAr = trim((string) ($body['nameAr'] ?? ''));
             if ($nameAr === '') sendJson(['ok' => false, 'error' => 'اسم الحرفة أو الخدمة بالعربية مطلوب'], 400);
 
+            $nameEn = trim((string) ($body['nameEn'] ?? $nameAr));
             $newId = 'sug-' . round(microtime(true) * 1000);
             $pdo->prepare('INSERT INTO service_suggestions (id, provider_id, provider_name, provider_phone, name_ar, name_en, description_ar, description_en, suggested_rate_sdg, icon_name, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "pending", ?)')
                 ->execute([
@@ -1696,13 +2076,24 @@ try {
                     $authUser['name'],
                     $authUser['phone'],
                     $nameAr,
-                    trim((string) ($body['nameEn'] ?? $nameAr)),
+                    $nameEn,
                     trim((string) ($body['descriptionAr'] ?? '')),
                     trim((string) ($body['descriptionEn'] ?? $body['descriptionAr'] ?? '')),
                     (int) ($body['suggestedRateSDG'] ?? 25000),
                     (string) ($body['iconName'] ?? 'Wrench'),
                     date('Y-m-d H:i'),
                 ]);
+
+            notifyAllAdmins(
+                $pdo,
+                "admin_sug:$newId",
+                'booking',
+                'مقترح خدمة جديدة من مهني',
+                'New Service Category Suggestion',
+                "اقترح {$authUser['name']} خدمة جديدة: $nameAr.",
+                "{$authUser['name']} suggested a new service: $nameEn.",
+                'admin'
+            );
 
             sendJson(['ok' => true, 'id' => $newId]);
         }
@@ -1828,6 +2219,10 @@ try {
                 $fields[] = 'unpaid_cancellation_fee_sdg = ?';
                 $params[] = max(0, (int) $updates['unpaidCancellationFeeSDG']);
             }
+            $prevStmt = $pdo->prepare('SELECT role, is_active, nid_status, unpaid_cancellation_fee_sdg, nid_submitted_at FROM users WHERE id = ? LIMIT 1');
+            $prevStmt->execute([$id]);
+            $prevUser = $prevStmt->fetch();
+
             if ($fields) {
                 $params[] = $id;
                 $pdo->prepare('UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?')->execute($params);
@@ -1839,6 +2234,65 @@ try {
                     if ($cid) $cIns->execute([$id, (string) $cid]);
                 }
             }
+
+            if ($prevUser) {
+                $afterStmt = $pdo->prepare('SELECT role, is_active, nid_status, deactivated_reason, unpaid_cancellation_fee_sdg, nid_submitted_at FROM users WHERE id = ? LIMIT 1');
+                $afterStmt->execute([$id]);
+                $afterUser = $afterStmt->fetch();
+                if ($afterUser) {
+                    if (($afterUser['role'] ?? '') === 'provider') {
+                        $becameApproved = (($prevUser['nid_status'] ?? '') !== 'approved' && ($afterUser['nid_status'] ?? '') === 'approved')
+                            || (((int) ($prevUser['is_active'] ?? 1)) === 0 && ((int) ($afterUser['is_active'] ?? 1)) === 1);
+                        $becameDeactivated = ((int) ($prevUser['is_active'] ?? 1)) === 1 && ((int) ($afterUser['is_active'] ?? 1)) === 0 && ($afterUser['nid_status'] ?? '') !== 'reupload_requested';
+                        if ($becameApproved) {
+                            $stamp = (string) ($afterUser['nid_submitted_at'] ?: round(microtime(true) * 1000));
+                            createNotificationRecord(
+                                $pdo,
+                                $id,
+                                "account_approved:$stamp",
+                                'success',
+                                'تم اعتماد هويتك وتفعيل حسابك!',
+                                'ID Approved & Account Activated!',
+                                'تهانينا! أصبح ملفك المهني وخدماتك ظاهرين الآن للعملاء لاستقبال الطلبات.',
+                                'Congratulations! Your worker profile and services are now live for clients.',
+                                'profile'
+                            );
+                        } elseif ($becameDeactivated) {
+                            $deactReason = trim((string) ($afterUser['deactivated_reason'] ?? ''));
+                            $bodyAr = $deactReason !== '' ? $deactReason : 'تم تعليق ظهور ملفك المهني مؤقتاً. راجع إدارة المنصة.';
+                            $bodyEn = $deactReason !== '' ? $deactReason : 'Your account was deactivated by platform admin.';
+                            createNotificationRecord(
+                                $pdo,
+                                $id,
+                                'account_deactivated:' . round(microtime(true) * 1000),
+                                'urgent',
+                                'تنبيه: تم إيقاف تفعيل الحساب',
+                                'Account Temporarily Deactivated',
+                                $bodyAr,
+                                $bodyEn,
+                                'profile'
+                            );
+                        }
+                    }
+                    $oldFine = (int) ($prevUser['unpaid_cancellation_fee_sdg'] ?? 0);
+                    $newFine = (int) ($afterUser['unpaid_cancellation_fee_sdg'] ?? 0);
+                    if ($oldFine > 0 && $newFine === 0) {
+                        $oldFmt = number_format($oldFine);
+                        createNotificationRecord(
+                            $pdo,
+                            $id,
+                            'fine_exempted:user:' . round(microtime(true) * 1000),
+                            'success',
+                            'تم إعفائك من غرامة الإلغاء',
+                            'Cancellation Penalty Exempted',
+                            "قامت إدارة مهني بإعفائك من غرامة الإلغاء السابقة ($oldFmt ج.س) ولن تُضاف على طلباتك القادمة.",
+                            "Mehani Admin has exempted your previous cancellation penalty ($oldFmt SDG).",
+                            'bookings'
+                        );
+                    }
+                }
+            }
+
             sendJson(['ok' => true, 'user' => hydrateSingleUser($pdo, $id, true)]);
         }
 
@@ -1853,13 +2307,43 @@ try {
             requireAdmin($pdo, $config);
             $id = (string) ($body['id'] ?? '');
             $reason = trim((string) ($body['reason'] ?? 'تم تعطيل الحساب من قِبل إدارة المنصة'));
-            $stmt = $pdo->prepare('SELECT is_active FROM users WHERE id = ? LIMIT 1');
+            $stmt = $pdo->prepare('SELECT role, is_active, nid_submitted_at FROM users WHERE id = ? LIMIT 1');
             $stmt->execute([$id]);
             $row = $stmt->fetch();
             if (!$row) sendJson(['ok' => false, 'error' => 'المستخدم غير موجود'], 404);
             $nextActive = ((int) $row['is_active']) === 1 ? 0 : 1;
             $pdo->prepare('UPDATE users SET is_active = ?, deactivated_reason = ? WHERE id = ?')
                 ->execute([$nextActive, $nextActive === 1 ? null : $reason, $id]);
+
+            if (($row['role'] ?? '') === 'provider') {
+                if ($nextActive === 1) {
+                    $stamp = (string) ($row['nid_submitted_at'] ?: round(microtime(true) * 1000));
+                    createNotificationRecord(
+                        $pdo,
+                        $id,
+                        "account_approved:$stamp",
+                        'success',
+                        'تم اعتماد هويتك وتفعيل حسابك!',
+                        'ID Approved & Account Activated!',
+                        'تهانينا! أصبح ملفك المهني وخدماتك ظاهرين الآن للعملاء لاستقبال الطلبات.',
+                        'Congratulations! Your worker profile and services are now live for clients.',
+                        'profile'
+                    );
+                } else {
+                    createNotificationRecord(
+                        $pdo,
+                        $id,
+                        'account_deactivated:' . round(microtime(true) * 1000),
+                        'urgent',
+                        'تنبيه: تم إيقاف تفعيل الحساب',
+                        'Account Temporarily Deactivated',
+                        $reason !== '' ? $reason : 'تم تعليق ظهور ملفك المهني مؤقتاً. راجع إدارة المنصة.',
+                        $reason !== '' ? $reason : 'Your account was deactivated by platform admin.',
+                        'profile'
+                    );
+                }
+            }
+
             sendJson(['ok' => true]);
         }
 
@@ -1869,6 +2353,23 @@ try {
             $reason = trim((string) ($body['reason'] ?? 'المستند المرفق غير واضح أو غير مطابق، يرجى إعادة رفع صورة واضحة للرقم الوطني أو جواز السفر'));
             $pdo->prepare('UPDATE users SET is_active = 0, nid_status = "reupload_requested", nid_rejection_reason = ?, deactivated_reason = ? WHERE id = ?')
                 ->execute([$reason, $reason, $userId]);
+
+            $uStmt = $pdo->prepare('SELECT nid_submitted_at FROM users WHERE id = ? LIMIT 1');
+            $uStmt->execute([$userId]);
+            $uRow = $uStmt->fetch();
+            $sig = (string) ($uRow['nid_submitted_at'] ?? '') . ':' . $reason;
+            createNotificationRecord(
+                $pdo,
+                $userId,
+                "nid_reupload:$sig",
+                'urgent',
+                'مطلوب إعادة رفع الرقم الوطني أو جواز السفر',
+                'ID / Passport Re-upload Required',
+                "إدارة مهني: يرجى إعادة رفع صورة الرقم الوطني أو جواز السفر ($reason).",
+                "Mehani Admin: Please re-upload your National ID or Passport ($reason).",
+                'profile'
+            );
+
             sendJson(['ok' => true]);
         }
 
@@ -1965,6 +2466,34 @@ try {
             }
             $pdo->commit();
 
+            $amtFmt = number_format($amount);
+            $refNo = (string) ($dep['bankak_reference_number'] ?? '');
+            if ($status === 'verified') {
+                createNotificationRecord(
+                    $pdo,
+                    $providerId,
+                    "deposit_verified:$id:" . ($reviewedAt ?? ''),
+                    'success',
+                    'تم اعتماد توريد العمولة بنجاح',
+                    'Commission Deposit Verified',
+                    "تم التحقق واعتماد إشعار التوريد بمبلغ $amtFmt ج.س (مرجع: $refNo).",
+                    "Your $amtFmt SDG deposit (Ref: $refNo) has been verified.",
+                    'commission'
+                );
+            } elseif ($status === 'rejected') {
+                createNotificationRecord(
+                    $pdo,
+                    $providerId,
+                    "deposit_reupload:$id:" . ($reviewedAt ?? '') . ':' . $rejectionReason,
+                    'urgent',
+                    'مطلوب إعادة رفع إشعار العمولة (بنكك)',
+                    'Deposit Proof Re-upload Needed',
+                    "تم رفض إشعار توريد $amtFmt ج.س ($rejectionReason).",
+                    "Your $amtFmt SDG deposit proof was rejected ($rejectionReason).",
+                    'commission'
+                );
+            }
+
             sendJson(['ok' => true]);
         }
 
@@ -1999,8 +2528,39 @@ try {
             requireAdmin($pdo, $config);
             $id = (string) ($body['id'] ?? '');
             $reason = trim((string) ($body['reason'] ?? 'تم الإلغاء بواسطة الإدارة العامة'));
+            $rStmt = $pdo->prepare('SELECT * FROM service_requests WHERE id = ? LIMIT 1');
+            $rStmt->execute([$id]);
+            $reqRow = $rStmt->fetch();
+
             $pdo->prepare('UPDATE service_requests SET status = "cancelled", cancelled_by = "provider", cancel_reason = ?, cancelled_at = ? WHERE id = ?')
                 ->execute([$reason, date('Y-m-d H:i'), $id]);
+
+            if ($reqRow) {
+                $reasonSuffix = $reason !== '' ? " ($reason)" : '';
+                createNotificationRecord(
+                    $pdo,
+                    (string) $reqRow['provider_id'],
+                    "req_cancelled:$id:{$reqRow['provider_id']}",
+                    'urgent',
+                    'تم إلغاء طلب الخدمة',
+                    'Service Request Cancelled',
+                    "تم إلغاء الطلب #$id مع العميل {$reqRow['client_name']}$reasonSuffix.",
+                    "Request #$id with client {$reqRow['client_name']} was cancelled$reasonSuffix.",
+                    'bookings'
+                );
+                createNotificationRecord(
+                    $pdo,
+                    (string) $reqRow['client_id'],
+                    "req_cancelled:$id:{$reqRow['client_id']}",
+                    'urgent',
+                    'تم إلغاء طلبك',
+                    'Service Request Cancelled',
+                    "تم إلغاء طلبك #$id مع المهني {$reqRow['provider_name']}$reasonSuffix.",
+                    "Your request #$id with {$reqRow['provider_name']} was cancelled$reasonSuffix.",
+                    'bookings'
+                );
+            }
+
             sendJson(['ok' => true]);
         }
 
@@ -2008,6 +2568,9 @@ try {
             $adminUser = requireAdmin($pdo, $config);
             $userId = trim((string) ($body['userId'] ?? ''));
             $requestId = trim((string) ($body['requestId'] ?? ''));
+            $includeActiveRequests = array_key_exists('includeActiveRequests', $body)
+                ? (bool) $body['includeActiveRequests']
+                : ($userId !== '' && $requestId === '');
 
             if ($userId === '' && $requestId === '') {
                 sendJson(['ok' => false, 'error' => 'يرجى تحديد المستخدم أو الطلب المطلوب إعفائه من الغرامة'], 400);
@@ -2017,12 +2580,64 @@ try {
             $updatedRequest = null;
 
             if ($userId !== '') {
-                $uStmt = $pdo->prepare('SELECT id FROM users WHERE id = ? LIMIT 1');
+                $uStmt = $pdo->prepare('SELECT id, name, unpaid_cancellation_fee_sdg FROM users WHERE id = ? LIMIT 1');
                 $uStmt->execute([$userId]);
-                if (!$uStmt->fetch()) {
+                $uRow = $uStmt->fetch();
+                if (!$uRow) {
                     sendJson(['ok' => false, 'error' => 'المستخدم غير موجود'], 404);
                 }
-                $pdo->prepare('UPDATE users SET unpaid_cancellation_fee_sdg = 0 WHERE id = ?')->execute([$userId]);
+
+                $pdo->beginTransaction();
+                $accountFine = (int) ($uRow['unpaid_cancellation_fee_sdg'] ?? 0);
+                if ($accountFine > 0) {
+                    $pdo->prepare('UPDATE users SET unpaid_cancellation_fee_sdg = 0 WHERE id = ?')->execute([$userId]);
+                }
+
+                $waivedActiveReqs = [];
+                if ($includeActiveRequests) {
+                    $activeFineStmt = $pdo->prepare('SELECT id, provider_id, client_name, cancellation_fee_penalty_sdg FROM service_requests WHERE client_id = ? AND status IN ("pending", "accepted", "in_progress") AND cancellation_fee_penalty_sdg > 0');
+                    $activeFineStmt->execute([$userId]);
+                    $waivedActiveReqs = $activeFineStmt->fetchAll();
+                    if ($waivedActiveReqs) {
+                        $pdo->prepare('UPDATE service_requests SET cancellation_fee_penalty_sdg = 0 WHERE client_id = ? AND status IN ("pending", "accepted", "in_progress") AND cancellation_fee_penalty_sdg > 0')
+                            ->execute([$userId]);
+                    }
+                }
+                $pdo->commit();
+
+                $totalWaivedForUser = $accountFine;
+                foreach ($waivedActiveReqs as $wr) {
+                    $wPenalty = (int) ($wr['cancellation_fee_penalty_sdg'] ?? 0);
+                    $totalWaivedForUser += $wPenalty;
+                    $wFmt = number_format($wPenalty);
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $wr['provider_id'],
+                        'fine_exempted:req:' . $wr['id'] . ':' . round(microtime(true) * 1000),
+                        'booking',
+                        'تم إعفاء العميل من غرامة الإلغاء',
+                        'Client Cancellation Penalty Exempted',
+                        "أعفت الإدارة العميل {$wr['client_name']} من غرامة الإلغاء ($wFmt ج.س) على الطلب #{$wr['id']} — لن يتم تحصيلها أو توريدها.",
+                        "Admin exempted {$wr['client_name']}'s cancellation penalty ($wFmt SDG) on request #{$wr['id']} — no penalty due.",
+                        'bookings'
+                    );
+                }
+
+                if ($totalWaivedForUser > 0) {
+                    $tFmt = number_format($totalWaivedForUser);
+                    createNotificationRecord(
+                        $pdo,
+                        $userId,
+                        'fine_exempted:user:' . round(microtime(true) * 1000),
+                        'success',
+                        'تم إعفائك من غرامة الإلغاء',
+                        'Cancellation Penalty Exempted',
+                        "قامت إدارة مهني بإعفائك من غرامة الإلغاء ($tFmt ج.س) ولن تُطبق على طلباتك.",
+                        "Mehani Admin has exempted your cancellation penalty ($tFmt SDG).",
+                        'bookings'
+                    );
+                }
+
                 $updatedUser = hydrateSingleUser($pdo, $userId, true);
             }
 
@@ -2033,10 +2648,43 @@ try {
                 if (!$reqRow) {
                     sendJson(['ok' => false, 'error' => 'الطلب غير موجود'], 404);
                 }
-                if (in_array((string) $reqRow['status'], ['completed', 'cancelled'], true)) {
-                    sendJson(['ok' => false, 'error' => 'لا يمكن إعفاء الغرامة بعد اكتمال الخدمة أو إلغائها'], 400);
-                }
+
+                $oldPenalty = (int) ($reqRow['cancellation_fee_penalty_sdg'] ?? 0);
+                $pdo->beginTransaction();
                 $pdo->prepare('UPDATE service_requests SET cancellation_fee_penalty_sdg = 0 WHERE id = ?')->execute([$requestId]);
+                if ($reqRow['status'] === 'completed' && $oldPenalty > 0) {
+                    $pdo->prepare('UPDATE users SET pending_commission_due_sdg = GREATEST(0, pending_commission_due_sdg - ?) WHERE id = ?')
+                        ->execute([$oldPenalty, $reqRow['provider_id']]);
+                }
+                $pdo->commit();
+
+                if ($oldPenalty > 0) {
+                    $pFmt = number_format($oldPenalty);
+                    $stamp = (string) round(microtime(true) * 1000);
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $reqRow['client_id'],
+                        "fine_exempted:req_client:$requestId:$stamp",
+                        'success',
+                        'تم إعفاء غرامة الإلغاء على طلبك',
+                        'Booking Cancellation Penalty Exempted',
+                        "تم إعفائك من غرامة الإلغاء ($pFmt ج.س) المضافة على الطلب #$requestId.",
+                        "Your cancellation penalty ($pFmt SDG) on booking #$requestId has been exempted.",
+                        'bookings'
+                    );
+                    createNotificationRecord(
+                        $pdo,
+                        (string) $reqRow['provider_id'],
+                        "fine_exempted:req_prov:$requestId:$stamp",
+                        'booking',
+                        'تم إعفاء العميل من غرامة الإلغاء',
+                        'Client Cancellation Penalty Exempted',
+                        "أعفت الإدارة العميل {$reqRow['client_name']} من غرامة الإلغاء ($pFmt ج.س) على الطلب #$requestId — تم تحديث المستحقات تلقائياً.",
+                        "Admin exempted {$reqRow['client_name']}'s cancellation penalty ($pFmt SDG) on request #$requestId.",
+                        'bookings'
+                    );
+                }
+
                 $rStmt2 = $pdo->prepare('SELECT * FROM service_requests WHERE id = ? LIMIT 1');
                 $rStmt2->execute([$requestId]);
                 $reqRow2 = $rStmt2->fetch();
@@ -2077,6 +2725,19 @@ try {
             $pdo->prepare('UPDATE service_suggestions SET status = "approved", reviewed_at = ? WHERE id = ?')->execute([date('Y-m-d H:i'), $suggestionId]);
             $pdo->commit();
 
+            $sNameEn = $sug['name_en'] ?: $sug['name_ar'];
+            createNotificationRecord(
+                $pdo,
+                (string) $sug['provider_id'],
+                "suggestion_approved:$suggestionId",
+                'success',
+                'تمت الموافقة على خدمتك المقترحة',
+                'Suggested Service Approved',
+                "تمت إضافة \"{$sug['name_ar']}\" إلى تصنيفات منصة مهني المعتمدة.",
+                "\"$sNameEn\" has been added to Mehani service categories.",
+                'profile'
+            );
+
             sendJson(['ok' => true, 'categoryId' => $newCatId]);
         }
 
@@ -2084,16 +2745,67 @@ try {
             requireAdmin($pdo, $config);
             $suggestionId = (string) ($body['suggestionId'] ?? '');
             $reason = trim((string) ($body['reason'] ?? 'لم يتم استيفاء معايير التصنيف المعتمدة بالمنصة'));
+            $stmt = $pdo->prepare('SELECT provider_id, name_ar, name_en FROM service_suggestions WHERE id = ? LIMIT 1');
+            $stmt->execute([$suggestionId]);
+            $sug = $stmt->fetch();
+
             $pdo->prepare('UPDATE service_suggestions SET status = "rejected", rejection_reason = ?, reviewed_at = ? WHERE id = ?')
                 ->execute([$reason, date('Y-m-d H:i'), $suggestionId]);
+
+            if ($sug) {
+                $sNameEn = $sug['name_en'] ?: $sug['name_ar'];
+                createNotificationRecord(
+                    $pdo,
+                    (string) $sug['provider_id'],
+                    "suggestion_rejected:$suggestionId",
+                    'urgent',
+                    'تحديث حول مقترح الخدمة',
+                    'Service Suggestion Update',
+                    "لم يتم اعتماد مقترح \"{$sug['name_ar']}\"" . ($reason !== '' ? ": $reason" : '.'),
+                    "Suggestion \"$sNameEn\" was not approved" . ($reason !== '' ? ": $reason" : '.'),
+                    'profile'
+                );
+            }
+
             sendJson(['ok' => true]);
+        }
+
+        case 'mark_notification_read': {
+            $authUser = requireAuth($pdo, $config);
+            ensureNotificationsTable($pdo);
+            $notifId = trim((string) ($body['notificationId'] ?? ''));
+            if ($notifId === '') {
+                sendJson(['ok' => false, 'error' => 'معرف الإشعار مطلوب'], 400);
+            }
+            $pdo->prepare('UPDATE `notifications` SET `is_read` = 1, `read_at` = ? WHERE `id` = ? AND `user_id` = ?')
+                ->execute([date('Y-m-d H:i'), $notifId, $authUser['id']]);
+            $summary = fetchUserNotificationsSummary($pdo, (string) $authUser['id'], 0);
+            sendJson([
+                'ok' => true,
+                'unreadNotificationsCount' => $summary['unreadCount'],
+            ]);
+        }
+
+        case 'mark_all_notifications_read': {
+            $authUser = requireAuth($pdo, $config);
+            ensureNotificationsTable($pdo);
+            $pdo->prepare('UPDATE `notifications` SET `is_read` = 1, `read_at` = ? WHERE `user_id` = ? AND `is_read` = 0')
+                ->execute([date('Y-m-d H:i'), $authUser['id']]);
+            sendJson([
+                'ok' => true,
+                'unreadNotificationsCount' => 0,
+            ]);
         }
 
         case 'notifications_feed': {
             $user = requireAuth($pdo, $config);
             ensureThursdayDepositsSchema($pdo);
+            syncBackgroundCheckNotifications($pdo, $user);
             $uid = (string) $user['id'];
             $role = (string) $user['role'];
+            $sinceMs = isset($_GET['since_ms']) ? (int) $_GET['since_ms'] : (int) ($body['sinceMs'] ?? 0);
+
+            $notifSummary = fetchUserNotificationsSummary($pdo, $uid, $sinceMs);
 
             $userOut = [
                 'id' => $uid,
@@ -2106,90 +2818,98 @@ try {
                 'pendingCommissionDueSDG' => (int) ($user['pending_commission_due_sdg'] ?? 0),
             ];
 
-            if ($role === 'admin') {
-                $reqRows = $pdo->query('SELECT id, status, client_id, provider_id, client_name, provider_name, agreed_price_sdg, cancellation_fee_penalty_sdg, client_rating, client_review_comment, cancel_reason FROM service_requests ORDER BY id DESC LIMIT 60')->fetchAll();
-            } else {
-                $stmt = $pdo->prepare('SELECT id, status, client_id, provider_id, client_name, provider_name, agreed_price_sdg, cancellation_fee_penalty_sdg, client_rating, client_review_comment, cancel_reason FROM service_requests WHERE client_id = ? OR provider_id = ? ORDER BY id DESC LIMIT 60');
-                $stmt->execute([$uid, $uid]);
-                $reqRows = $stmt->fetchAll();
-            }
-            $requestsFeed = array_map(static fn ($r) => [
-                'id' => (string) $r['id'],
-                'status' => (string) $r['status'],
-                'clientId' => (string) $r['client_id'],
-                'providerId' => (string) $r['provider_id'],
-                'clientName' => (string) $r['client_name'],
-                'providerName' => (string) $r['provider_name'],
-                'agreedPriceSDG' => (int) $r['agreed_price_sdg'],
-                'cancellationFeePenaltySDG' => (int) ($r['cancellation_fee_penalty_sdg'] ?? 0),
-                'clientRating' => $r['client_rating'] !== null ? (int) $r['client_rating'] : null,
-                'clientReviewComment' => $r['client_review_comment'] !== null ? (string) $r['client_review_comment'] : null,
-                'cancelReason' => $r['cancel_reason'] !== null ? (string) $r['cancel_reason'] : null,
-            ], $reqRows);
-
+            // Include lightweight snapshot arrays only if not doing a delta since_ms poll (for backward compatibility)
+            $requestsFeed = [];
             $depositsFeed = [];
-            if ($role === 'admin') {
-                $depRows = $pdo->query('SELECT id, provider_id, provider_name, amount_sdg, bankak_reference_number, status, rejection_reason, reviewed_at, submitted_at FROM thursday_deposits ORDER BY id DESC LIMIT 60')->fetchAll();
-            } elseif ($role === 'provider') {
-                $stmt = $pdo->prepare('SELECT id, provider_id, provider_name, amount_sdg, bankak_reference_number, status, rejection_reason, reviewed_at, submitted_at FROM thursday_deposits WHERE provider_id = ? ORDER BY id DESC LIMIT 40');
-                $stmt->execute([$uid]);
-                $depRows = $stmt->fetchAll();
-            } else {
-                $depRows = [];
-            }
-            foreach ($depRows as $d) {
-                $depositsFeed[] = [
-                    'id' => (string) $d['id'],
-                    'providerId' => (string) $d['provider_id'],
-                    'providerName' => (string) $d['provider_name'],
-                    'amountSDG' => (int) $d['amount_sdg'],
-                    'bankakReferenceNumber' => (string) $d['bankak_reference_number'],
-                    'status' => (string) $d['status'],
-                    'rejectionReason' => $d['rejection_reason'] ?? null,
-                    'reviewedAt' => $d['reviewed_at'] ?? null,
-                    'submittedAt' => (string) $d['submitted_at'],
-                ];
-            }
-
             $suggestionsFeed = [];
-            if ($role === 'admin') {
-                $sugRows = $pdo->query('SELECT id, provider_id, provider_name, name_ar, name_en, status, rejection_reason, created_at FROM service_suggestions ORDER BY id DESC LIMIT 40')->fetchAll();
-            } elseif ($role === 'provider') {
-                $stmt = $pdo->prepare('SELECT id, provider_id, provider_name, name_ar, name_en, status, rejection_reason, created_at FROM service_suggestions WHERE provider_id = ? ORDER BY id DESC LIMIT 40');
-                $stmt->execute([$uid]);
-                $sugRows = $stmt->fetchAll();
-            } else {
-                $sugRows = [];
-            }
-            foreach ($sugRows as $s) {
-                $suggestionsFeed[] = [
-                    'id' => (string) $s['id'],
-                    'providerId' => (string) $s['provider_id'],
-                    'providerName' => (string) $s['provider_name'],
-                    'nameAr' => (string) $s['name_ar'],
-                    'nameEn' => (string) $s['name_en'],
-                    'status' => (string) $s['status'],
-                    'rejectionReason' => $s['rejection_reason'] ?? null,
-                    'createdAt' => (string) $s['created_at'],
-                ];
-            }
-
             $pendingNidProviders = [];
-            if ($role === 'admin') {
-                $nidRows = $pdo->query("SELECT id, name, nid_submitted_at, created_at FROM users WHERE role = 'provider' AND nid_status = 'pending' ORDER BY id DESC LIMIT 40")->fetchAll();
-                foreach ($nidRows as $p) {
-                    $pendingNidProviders[] = [
-                        'id' => (string) $p['id'],
-                        'name' => (string) $p['name'],
-                        'nidSubmittedAt' => $p['nid_submitted_at'] ?? null,
-                        'createdAt' => (string) $p['created_at'],
+
+            if ($sinceMs <= 0) {
+                if ($role === 'admin') {
+                    $reqRows = $pdo->query('SELECT id, status, client_id, provider_id, client_name, provider_name, agreed_price_sdg, cancellation_fee_penalty_sdg, client_rating, client_review_comment, cancel_reason FROM service_requests ORDER BY id DESC LIMIT 60')->fetchAll();
+                } else {
+                    $stmt = $pdo->prepare('SELECT id, status, client_id, provider_id, client_name, provider_name, agreed_price_sdg, cancellation_fee_penalty_sdg, client_rating, client_review_comment, cancel_reason FROM service_requests WHERE client_id = ? OR provider_id = ? ORDER BY id DESC LIMIT 60');
+                    $stmt->execute([$uid, $uid]);
+                    $reqRows = $stmt->fetchAll();
+                }
+                $requestsFeed = array_map(static fn ($r) => [
+                    'id' => (string) $r['id'],
+                    'status' => (string) $r['status'],
+                    'clientId' => (string) $r['client_id'],
+                    'providerId' => (string) $r['provider_id'],
+                    'clientName' => (string) $r['client_name'],
+                    'providerName' => (string) $r['provider_name'],
+                    'agreedPriceSDG' => (int) $r['agreed_price_sdg'],
+                    'cancellationFeePenaltySDG' => (int) ($r['cancellation_fee_penalty_sdg'] ?? 0),
+                    'clientRating' => $r['client_rating'] !== null ? (int) $r['client_rating'] : null,
+                    'clientReviewComment' => $r['client_review_comment'] !== null ? (string) $r['client_review_comment'] : null,
+                    'cancelReason' => $r['cancel_reason'] !== null ? (string) $r['cancel_reason'] : null,
+                ], $reqRows);
+
+                if ($role === 'admin') {
+                    $depRows = $pdo->query('SELECT id, provider_id, provider_name, amount_sdg, bankak_reference_number, status, rejection_reason, reviewed_at, submitted_at FROM thursday_deposits ORDER BY id DESC LIMIT 60')->fetchAll();
+                } elseif ($role === 'provider') {
+                    $stmt = $pdo->prepare('SELECT id, provider_id, provider_name, amount_sdg, bankak_reference_number, status, rejection_reason, reviewed_at, submitted_at FROM thursday_deposits WHERE provider_id = ? ORDER BY id DESC LIMIT 40');
+                    $stmt->execute([$uid]);
+                    $depRows = $stmt->fetchAll();
+                } else {
+                    $depRows = [];
+                }
+                foreach ($depRows as $d) {
+                    $depositsFeed[] = [
+                        'id' => (string) $d['id'],
+                        'providerId' => (string) $d['provider_id'],
+                        'providerName' => (string) $d['provider_name'],
+                        'amountSDG' => (int) $d['amount_sdg'],
+                        'bankakReferenceNumber' => (string) $d['bankak_reference_number'],
+                        'status' => (string) $d['status'],
+                        'rejectionReason' => $d['rejection_reason'] ?? null,
+                        'reviewedAt' => $d['reviewed_at'] ?? null,
+                        'submittedAt' => (string) $d['submitted_at'],
                     ];
+                }
+
+                if ($role === 'admin') {
+                    $sugRows = $pdo->query('SELECT id, provider_id, provider_name, name_ar, name_en, status, rejection_reason, created_at FROM service_suggestions ORDER BY id DESC LIMIT 40')->fetchAll();
+                } elseif ($role === 'provider') {
+                    $stmt = $pdo->prepare('SELECT id, provider_id, provider_name, name_ar, name_en, status, rejection_reason, created_at FROM service_suggestions WHERE provider_id = ? ORDER BY id DESC LIMIT 40');
+                    $stmt->execute([$uid]);
+                    $sugRows = $stmt->fetchAll();
+                } else {
+                    $sugRows = [];
+                }
+                foreach ($sugRows as $s) {
+                    $suggestionsFeed[] = [
+                        'id' => (string) $s['id'],
+                        'providerId' => (string) $s['provider_id'],
+                        'providerName' => (string) $s['provider_name'],
+                        'nameAr' => (string) $s['name_ar'],
+                        'nameEn' => (string) $s['name_en'],
+                        'status' => (string) $s['status'],
+                        'rejectionReason' => $s['rejection_reason'] ?? null,
+                        'createdAt' => (string) $s['created_at'],
+                    ];
+                }
+
+                if ($role === 'admin') {
+                    $nidRows = $pdo->query("SELECT id, name, nid_submitted_at, created_at FROM users WHERE role = 'provider' AND nid_status = 'pending' ORDER BY id DESC LIMIT 40")->fetchAll();
+                    foreach ($nidRows as $p) {
+                        $pendingNidProviders[] = [
+                            'id' => (string) $p['id'],
+                            'name' => (string) $p['name'],
+                            'nidSubmittedAt' => $p['nid_submitted_at'] ?? null,
+                            'createdAt' => (string) $p['created_at'],
+                        ];
+                    }
                 }
             }
 
             sendJson([
                 'ok' => true,
+                'serverNowMs' => (int) round(microtime(true) * 1000),
                 'user' => $userOut,
+                'notifications' => $notifSummary['notifications'],
+                'unreadNotificationsCount' => $notifSummary['unreadCount'],
                 'requests' => $requestsFeed,
                 'deposits' => $depositsFeed,
                 'suggestions' => $suggestionsFeed,

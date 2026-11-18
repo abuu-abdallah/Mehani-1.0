@@ -202,6 +202,28 @@ CREATE TABLE IF NOT EXISTS `password_resets` (
   CONSTRAINT `fk_pr_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 10. User Notification Inbox (Bilingual persistent notifications with read status)
+CREATE TABLE IF NOT EXISTS `notifications` (
+  `id` VARCHAR(80) NOT NULL,
+  `user_id` VARCHAR(64) NOT NULL,
+  `event_key` VARCHAR(191) NOT NULL,
+  `category` VARCHAR(24) NOT NULL DEFAULT 'booking',
+  `title_ar` VARCHAR(191) NOT NULL,
+  `title_en` VARCHAR(191) NOT NULL,
+  `body_ar` TEXT NOT NULL,
+  `body_en` TEXT NOT NULL,
+  `target_tab` VARCHAR(32) NOT NULL DEFAULT 'home',
+  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at_ms` BIGINT NOT NULL,
+  `created_at` VARCHAR(32) NOT NULL,
+  `read_at` VARCHAR(32) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_notif_user_event` (`user_id`, `event_key`),
+  KEY `idx_notif_user_time` (`user_id`, `created_at_ms`),
+  KEY `idx_notif_user_read` (`user_id`, `is_read`),
+  CONSTRAINT `fk_notif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================================
 -- SEED DATA: Official Categories & Default Admin Account
 -- ============================================================================

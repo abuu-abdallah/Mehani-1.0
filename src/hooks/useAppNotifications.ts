@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useApp } from '../context/AppContext';
+import { useApp, type NavigationTab } from '../context/AppContext';
 import { useLanguage } from '../context/LanguageContext';
 import { safeStorage } from '../utils/safeStorage';
 import {
   dispatchAppNotification,
+  getRealtimeCutoffMs,
   requestNativeNotificationPermission,
+  setRealtimeCutoffMs,
   syncBackgroundNotificationSnapshot,
+  syncBackgroundRealtimeCutoff,
 } from '../services/nativeNotifications';
 import type { ServiceStatus } from '../types';
 
@@ -45,8 +48,14 @@ interface UserSnapshot {
 const SNAPSHOT_PREFIX = 'mehani_notif_snapshot_';
 
 export const useAppNotifications = () => {
-  const { currentUser, isGuest, allUsers } = useAuth();
-  const { requests, deposits, serviceSuggestions } = useApp();
+  const { currentUser, isGuest, isRemoteApi, latestBootstrap, allUsers } = useAuth();
+  const {
+    requests,
+    deposits,
+    serviceSuggestions,
+    notifications,
+    appendLocalNotification,
+  } = useApp();
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -54,6 +63,50 @@ export const useAppNotifications = () => {
     void requestNativeNotificationPermission();
   }, [currentUser?.id, isGuest]);
 
+  // Remote DB-backed Real-Time Notification Dispatch (only notifications created AFTER login cutoff)
+  useEffect(() => {
+    if (!currentUser || isGuest || !isRemoteApi) return;
+
+    const userId = currentUser.id;
+    const isAr = language === 'ar';
+
+    let cutoffMs = getRealtimeCutoffMs(userId);
+    if (!cutoffMs) {
+      // First load with an already persisted session: set baseline silently so old alerts stay in the inbox without popping up
+      const baseline = latestBootstrap?.serverNowMs || Date.now();
+      setRealtimeCutoffMs(userId, baseline);
+      syncBackgroundRealtimeCutoff(userId, baseline);
+      return;
+    }
+
+    const freshRealtime = notifications
+      .filter((n) => !n.isRead && n.createdAtMs > cutoffMs)
+      .sort((a, b) => a.createdAtMs - b.createdAtMs);
+
+    if (freshRealtime.length === 0) return;
+
+    let maxSeenMs = cutoffMs;
+    for (const n of freshRealtime) {
+      if (n.createdAtMs > maxSeenMs) {
+        maxSeenMs = n.createdAtMs;
+      }
+      void dispatchAppNotification({
+        userId,
+        eventKey: n.eventKey,
+        category: n.category,
+        title: isAr ? n.titleAr : n.titleEn,
+        body: isAr ? n.bodyAr : n.bodyEn,
+        targetTab: (n.targetTab || 'home') as NavigationTab,
+      });
+    }
+
+    if (maxSeenMs > cutoffMs) {
+      setRealtimeCutoffMs(userId, maxSeenMs);
+      syncBackgroundRealtimeCutoff(userId, maxSeenMs);
+    }
+  }, [currentUser?.id, isGuest, isRemoteApi, notifications, latestBootstrap?.serverNowMs, language]);
+
+  // Snapshot sync & Local Preview Fallback (only triggers transitions when !isRemoteApi)
   useEffect(() => {
     if (!currentUser || isGuest) return;
 
@@ -118,75 +171,71 @@ export const useAppNotifications = () => {
       }
     }
 
-    // 1. Always surface active unresolved re-upload notices (even on first run of APK)
-    if (currentUser.role === 'provider') {
-      if (currentUser.nidStatus === 'reupload_requested') {
-        const nidSignature = `${currentUser.nidSubmittedAt || ''}:${currentUser.nidRejectionReason || ''}`;
+    // In local fallback mode (without PHP/MySQL), emit real-time transition notifications from snapshot diffs
+    if (!isRemoteApi && prev && prev.initialized) {
+      const emitLocal = (params: {
+        eventKey: string;
+        category: 'urgent' | 'booking' | 'success';
+        titleAr: string;
+        titleEn: string;
+        bodyAr: string;
+        bodyEn: string;
+        targetTab: NavigationTab;
+      }) => {
+        const nowMs = Date.now();
+        appendLocalNotification({
+          id: `local-${nowMs}-${Math.random().toString(36).slice(2, 6)}`,
+          userId,
+          eventKey: params.eventKey,
+          category: params.category,
+          titleAr: params.titleAr,
+          titleEn: params.titleEn,
+          bodyAr: params.bodyAr,
+          bodyEn: params.bodyEn,
+          targetTab: params.targetTab,
+          isRead: false,
+          createdAtMs: nowMs,
+          createdAt: new Date(nowMs).toLocaleString('ar-SD'),
+          readAt: null,
+        });
         void dispatchAppNotification({
           userId,
-          eventKey: `nid_reupload:${nidSignature}`,
-          category: 'urgent',
-          title: isAr ? 'مطلوب إعادة رفع الرقم الوطني أو جواز السفر' : 'ID / Passport Re-upload Required',
-          body: isAr
-            ? `إدارة مهني: يرجى إعادة رفع صورة الرقم الوطني أو جواز السفر (${currentUser.nidRejectionReason || 'الصورة غير واضحة'}).`
-            : `Mehani Admin: Please re-upload your National ID or Passport (${currentUser.nidRejectionReason || 'Unclear photo'}).`,
-          targetTab: 'profile',
+          eventKey: params.eventKey,
+          category: params.category,
+          title: isAr ? params.titleAr : params.titleEn,
+          body: isAr ? params.bodyAr : params.bodyEn,
+          targetTab: params.targetTab,
         });
-      }
+      };
 
-      for (const d of relevantDeposits) {
-        if (d.providerId === userId && d.status === 'rejected') {
-          const depSignature = `${d.id}:${d.reviewedAt || ''}:${d.rejectionReason || ''}`;
-          void dispatchAppNotification({
-            userId,
-            eventKey: `deposit_reupload:${depSignature}`,
+      if (currentUser.role === 'provider') {
+        if (
+          prev.nidStatus !== 'reupload_requested' &&
+          currentUser.nidStatus === 'reupload_requested'
+        ) {
+          const reason = currentUser.nidRejectionReason || '';
+          emitLocal({
+            eventKey: `nid_reupload:${currentUser.nidSubmittedAt || ''}:${reason}`,
             category: 'urgent',
-            title: isAr ? 'مطلوب إعادة رفع إشعار العمولة (بنكك)' : 'Deposit Proof Re-upload Needed',
-            body: isAr
-              ? `تم رفض إشعار توريد ${d.amountSDG.toLocaleString()} ج.س (${d.rejectionReason || 'يرجى إرفاق إشعار صحيح'}).`
-              : `Your ${d.amountSDG.toLocaleString()} SDG deposit proof was rejected (${d.rejectionReason || 'Please re-upload valid receipt'}).`,
-            targetTab: 'commission',
+            titleAr: 'مطلوب إعادة رفع الرقم الوطني أو جواز السفر',
+            titleEn: 'ID / Passport Re-upload Required',
+            bodyAr: `إدارة مهني: يرجى إعادة رفع صورة الرقم الوطني أو جواز السفر (${reason || 'الصورة غير واضحة'}).`,
+            bodyEn: `Mehani Admin: Please re-upload your National ID or Passport (${reason || 'Unclear photo'}).`,
+            targetTab: 'profile',
           });
         }
-      }
 
-      // Thursday commission weekly reminder if today is Thursday and provider has pending due without a pending receipt
-      const isThursday = new Date().getDay() === 4;
-      const dueAmount = currentUser.pendingCommissionDueSDG || 0;
-      const hasPendingVerification = relevantDeposits.some(
-        (d) => d.providerId === userId && d.status === 'pending_verification'
-      );
-      if (isThursday && dueAmount > 0 && !hasPendingVerification) {
-        const todayKey = new Date().toISOString().split('T')[0];
-        void dispatchAppNotification({
-          userId,
-          eventKey: `thursday_due:${todayKey}:${dueAmount}`,
-          category: 'booking',
-          title: isAr ? 'تذكير توريد عمولات وغرامات الخميس' : 'Thursday Commission & Penalty Deposit Due',
-          body: isAr
-            ? `اليوم الخميس: لديك مبلغ مستحق بقيمة ${dueAmount.toLocaleString()} ج.س (العمولة + الغرامات المحصلة). يرجى التحويل عبر بنكك ورفع الإشعار.`
-            : `It's Thursday: You have ${dueAmount.toLocaleString()} SDG due (8% commission + collected penalties). Please deposit via Bankak and upload proof.`,
-          targetTab: 'commission',
-        });
-      }
-    }
-
-    // 2. Compare transitions when we already have a prior snapshot
-    if (prev && prev.initialized) {
-      // Provider NID Approval / Activation / Deactivation
-      if (currentUser.role === 'provider') {
         if (
           (prev.nidStatus !== 'approved' && currentUser.nidStatus === 'approved') ||
           (prev.isActive === false && currentUser.isActive === true)
         ) {
-          void dispatchAppNotification({
-            userId,
+          emitLocal({
             eventKey: `account_approved:${currentUser.nidSubmittedAt || Date.now()}`,
             category: 'success',
-            title: isAr ? 'تم اعتماد هويتك وتفعيل حسابك!' : 'ID Approved & Account Activated!',
-            body: isAr
-              ? 'تهانينا! أصبح ملفك المهني وخدماتك ظاهرين الآن للعملاء لاستقبال الطلبات.'
-              : 'Congratulations! Your worker profile and services are now live for clients.',
+            titleAr: 'تم اعتماد هويتك وتفعيل حسابك!',
+            titleEn: 'ID Approved & Account Activated!',
+            bodyAr: 'تهانينا! أصبح ملفك المهني وخدماتك ظاهرين الآن للعملاء لاستقبال الطلبات.',
+            bodyEn: 'Congratulations! Your worker profile and services are now live for clients.',
             targetTab: 'profile',
           });
         } else if (
@@ -194,241 +243,125 @@ export const useAppNotifications = () => {
           currentUser.isActive === false &&
           currentUser.nidStatus !== 'reupload_requested'
         ) {
-          void dispatchAppNotification({
-            userId,
+          emitLocal({
             eventKey: `account_deactivated:${currentUser.deactivatedReason || ''}:${Date.now()}`,
             category: 'urgent',
-            title: isAr ? 'تنبيه: تم إيقاف تفعيل الحساب' : 'Account Temporarily Deactivated',
-            body: isAr
-              ? currentUser.deactivatedReason || 'تم تعليق ظهور ملفك المهني مؤقتاً. راجع إدارة المنصة.'
-              : currentUser.deactivatedReason || 'Your account was deactivated by platform admin.',
+            titleAr: 'تنبيه: تم إيقاف تفعيل الحساب',
+            titleEn: 'Account Temporarily Deactivated',
+            bodyAr: currentUser.deactivatedReason || 'تم تعليق ظهور ملفك المهني مؤقتاً. راجع إدارة المنصة.',
+            bodyEn: currentUser.deactivatedReason || 'Your account was deactivated by platform admin.',
             targetTab: 'profile',
           });
         }
 
-        // Deposit verified
         for (const d of relevantDeposits) {
           const prevDep = prev.deposits[d.id];
-          if (d.providerId === userId && d.status === 'verified' && prevDep && prevDep.status !== 'verified') {
-            void dispatchAppNotification({
-              userId,
-              eventKey: `deposit_verified:${d.id}:${d.reviewedAt || ''}`,
-              category: 'success',
-              title: isAr ? 'تم اعتماد توريد العمولة بنجاح' : 'Commission Deposit Verified',
-              body: isAr
-                ? `تم التحقق واعتماد إشعار التوريد بمبلغ ${d.amountSDG.toLocaleString()} ج.س (مرجع: ${d.bankakReferenceNumber}).`
-                : `Your ${d.amountSDG.toLocaleString()} SDG deposit (Ref: ${d.bankakReferenceNumber}) has been verified.`,
-              targetTab: 'commission',
-            });
-          }
-        }
-
-        // Service suggestions approved / rejected
-        for (const s of relevantSuggestions) {
-          const prevSug = prev.suggestions[s.id];
-          if (s.providerId === userId && prevSug && prevSug.status !== s.status) {
-            if (s.status === 'approved') {
-              void dispatchAppNotification({
-                userId,
-                eventKey: `suggestion_approved:${s.id}`,
+          if (d.providerId === userId && prevDep && prevDep.status !== d.status) {
+            if (d.status === 'verified') {
+              emitLocal({
+                eventKey: `deposit_verified:${d.id}:${d.reviewedAt || ''}`,
                 category: 'success',
-                title: isAr ? 'تمت الموافقة على خدمتك المقترحة' : 'Suggested Service Approved',
-                body: isAr
-                  ? `تمت إضافة "${s.nameAr}" إلى تصنيفات منصة مهني المعتمدة.`
-                  : `"${s.nameEn || s.nameAr}" has been added to Mehani service categories.`,
-                targetTab: 'profile',
+                titleAr: 'تم اعتماد توريد العمولة بنجاح',
+                titleEn: 'Commission Deposit Verified',
+                bodyAr: `تم التحقق واعتماد إشعار التوريد بمبلغ ${d.amountSDG.toLocaleString()} ج.س (مرجع: ${d.bankakReferenceNumber}).`,
+                bodyEn: `Your ${d.amountSDG.toLocaleString()} SDG deposit (Ref: ${d.bankakReferenceNumber}) has been verified.`,
+                targetTab: 'commission',
               });
-            } else if (s.status === 'rejected') {
-              void dispatchAppNotification({
-                userId,
-                eventKey: `suggestion_rejected:${s.id}`,
+            } else if (d.status === 'rejected') {
+              emitLocal({
+                eventKey: `deposit_reupload:${d.id}:${d.reviewedAt || ''}:${d.rejectionReason || ''}`,
                 category: 'urgent',
-                title: isAr ? 'تحديث حول مقترح الخدمة' : 'Service Suggestion Update',
-                body: isAr
-                  ? `لم يتم اعتماد مقترح "${s.nameAr}"${s.rejectionReason ? `: ${s.rejectionReason}` : '.'}`
-                  : `Suggestion "${s.nameEn || s.nameAr}" was not approved${s.rejectionReason ? `: ${s.rejectionReason}` : '.'}`,
-                targetTab: 'profile',
+                titleAr: 'مطلوب إعادة رفع إشعار العمولة (بنكك)',
+                titleEn: 'Deposit Proof Re-upload Needed',
+                bodyAr: `تم رفض إشعار توريد ${d.amountSDG.toLocaleString()} ج.س (${d.rejectionReason || 'يرجى إرفاق إشعار صحيح'}).`,
+                bodyEn: `Your ${d.amountSDG.toLocaleString()} SDG deposit proof was rejected (${d.rejectionReason || 'Please re-upload valid receipt'}).`,
+                targetTab: 'commission',
               });
             }
           }
         }
       }
 
-      // Service Request Lifecycle Events (Hirer + Worker)
       for (const r of relevantRequests) {
         const prevReq = prev.requests[r.id];
         const isWorker = r.providerId === userId;
         const isHirer = r.clientId === userId;
 
-        // A. New request received by Worker
         if (isWorker && !prevReq && r.status === 'pending') {
-          void dispatchAppNotification({
-            userId,
+          emitLocal({
             eventKey: `req_new:${r.id}`,
             category: 'booking',
-            title: isAr ? 'طلب خدمة جديد!' : 'New Service Request!',
-            body: isAr
-              ? `طلب جديد من ${r.clientName} (${r.city} - ${r.neighborhood}) بقيمة ${r.agreedPriceSDG.toLocaleString()} ج.س.`
-              : `New request from ${r.clientName} (${r.city} - ${r.neighborhood}) for ${r.agreedPriceSDG.toLocaleString()} SDG.`,
+            titleAr: 'طلب خدمة جديد!',
+            titleEn: 'New Service Request!',
+            bodyAr: `طلب جديد من ${r.clientName} (${r.city} - ${r.neighborhood}) بقيمة ${r.agreedPriceSDG.toLocaleString()} ج.س.`,
+            bodyEn: `New request from ${r.clientName} (${r.city} - ${r.neighborhood}) for ${r.agreedPriceSDG.toLocaleString()} SDG.`,
             targetTab: 'bookings',
           });
         }
 
-        // B. Status changes
         if (prevReq && prevReq.status !== r.status) {
           if (isHirer && r.status === 'accepted') {
-            void dispatchAppNotification({
-              userId,
+            emitLocal({
               eventKey: `req_accepted:${r.id}`,
               category: 'booking',
-              title: isAr ? 'تم قبول طلب خدمتك' : 'Service Request Accepted',
-              body: isAr
-                ? `قبل المهني ${r.providerName} طلبك وجاري التنسيق للموعد.`
-                : `${r.providerName} accepted your service request and will coordinate timing.`,
+              titleAr: 'تم قبول طلب خدمتك',
+              titleEn: 'Service Request Accepted',
+              bodyAr: `قبل المهني ${r.providerName} طلبك وجاري التنسيق للموعد.`,
+              bodyEn: `${r.providerName} accepted your service request and will coordinate timing.`,
               targetTab: 'bookings',
             });
           } else if (isHirer && r.status === 'in_progress') {
-            void dispatchAppNotification({
-              userId,
+            emitLocal({
               eventKey: `req_started:${r.id}`,
               category: 'booking',
-              title: isAr ? 'بدأ المهني تنفيذ الخدمة' : 'Service Work Started',
-              body: isAr
-                ? `بدأ ${r.providerName} العمل على طلبك رقم #${r.id}.`
-                : `${r.providerName} has started working on request #${r.id}.`,
+              titleAr: 'بدأ المهني تنفيذ الخدمة',
+              titleEn: 'Service Work Started',
+              bodyAr: `بدأ ${r.providerName} العمل على طلبك رقم #${r.id}.`,
+              bodyEn: `${r.providerName} has started working on request #${r.id}.`,
               targetTab: 'bookings',
             });
           } else if (isHirer && r.status === 'completed') {
-            // Worker clicked End service -> Hirer MUST receive notification!
-            void dispatchAppNotification({
-              userId,
+            emitLocal({
               eventKey: `req_completed:${r.id}`,
               category: 'booking',
-              title: isAr ? 'تم إنهاء الخدمة — يرجى التقييم' : 'Service Ended — Please Rate',
-              body: isAr
-                ? `قام المهني ${r.providerName} بإنهاء الخدمة وتأكيد السداد (${r.agreedPriceSDG.toLocaleString()} ج.س). اضغط لتقييم الخدمة.`
-                : `${r.providerName} marked your service (${r.agreedPriceSDG.toLocaleString()} SDG) as completed. Tap to rate your worker.`,
+              titleAr: 'تم إنهاء الخدمة — يرجى التقييم',
+              titleEn: 'Service Ended — Please Rate',
+              bodyAr: `قام المهني ${r.providerName} بإنهاء الخدمة وتأكيد السداد (${r.agreedPriceSDG.toLocaleString()} ج.س). اضغط لتقييم الخدمة.`,
+              bodyEn: `${r.providerName} marked your service (${r.agreedPriceSDG.toLocaleString()} SDG) as completed. Tap to rate your worker.`,
               targetTab: 'bookings',
             });
           } else if ((isHirer || isWorker) && r.status === 'cancelled') {
-            // Request cancelled -> BOTH Worker and Hirer receive notification!
             const reasonText = r.cancelReason ? ` (${r.cancelReason})` : '';
-            void dispatchAppNotification({
-              userId,
+            emitLocal({
               eventKey: `req_cancelled:${r.id}:${userId}`,
               category: 'urgent',
-              title: isAr ? 'تم إلغاء طلب الخدمة' : 'Service Request Cancelled',
-              body: isWorker
-                ? isAr
-                  ? `تم إلغاء الطلب #${r.id} من العميل ${r.clientName}${reasonText}.`
-                  : `Request #${r.id} with client ${r.clientName} was cancelled${reasonText}.`
-                : isAr
-                ? `تم إلغاء طلبك #${r.id} مع المهني ${r.providerName}${reasonText}.`
+              titleAr: 'تم إلغاء طلب الخدمة',
+              titleEn: 'Service Request Cancelled',
+              bodyAr: isWorker
+                ? `تم إلغاء الطلب #${r.id} من العميل ${r.clientName}${reasonText}.`
+                : `تم إلغاء طلبك #${r.id} مع المهني ${r.providerName}${reasonText}.`,
+              bodyEn: isWorker
+                ? `Request #${r.id} with client ${r.clientName} was cancelled${reasonText}.`
                 : `Your request #${r.id} with ${r.providerName} was cancelled${reasonText}.`,
               targetTab: 'bookings',
             });
           }
-        } else if (!prevReq && r.status === 'cancelled' && (isHirer || isWorker)) {
-          // Request arrived already cancelled before client had snapshot of it
-          const reasonText = r.cancelReason ? ` (${r.cancelReason})` : '';
-          void dispatchAppNotification({
-            userId,
-            eventKey: `req_cancelled:${r.id}:${userId}`,
-            category: 'urgent',
-            title: isAr ? 'تم إلغاء طلب الخدمة' : 'Service Request Cancelled',
-            body: isWorker
-              ? isAr
-                ? `تم إلغاء الطلب #${r.id} من العميل ${r.clientName}${reasonText}.`
-                : `Request #${r.id} with client ${r.clientName} was cancelled${reasonText}.`
-              : isAr
-              ? `تم إلغاء طلبك #${r.id} مع المهني ${r.providerName}${reasonText}.`
-              : `Your request #${r.id} with ${r.providerName} was cancelled${reasonText}.`,
-            targetTab: 'bookings',
-          });
-        } else if (!prevReq && r.status === 'completed' && isHirer) {
-          void dispatchAppNotification({
-            userId,
-            eventKey: `req_completed:${r.id}`,
-            category: 'booking',
-            title: isAr ? 'تم إنهاء الخدمة — يرجى التقييم' : 'Service Ended — Please Rate',
-            body: isAr
-              ? `قام المهني ${r.providerName} بإنهاء الخدمة وتأكيد السداد (${r.agreedPriceSDG.toLocaleString()} ج.س). اضغط لتقييم الخدمة.`
-              : `${r.providerName} marked your service (${r.agreedPriceSDG.toLocaleString()} SDG) as completed. Tap to rate your worker.`,
-            targetTab: 'bookings',
-          });
         }
 
-        // C. Client submitted a new star rating -> Worker notified
         if (isWorker && typeof r.clientRating === 'number' && (!prevReq || typeof prevReq.clientRating !== 'number')) {
-          void dispatchAppNotification({
-            userId,
+          emitLocal({
             eventKey: `req_rated:${r.id}`,
             category: 'success',
-            title: isAr ? `تقييم جديد ${r.clientRating}/5 نجوم ⭐` : `New ${r.clientRating}/5 Star Rating ⭐`,
-            body: isAr
-              ? `قيّم العميل ${r.clientName} خدمتك بـ ${r.clientRating} نجوم${r.clientReviewComment ? `: "${r.clientReviewComment}"` : '.'}`
-              : `${r.clientName} rated your work ${r.clientRating} stars${r.clientReviewComment ? `: "${r.clientReviewComment}"` : '.'}`,
+            titleAr: `تقييم جديد ${r.clientRating}/5 نجوم ⭐`,
+            titleEn: `New ${r.clientRating}/5 Star Rating ⭐`,
+            bodyAr: `قيّم العميل ${r.clientName} خدمتك بـ ${r.clientRating} نجوم${r.clientReviewComment ? `: "${r.clientReviewComment}"` : '.'}`,
+            bodyEn: `${r.clientName} rated your work ${r.clientRating} stars${r.clientReviewComment ? `: "${r.clientReviewComment}"` : '.'}`,
             targetTab: 'bookings',
           });
-        }
-      }
-
-      // Admin notifications
-      if (currentUser.role === 'admin') {
-        const prevNids = prev.adminPendingNids || {};
-        for (const [provId, stamp] of Object.entries(nextAdminPendingNids)) {
-          if (prevNids[provId] !== stamp) {
-            const prov = allUsers.find((u) => u.id === provId);
-            void dispatchAppNotification({
-              userId,
-              eventKey: `admin_nid:${provId}:${stamp}`,
-              category: 'booking',
-              title: isAr ? 'طلب مراجعة هوية مهني جديد' : 'Provider ID / Passport Pending Review',
-              body: isAr
-                ? `المهني ${prov?.name || provId} أرفق الرقم الوطني أو جواز السفر بانتظار المراجعة والتفعيل.`
-                : `Provider ${prov?.name || provId} submitted an ID/Passport for review.`,
-              targetTab: 'admin',
-            });
-          }
-        }
-
-        const prevDeps = prev.adminPendingDeposits || {};
-        for (const [depId, stamp] of Object.entries(nextAdminPendingDeposits)) {
-          if (!prevDeps[depId]) {
-            const dep = deposits.find((d) => d.id === depId);
-            void dispatchAppNotification({
-              userId,
-              eventKey: `admin_dep:${depId}:${stamp}`,
-              category: 'booking',
-              title: isAr ? 'إشعار توريد عمولة جديد (بنكك)' : 'New Commission Deposit Proof',
-              body: isAr
-                ? `رفع ${dep?.providerName || 'مهني'} إشعاراً بمبلغ ${(dep?.amountSDG || 0).toLocaleString()} ج.س للمراجعة.`
-                : `${dep?.providerName || 'A provider'} uploaded a ${(dep?.amountSDG || 0).toLocaleString()} SDG deposit proof.`,
-              targetTab: 'admin',
-            });
-          }
-        }
-
-        const prevSugs = prev.adminPendingSuggestions || {};
-        for (const [sugId] of Object.entries(nextAdminPendingSuggestions)) {
-          if (!prevSugs[sugId]) {
-            const sug = serviceSuggestions.find((s) => s.id === sugId);
-            void dispatchAppNotification({
-              userId,
-              eventKey: `admin_sug:${sugId}`,
-              category: 'booking',
-              title: isAr ? 'مقترح خدمة جديدة من مهني' : 'New Service Category Suggestion',
-              body: isAr
-                ? `اقترح ${sug?.providerName || 'مهني'} خدمة جديدة: ${sug?.nameAr || ''}.`
-                : `${sug?.providerName || 'Provider'} suggested a new service: ${sug?.nameEn || sug?.nameAr || ''}.`,
-              targetTab: 'admin',
-            });
-          }
         }
       }
     }
 
-    // Persist updated snapshot
     const updatedSnapshot: UserSnapshot = {
       initialized: true,
       nidStatus: currentUser.nidStatus,
@@ -452,10 +385,12 @@ export const useAppNotifications = () => {
   }, [
     currentUser,
     isGuest,
+    isRemoteApi,
     allUsers,
     requests,
     deposits,
     serviceSuggestions,
     language,
+    appendLocalNotification,
   ]);
 };

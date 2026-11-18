@@ -12,6 +12,7 @@ import { useAppNotifications } from '../../hooks/useAppNotifications';
 import {
   clearBackgroundNotificationSession,
   consumePendingNotificationTab,
+  getRealtimeCutoffMs,
   initializeNativeNotifications,
   scheduleBackgroundNotificationPoll,
   subscribeInAppNotificationToast,
@@ -40,19 +41,21 @@ export const CapacitorNativeBridge: React.FC = () => {
   // Monitor app state transitions and trigger Android Notification Panel & sound alerts
   useAppNotifications();
 
-  // Keep native Android background worker synced with current session & language
+  // Keep native Android background service synced with current session, language & realtime cutoff
   useEffect(() => {
     if (!Capacitor.isNativePlatform() || Capacitor.getPlatform() !== 'android') return;
 
     const token = getAuthToken();
     if (currentUser && !isGuest && token) {
       const snap = safeStorage.getItem(`mehani_notif_snapshot_${currentUser.id}`) || undefined;
+      const cutoff = getRealtimeCutoffMs(currentUser.id);
       syncBackgroundNotificationSession({
         token,
         userId: currentUser.id,
         role: currentUser.role,
         language,
         snapshotJson: snap,
+        lastRealtimeMs: cutoff > 0 ? cutoff : Date.now(),
       });
     } else {
       clearBackgroundNotificationSession();

@@ -12,11 +12,14 @@ interface MehaniBackgroundSyncPlugin {
     apiUrl: string;
     snapshotJson?: string;
     notifiedKeys?: string[];
+    lastRealtimeMs?: number;
+    forceResetRealtimeMs?: boolean;
   }): Promise<{ ok: boolean }>;
   syncNotifiedKeys(options: {
     userId: string;
     notifiedKeys?: string[];
     snapshotJson?: string;
+    lastRealtimeMs?: number;
   }): Promise<{ ok: boolean }>;
   scheduleImmediatePoll(): Promise<{ ok: boolean }>;
   clearSession(): Promise<{ ok: boolean }>;
@@ -48,7 +51,19 @@ const CHANNEL_MAP: Record<NotificationCategory, { id: string; sound: string }> =
 };
 
 const NOTIFIED_KEYS_PREFIX = 'mehani_notified_keys_';
+const REALTIME_CUTOFF_PREFIX = 'mehani_realtime_cutoff_';
 const MAX_STORED_KEYS = 150;
+
+export function getRealtimeCutoffMs(userId: string): number {
+  const raw = safeStorage.getItem(`${REALTIME_CUTOFF_PREFIX}${userId}`);
+  const parsed = raw ? Number(raw) : 0;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+export function setRealtimeCutoffMs(userId: string, ms: number): void {
+  if (!userId || !Number.isFinite(ms) || ms <= 0) return;
+  safeStorage.setItem(`${REALTIME_CUTOFF_PREFIX}${userId}`, String(Math.floor(ms)));
+}
 
 let channelsInitialized = false;
 let permissionRequested = false;
@@ -99,9 +114,12 @@ export function syncBackgroundNotificationSession(params: {
   role: string;
   language: 'ar' | 'en';
   snapshotJson?: string;
+  lastRealtimeMs?: number;
+  forceResetRealtimeMs?: boolean;
 }): void {
   if (!isNativeAndroid()) return;
   const keys = safeStorage.getJSON<string[]>(`${NOTIFIED_KEYS_PREFIX}${params.userId}`, []);
+  const cutoffMs = params.lastRealtimeMs ?? getRealtimeCutoffMs(params.userId);
   MehaniBackgroundSync.saveSession({
     token: params.token,
     userId: params.userId,
@@ -110,16 +128,32 @@ export function syncBackgroundNotificationSession(params: {
     apiUrl: PRODUCTION_API_URL,
     snapshotJson: params.snapshotJson,
     notifiedKeys: keys,
+    lastRealtimeMs: cutoffMs > 0 ? cutoffMs : undefined,
+    forceResetRealtimeMs: params.forceResetRealtimeMs,
   }).catch(() => {});
 }
 
-export function syncBackgroundNotificationSnapshot(userId: string, snapshotJson: string): void {
+export function syncBackgroundNotificationSnapshot(
+  userId: string,
+  snapshotJson: string,
+  lastRealtimeMs?: number
+): void {
   if (!isNativeAndroid()) return;
   const keys = safeStorage.getJSON<string[]>(`${NOTIFIED_KEYS_PREFIX}${userId}`, []);
+  const cutoffMs = lastRealtimeMs ?? getRealtimeCutoffMs(userId);
   MehaniBackgroundSync.syncNotifiedKeys({
     userId,
     notifiedKeys: keys,
     snapshotJson,
+    lastRealtimeMs: cutoffMs > 0 ? cutoffMs : undefined,
+  }).catch(() => {});
+}
+
+export function syncBackgroundRealtimeCutoff(userId: string, lastRealtimeMs: number): void {
+  if (!isNativeAndroid() || !userId || !Number.isFinite(lastRealtimeMs) || lastRealtimeMs <= 0) return;
+  MehaniBackgroundSync.syncNotifiedKeys({
+    userId,
+    lastRealtimeMs: Math.floor(lastRealtimeMs),
   }).catch(() => {});
 }
 

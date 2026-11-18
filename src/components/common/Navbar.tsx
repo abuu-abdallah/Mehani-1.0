@@ -9,13 +9,15 @@ import {
   LogIn,
   ShieldCheck,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Bell
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { BrandLogo } from './BrandLogo';
 import { PWAInstallButton } from './PWAInstallButton';
+import { NotificationInboxModal } from './NotificationInboxModal';
 
 export const Navbar: React.FC = () => {
   const { t, language, dir, toggleLanguage } = useLanguage();
@@ -29,6 +31,9 @@ export const Navbar: React.FC = () => {
     goBack,
     requests,
     deposits,
+    unreadNotificationsCount,
+    showNotificationInbox,
+    setShowNotificationInbox,
     setShowAuthModal,
     setAuthModalMode
   } = useApp();
@@ -143,6 +148,24 @@ export const Navbar: React.FC = () => {
               <span>{language === 'ar' ? 'English' : 'عربي'}</span>
             </button>
 
+            {/* Notification Inbox Bell Icon (signed-in users) */}
+            {currentUser && !isGuest && (
+              <button
+                type="button"
+                onClick={() => setShowNotificationInbox(true)}
+                className="relative w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-white transition-colors cursor-pointer shrink-0"
+                title={t('notificationsInbox')}
+                aria-label={t('notificationsInbox')}
+              >
+                <Bell className={`w-4 h-4 ${unreadNotificationsCount > 0 ? 'text-teal-300' : 'text-slate-300'}`} />
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute -top-1 -end-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center shadow-xs tabular-nums border border-slate-900">
+                    {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
             {/* If Guest, show quick login button */}
             {(!currentUser || isGuest) ? (
               <button
@@ -179,6 +202,11 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       </header>
+
+      <NotificationInboxModal
+        isOpen={showNotificationInbox}
+        onClose={() => setShowNotificationInbox(false)}
+      />
 
       {/* Persistent Bottom Tab Bar (Ergonomic Thumb-Zone) */}
       <nav 

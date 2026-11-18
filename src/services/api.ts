@@ -1,4 +1,5 @@
 import {
+  AppNotificationItem,
   PortfolioItem,
   ProviderCustomService,
   ServiceCategory,
@@ -24,6 +25,7 @@ export interface PublicReviewRecord {
 
 export interface BootstrapResponse {
   ok: boolean;
+  serverNowMs?: number;
   currentUser: User | null;
   users: User[];
   categories: ServiceCategory[];
@@ -32,6 +34,8 @@ export interface BootstrapResponse {
   serviceSuggestions: ServiceSuggestion[];
   activeCountsByProvider: Record<string, number>;
   publicReviews: PublicReviewRecord[];
+  notifications?: AppNotificationItem[];
+  unreadNotificationsCount?: number;
 }
 
 export type ApiCallResult<T> =
@@ -201,7 +205,7 @@ export const maharaApi = {
   bootstrap: () => callApi<BootstrapResponse>('bootstrap'),
 
   login: (phone: string, password: string) =>
-    callApi<{ ok: true; token: string; user: User }>('auth_login', { phone, password }),
+    callApi<{ ok: true; token: string; serverNowMs?: number; user: User }>('auth_login', { phone, password }),
 
   registerCustomer: (data: {
     name: string;
@@ -213,7 +217,7 @@ export const maharaApi = {
     neighborhood: string;
     avatarUrl?: string;
   }) =>
-    callApi<{ ok: true; token: string; user: User }>('auth_register_customer', data),
+    callApi<{ ok: true; token: string; serverNowMs?: number; user: User }>('auth_register_customer', data),
 
   registerProvider: (data: {
     name: string;
@@ -234,7 +238,7 @@ export const maharaApi = {
     coveredNeighborhoods: string[];
     avatarUrl?: string;
   }) =>
-    callApi<{ ok: true; token: string; isPendingApproval: boolean; user: User }>(
+    callApi<{ ok: true; token: string; serverNowMs?: number; isPendingApproval: boolean; user: User }>(
       'auth_register_provider',
       data
     ),
@@ -381,8 +385,16 @@ export const maharaApi = {
   adminCancelRequest: (id: string, reason: string) =>
     callApi<{ ok: true }>('admin_cancel_request', { id, reason }),
 
-  adminWaiveFine: (params: { userId?: string; requestId?: string }) =>
+  adminWaiveFine: (params: { userId?: string; requestId?: string; includeActiveRequests?: boolean }) =>
     callApi<{ ok: true; user?: User | null; request?: ServiceRequest | null }>('admin_waive_fine', params),
+
+  markNotificationRead: (notificationId: string) =>
+    callApi<{ ok: true; unreadNotificationsCount: number }>('mark_notification_read', {
+      notificationId,
+    }),
+
+  markAllNotificationsRead: () =>
+    callApi<{ ok: true; unreadNotificationsCount: number }>('mark_all_notifications_read', {}),
 
   approveSuggestion: (suggestionId: string) =>
     callApi<{ ok: true; categoryId: string }>('approve_suggestion', { suggestionId }),

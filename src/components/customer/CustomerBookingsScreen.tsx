@@ -341,8 +341,8 @@ export const CustomerBookingsScreen: React.FC = () => {
                       <span className="text-xs font-normal text-slate-500 ms-1">{t('sdg')}</span>
                     </div>
 
-                    {/* Prior cancellation penalty indication */}
-                    {request.cancellationFeePenaltySDG > 0 && (
+                    {/* Prior cancellation penalty indication (hidden on cancelled or exempted bookings) */}
+                    {!isCancelled && (request.cancellationFeePenaltySDG || 0) > 0 && (
                       <div className="text-[11px] text-amber-700 font-bold">
                         +{request.cancellationFeePenaltySDG.toLocaleString()} {t('sdg')}{' '}
                         {isProvider
@@ -352,12 +352,12 @@ export const CustomerBookingsScreen: React.FC = () => {
                     )}
 
                     {/* Provider Commission Note */}
-                    {isProvider && (
+                    {isProvider && !isCancelled && (
                       <div className="text-[11px] text-slate-500">
                         {language === 'ar'
                           ? `توريد الخميس: ${(request.commissionFeeSDG + (request.cancellationFeePenaltySDG || 0)).toLocaleString()} ${t('sdg')}`
                           : `Thursday due: ${(request.commissionFeeSDG + (request.cancellationFeePenaltySDG || 0)).toLocaleString()} ${t('sdg')}`}
-                        {request.cancellationFeePenaltySDG > 0 && (
+                        {(request.cancellationFeePenaltySDG || 0) > 0 && (
                           <span className="block text-[10px] text-amber-700">
                             ({request.commissionFeeSDG.toLocaleString()} عمولة 8% + {request.cancellationFeePenaltySDG.toLocaleString()} غرامة)
                           </span>
