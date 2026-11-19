@@ -10,7 +10,9 @@ import {
   getAuthToken,
   maharaApi,
   setAuthToken,
+  tryTopLevelChallengeReloadOnce,
 } from '../services/api';
+import { useLanguage } from './LanguageContext';
 import { clearBackgroundNotificationSession, setRealtimeCutoffMs } from '../services/nativeNotifications';
 
 interface AuthContextType {
@@ -99,6 +101,7 @@ export const DEFAULT_ADMIN: User = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { language } = useLanguage();
   const [isRemoteApi, setIsRemoteApi] = useState<boolean>(false);
   const [latestBootstrap, setLatestBootstrap] = useState<BootstrapResponse | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
@@ -172,6 +175,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         applyBootstrapSnapshot(res.data);
         return res.data;
       }
+    } else if (res.error === 'HTML_CHALLENGE_OR_ERROR' && res.canAttemptCookieRefresh) {
+      // Background bootstrap still saw a challenge even after hidden-iframe refresh;
+      // fall back to a loop-guarded top-level page reload so WebView/browser refreshes __test.
+      tryTopLevelChallengeReloadOnce();
     }
     return null;
   }, [applyBootstrapSnapshot]);
@@ -245,7 +252,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.available) {
       setIsRemoteApi(true);
       if (!res.ok) {
-        return { success: false, error: res.error || 'فشل تسجيل الدخول' };
+        return { success: false, error: res.error || (language === 'ar' ? 'فشل تسجيل الدخول' : 'Sign in failed') };
       }
       setAuthToken(res.data.token);
       dismissLogoutSuccess();
@@ -258,7 +265,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!canUseLocalFallback(res.error, isRemoteApi)) {
-      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+      return { success: false, error: describeUnavailableApiError(res.error, language) };
     }
 
     // Local fallback (only when Vite dev/preview serves raw api.php without PHP)
@@ -316,7 +323,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.available) {
       setIsRemoteApi(true);
       if (!res.ok) {
-        return { success: false, error: res.error || 'فشل التسجيل' };
+        return { success: false, error: res.error || (language === 'ar' ? 'فشل التسجيل' : 'Registration failed') };
       }
       setAuthToken(res.data.token);
       setRealtimeCutoffMs(res.data.user.id, res.data.serverNowMs || Date.now());
@@ -328,7 +335,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!canUseLocalFallback(res.error, isRemoteApi)) {
-      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+      return { success: false, error: describeUnavailableApiError(res.error, language) };
     }
 
     // Local fallback (dev/preview without PHP only)
@@ -399,7 +406,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.available) {
       setIsRemoteApi(true);
       if (!res.ok) {
-        return { success: false, error: res.error || 'فشل تسجيل الحساب' };
+        return { success: false, error: res.error || (language === 'ar' ? 'فشل تسجيل الحساب' : 'Account registration failed') };
       }
       setAuthToken(res.data.token);
       setRealtimeCutoffMs(res.data.user.id, res.data.serverNowMs || Date.now());
@@ -415,7 +422,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (!canUseLocalFallback(res.error, isRemoteApi)) {
-      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+      return { success: false, error: describeUnavailableApiError(res.error, language) };
     }
 
     // Local fallback (dev/preview without PHP only)
@@ -486,13 +493,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.available) {
       setIsRemoteApi(true);
       if (!res.ok) {
-        return { success: false, error: res.error || 'تعذر إرسال رمز الاستعادة' };
+        return { success: false, error: res.error || (language === 'ar' ? 'تعذر إرسال رمز الاستعادة' : 'Failed to send reset code') };
       }
       return { success: true, message: res.data.message };
     }
 
     if (!canUseLocalFallback(res.error, isRemoteApi)) {
-      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+      return { success: false, error: describeUnavailableApiError(res.error, language) };
     }
 
     // Local dev preview fallback when PHP bridge is unavailable
@@ -536,13 +543,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (res.available) {
       setIsRemoteApi(true);
       if (!res.ok) {
-        return { success: false, error: res.error || 'تعذر تحديث كلمة المرور' };
+        return { success: false, error: res.error || (language === 'ar' ? 'تعذر تحديث كلمة المرور' : 'Failed to update password') };
       }
       return { success: true, message: res.data.message };
     }
 
     if (!canUseLocalFallback(res.error, isRemoteApi)) {
-      return { success: false, error: describeUnavailableApiError(res.error, 'ar') };
+      return { success: false, error: describeUnavailableApiError(res.error, language) };
     }
 
     // Local dev preview fallback

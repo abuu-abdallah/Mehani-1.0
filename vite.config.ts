@@ -58,12 +58,47 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff,woff2}'],
+          globPatterns: ['**/*.{js,css,ico,png,jpg,svg,woff,woff2}'],
+          navigateFallback: null,
           navigateFallbackDenylist: [/^\/api\.php/, /^\/\.well-known\//],
           runtimeCaching: [
             {
               urlPattern: /\/api\.php(\?.*)?$/i,
               handler: 'NetworkOnly',
+            },
+            {
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'mehani-html-shell',
+                networkTimeoutSeconds: 4,
+                matchOptions: {
+                  ignoreSearch: true,
+                },
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24,
+                },
+                cacheableResponse: {
+                  statuses: [200],
+                },
+                plugins: [
+                  {
+                    cacheWillUpdate: async ({ response }) => {
+                      if (!response || response.status !== 200) return null;
+                      try {
+                        const text = await response.clone().text();
+                        if (text.includes('aes.js') || text.includes('__test')) {
+                          return null;
+                        }
+                      } catch {
+                        return null;
+                      }
+                      return response;
+                    },
+                  },
+                ],
+              },
             },
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

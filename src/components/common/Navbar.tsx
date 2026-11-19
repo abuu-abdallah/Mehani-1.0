@@ -68,14 +68,14 @@ export const Navbar: React.FC = () => {
     <>
       {/* Top Header Bar */}
       <header className="sticky top-0 z-30 bg-slate-900 dark:bg-slate-950 text-white border-b border-slate-800 shadow-sm transition-colors">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Zone 1: Navigation Back Button & Brand Wordmark */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 shrink">
             {canGoBack && (
               <button 
                 onClick={goBack}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-400 hover:text-teal-300 font-bold text-xs border border-slate-700/80 transition-all cursor-pointer shadow-xs shrink-0 group"
+                className="flex items-center justify-center gap-1.5 w-8 h-8 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-400 hover:text-teal-300 font-bold text-xs border border-slate-700/80 transition-all cursor-pointer shadow-xs shrink-0 group whitespace-nowrap"
                 title={language === 'ar' ? 'الرجوع للخلف' : 'Go Back'}
                 aria-label={language === 'ar' ? 'الرجوع للخلف' : 'Go Back'}
               >
@@ -86,14 +86,14 @@ export const Navbar: React.FC = () => {
 
             <button 
               onClick={() => handleTabChange('home')}
-              className="flex items-center gap-2.5 text-left rtl:text-right focus:outline-none group cursor-pointer"
+              className="flex items-center gap-2 sm:gap-2.5 text-left rtl:text-right focus:outline-none group cursor-pointer min-w-0"
             >
               <BrandLogo size="sm" className="group-hover:opacity-90 transition-opacity" />
-              <div>
-                <span className="font-extrabold text-lg tracking-tight text-white block leading-none">
+              <div className="min-w-0">
+                <span className="font-extrabold text-base sm:text-lg tracking-tight text-white block leading-none whitespace-nowrap truncate">
                   {t('appName')}
                 </span>
-                <span className="text-[10px] text-teal-300 font-medium tracking-wide block mt-0.5">
+                <span className="hidden sm:block text-[10px] text-teal-300 font-medium tracking-wide mt-0.5 whitespace-nowrap truncate">
                   {language === 'ar' ? 'سوق الحرفيين في السودان' : 'Sudan Crafts Platform'}
                 </span>
               </div>
@@ -101,9 +101,9 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Zone 2: Middle quick action / Status info */}
-          <div className="hidden sm:flex items-center gap-3 text-xs text-slate-300">
+          <div className="hidden md:flex items-center gap-3 text-xs text-slate-300 min-w-0">
             {currentUser ? (
-              <span className="text-slate-200 font-medium">
+              <span className="text-slate-200 font-medium truncate">
                 {currentUser.name} 
                 <span className="text-slate-400 mx-1.5">·</span>
                 <span className="text-teal-400 font-bold">
@@ -117,14 +117,14 @@ export const Navbar: React.FC = () => {
                 </span>
               </span>
             ) : (
-              <span className="text-slate-400">
+              <span className="text-slate-400 whitespace-nowrap">
                 {language === 'ar' ? 'تصفح خدمات وحرفيي السودان' : 'Browse Sudanese Trades'}
               </span>
             )}
           </div>
 
           {/* Zone 3: Install PWA, Language Toggle & User Action */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             
             <PWAInstallButton />
 
@@ -132,15 +132,16 @@ export const Navbar: React.FC = () => {
             {isAdmin && (
               <button
                 onClick={() => handleTabChange('admin')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-colors cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-lg text-xs font-extrabold whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
                   activeTab === 'admin'
                     ? 'bg-amber-400 text-slate-950 shadow-sm'
                     : 'bg-purple-900/80 hover:bg-purple-800 text-purple-200 border border-purple-700/60'
                 }`}
                 title={t('navAdmin')}
+                aria-label={t('navAdmin')}
               >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>{t('navAdmin')}</span>
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline">{t('navAdmin')}</span>
               </button>
             )}
 
@@ -148,7 +149,7 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-white transition-colors cursor-pointer shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-white transition-colors cursor-pointer shrink-0"
               title={isDark ? t('switchToLight') : t('switchToDark')}
               aria-label={isDark ? t('switchToLight') : t('switchToDark')}
             >
@@ -162,11 +163,12 @@ export const Navbar: React.FC = () => {
             {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors border border-slate-700 cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 h-8 sm:h-9 px-2 sm:px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs font-medium transition-colors border border-slate-700 cursor-pointer whitespace-nowrap shrink-0"
               title="تغيير اللغة / Switch Language"
             >
-              <Globe className="w-3.5 h-3.5 text-teal-400" />
-              <span>{language === 'ar' ? 'English' : 'عربي'}</span>
+              <Globe className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+              <span className="hidden min-[380px]:inline">{language === 'ar' ? 'English' : 'عربي'}</span>
+              <span className="min-[380px]:hidden font-bold">{language === 'ar' ? 'EN' : 'ع'}</span>
             </button>
 
             {/* Notification Inbox Bell Icon (signed-in users) */}
@@ -174,7 +176,7 @@ export const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowNotificationInbox(true)}
-                className="relative w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-white transition-colors cursor-pointer shrink-0"
+                className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-200 hover:text-white transition-colors cursor-pointer shrink-0"
                 title={t('notificationsInbox')}
                 aria-label={t('notificationsInbox')}
               >
@@ -194,15 +196,15 @@ export const Navbar: React.FC = () => {
                   setAuthModalMode('login');
                   setShowAuthModal(true);
                 }}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition-colors cursor-pointer"
+                className="flex items-center gap-1 h-8 sm:h-9 px-2.5 sm:px-3 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0"
               >
-                <LogIn className="w-3.5 h-3.5" />
+                <LogIn className="w-3.5 h-3.5 shrink-0" />
                 <span>{t('login')}</span>
               </button>
             ) : (
               <button
                 onClick={() => handleTabChange('profile')}
-                className="w-8 h-8 rounded-full bg-slate-800 border border-teal-500/50 overflow-hidden flex items-center justify-center text-xs font-bold text-teal-300 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-800 border border-teal-500/50 overflow-hidden flex items-center justify-center text-xs font-bold text-teal-300 cursor-pointer shrink-0"
                 title={currentUser.name}
               >
                 {currentUser.avatarUrl ? (

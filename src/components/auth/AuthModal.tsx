@@ -156,7 +156,7 @@ export const AuthModal: React.FC = () => {
     try {
       const res = await login(phone.trim(), password);
       if (!res.success) {
-        setErrorMessage(res.error || 'فشل تسجيل الدخول');
+        setErrorMessage(res.error || (language === 'ar' ? 'فشل تسجيل الدخول' : 'Sign in failed'));
         return;
       }
 
@@ -214,7 +214,7 @@ export const AuthModal: React.FC = () => {
       });
 
       if (!res.success) {
-        setErrorMessage(res.error || 'فشل التسجيل');
+        setErrorMessage(res.error || (language === 'ar' ? 'فشل التسجيل' : 'Registration failed'));
         return;
       }
 
@@ -294,7 +294,7 @@ export const AuthModal: React.FC = () => {
       });
 
       if (!res.success) {
-        setErrorMessage(res.error || 'فشل تسجيل الحساب');
+        setErrorMessage(res.error || (language === 'ar' ? 'فشل تسجيل الحساب' : 'Account registration failed'));
         return;
       }
 
@@ -324,7 +324,7 @@ export const AuthModal: React.FC = () => {
     try {
       const res = await requestPasswordReset(emailVal.cleanEmail);
       if (!res.success) {
-        setErrorMessage(res.error || 'تعذر إرسال رمز الاستعادة');
+        setErrorMessage(res.error || (language === 'ar' ? 'تعذر إرسال رمز الاستعادة' : 'Failed to send reset code'));
         return;
       }
       setResetEmail(emailVal.cleanEmail);
@@ -349,7 +349,7 @@ export const AuthModal: React.FC = () => {
     try {
       const res = await requestPasswordReset(resetEmail);
       if (!res.success) {
-        setErrorMessage(res.error || 'تعذر إعادة إرسال الرمز');
+        setErrorMessage(res.error || (language === 'ar' ? 'تعذر إعادة إرسال الرمز' : 'Failed to resend code'));
         return;
       }
       setDevPreviewCode(res.devPreviewCode || null);
@@ -395,7 +395,7 @@ export const AuthModal: React.FC = () => {
         newPassword: resetNewPassword,
       });
       if (!res.success) {
-        setErrorMessage(res.error || 'فشل تحديث كلمة المرور');
+        setErrorMessage(res.error || (language === 'ar' ? 'فشل تحديث كلمة المرور' : 'Failed to update password'));
         return;
       }
       setResetSuccessMessage(

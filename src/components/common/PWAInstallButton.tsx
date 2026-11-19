@@ -17,8 +17,9 @@ export const PWAInstallButton: React.FC = () => {
       <button
         type="button"
         onClick={install}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-teal-600/20 hover:bg-teal-600/30 text-teal-300 border border-teal-500/40 text-xs font-bold transition-colors cursor-pointer shrink-0"
+        className="flex items-center justify-center gap-1.5 w-8 h-8 sm:w-auto sm:h-9 sm:px-2.5 rounded-lg bg-teal-600/20 hover:bg-teal-600/30 text-teal-300 border border-teal-500/40 text-xs font-bold transition-colors cursor-pointer shrink-0 whitespace-nowrap"
         title={language === 'ar' ? 'تثبيت تطبيق مهني على جهازك' : 'Install Mehani App'}
+        aria-label={language === 'ar' ? 'تثبيت تطبيق مهني على جهازك' : 'Install Mehani App'}
       >
         <Download className="w-3.5 h-3.5" />
         <span className="hidden md:inline">
@@ -34,8 +35,9 @@ export const PWAInstallButton: React.FC = () => {
         <button
           type="button"
           onClick={() => setShowIOSGuide(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0"
+          className="flex items-center justify-center gap-1.5 w-8 h-8 sm:w-auto sm:h-9 sm:px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0 whitespace-nowrap"
           title={language === 'ar' ? 'إضافة للشاشة الرئيسية' : 'Add to Home Screen'}
+          aria-label={language === 'ar' ? 'إضافة للشاشة الرئيسية' : 'Add to Home Screen'}
         >
           <Smartphone className="w-3.5 h-3.5" />
           <span className="hidden md:inline">

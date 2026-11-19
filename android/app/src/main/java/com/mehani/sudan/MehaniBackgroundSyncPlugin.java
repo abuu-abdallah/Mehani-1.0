@@ -237,7 +237,9 @@ public class MehaniBackgroundSyncPlugin extends Plugin {
 
     private void refreshWebCookies(SharedPreferences.Editor editor, String apiUrl) {
         try {
-            String cookies = CookieManager.getInstance().getCookie(apiUrl);
+            CookieManager cm = CookieManager.getInstance();
+            cm.flush();
+            String cookies = cm.getCookie(apiUrl);
             if (cookies != null && !cookies.isEmpty()) {
                 editor.putString(MehaniNotificationWorker.KEY_COOKIE, cookies);
             }

@@ -41,7 +41,173 @@ export interface BootstrapResponse {
 export type ApiCallResult<T> =
   | { available: true; ok: true; data: T; status: number }
   | { available: true; ok: false; error: string; status: number }
-  | { available: false; error?: string };
+  | { available: false; error?: string; canAttemptCookieRefresh?: boolean };
+
+const CHALLENGE_RELOAD_GUARD_KEY = 'mehani_challenge_reload_at';
+let activeCookieRefreshPromise: Promise<boolean> | null = null;
+let lastCookieRefreshFinishedAt = 0;
+
+function readCookieValue(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  try {
+    const cookies = document.cookie ? document.cookie.split(';') : [];
+    const prefix = `${name}=`;
+    for (const part of cookies) {
+      const trimmed = part.trim();
+      if (trimmed.startsWith(prefix)) {
+        return trimmed.slice(prefix.length);
+      }
+    }
+  } catch {
+    // Ignore cookie read errors in restricted contexts
+  }
+  return null;
+}
+
+function isInfinityFreeChallengeBody(trimmed: string): boolean {
+  return (
+    trimmed.includes('aes.js') ||
+    trimmed.includes('__test') ||
+    trimmed.includes('slowAES')
+  );
+}
+
+function shouldAttemptCookieRefreshForResponse(trimmed: string): boolean {
+  if (isInfinityFreeChallengeBody(trimmed)) {
+    return true;
+  }
+  return !isLocalPreviewOnlyEnvironment();
+}
+
+/**
+ * Solves InfinityFree's anti-bot JS challenge (aes.js / __test cookie) silently
+ * using a hidden same-origin iframe so ongoing form submissions (login/register)
+ * succeed on automatic retry without reloading the page or clearing inputs.
+ */
+export function refreshInfinityFreeSecurityCookie(): Promise<boolean> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return Promise.resolve(false);
+  }
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return Promise.resolve(false);
+  }
+  if (activeCookieRefreshPromise) {
+    return activeCookieRefreshPromise;
+  }
+  if (Date.now() - lastCookieRefreshFinishedAt < 1500 && readCookieValue('__test')) {
+    return Promise.resolve(true);
+  }
+
+  activeCookieRefreshPromise = new Promise<boolean>((resolve) => {
+    const container = document.body || document.documentElement;
+    if (!container) {
+      resolve(false);
+      return;
+    }
+
+    const initialTestCookie = readCookieValue('__test');
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.tabIndex = -1;
+
+    let settled = false;
+    let pollTimer: number | undefined;
+    let timeoutTimer: number | undefined;
+    let cookieChangedAt = 0;
+
+    const finish = (success: boolean) => {
+      if (settled) return;
+      settled = true;
+      if (pollTimer !== undefined) window.clearInterval(pollTimer);
+      if (timeoutTimer !== undefined) window.clearTimeout(timeoutTimer);
+      iframe.onload = null;
+      iframe.onerror = null;
+      try {
+        iframe.remove();
+      } catch {
+        // Ignore DOM removal errors
+      }
+      lastCookieRefreshFinishedAt = Date.now();
+      resolve(success);
+    };
+
+    const inspectIframeState = () => {
+      if (settled) return;
+      const currentCookie = readCookieValue('__test');
+      if (currentCookie && currentCookie !== initialTestCookie && cookieChangedAt === 0) {
+        cookieChangedAt = Date.now();
+      }
+
+      try {
+        const doc = iframe.contentDocument;
+        const bodyText = (doc?.body?.textContent || '').trim();
+        if (bodyText.startsWith('{') && bodyText.includes('"ok"')) {
+          window.setTimeout(() => finish(true), 80);
+          return;
+        }
+      } catch {
+        // Cross-origin or transient state while redirecting
+      }
+
+      // If __test cookie was newly written/updated, allow brief window for redirect then proceed
+      if (cookieChangedAt > 0 && Date.now() - cookieChangedAt >= 900) {
+        finish(true);
+      }
+    };
+
+    iframe.onload = () => {
+      inspectIframeState();
+    };
+    iframe.onerror = () => {
+      finish(false);
+    };
+
+    pollTimer = window.setInterval(inspectIframeState, 120);
+    timeoutTimer = window.setTimeout(() => {
+      const currentCookie = readCookieValue('__test');
+      finish(Boolean(currentCookie && currentCookie !== initialTestCookie));
+    }, 6000);
+
+    const sep = API_BASE_URL.includes('?') ? '&' : '?';
+    iframe.src = `${API_BASE_URL}${sep}action=bootstrap&_cf_refresh=${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2, 7)}`;
+    container.appendChild(iframe);
+  }).finally(() => {
+    activeCookieRefreshPromise = null;
+  });
+
+  return activeCookieRefreshPromise;
+}
+
+/**
+ * Loop-guarded top-level navigation reload used ONLY as a last-resort fallback
+ * during background startup/resume if silent iframe cookie refresh could not clear
+ * the hosting edge challenge. Never called during active form submissions.
+ */
+export function tryTopLevelChallengeReloadOnce(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (isLocalPreviewOnlyEnvironment()) return false;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return false;
+  try {
+    const lastReloadRaw = window.sessionStorage.getItem(CHALLENGE_RELOAD_GUARD_KEY);
+    const lastReloadAt = lastReloadRaw ? Number(lastReloadRaw) : 0;
+    if (Number.isFinite(lastReloadAt) && lastReloadAt > 0 && Date.now() - lastReloadAt < 60_000) {
+      return false;
+    }
+    window.sessionStorage.setItem(CHALLENGE_RELOAD_GUARD_KEY, String(Date.now()));
+    window.location.reload();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export const getAuthToken = (): string | null => {
   return safeStorage.getItem(TOKEN_STORAGE_KEY);
@@ -91,7 +257,7 @@ export function describeUnavailableApiError(
   if (language === 'en') {
     switch (apiError) {
       case 'HTML_CHALLENGE_OR_ERROR':
-        return 'The server returned an unexpected page instead of database data. Please reload the page and try again.';
+        return 'Security verification expired and could not refresh automatically. Please reload the page and try again.';
       case 'NETWORK_UNREACHABLE':
         return 'Unable to reach the Mehani database server. Please check your internet connection and try again.';
       default:
@@ -101,7 +267,7 @@ export function describeUnavailableApiError(
 
   switch (apiError) {
     case 'HTML_CHALLENGE_OR_ERROR':
-      return 'استجاب الخادم بصفحة غير متوقعة بدلاً من قاعدة البيانات (قد يكون فحص حماية أو ملف api.php غير محدث). يرجى تحديث الصفحة والمحاولة مرة أخرى.';
+      return 'انتهت صلاحية فحص الحماية ولم يتم تحديثها تلقائياً. يرجى تحديث الصفحة والمحاولة مرة أخرى.';
     case 'NETWORK_UNREACHABLE':
       return 'تعذر الاتصال بخادم قاعدة بيانات مهني. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
     default:
@@ -157,11 +323,14 @@ async function executeApiFetch<T>(
     if (
       trimmed.startsWith('<!DOCTYPE') ||
       trimmed.startsWith('<html') ||
-      trimmed.includes('aes.js') ||
-      trimmed.includes('__test') ||
+      isInfinityFreeChallengeBody(trimmed) ||
       (!contentType.includes('application/json') && !trimmed.startsWith('{'))
     ) {
-      return { available: false, error: 'HTML_CHALLENGE_OR_ERROR' };
+      return {
+        available: false,
+        error: 'HTML_CHALLENGE_OR_ERROR',
+        canAttemptCookieRefresh: shouldAttemptCookieRefreshForResponse(trimmed),
+      };
     }
 
     let parsed: any;
@@ -207,6 +376,17 @@ export async function callApi<T = Record<string, any>>(
   const firstAttempt = await executeApiFetch<T>(action, payload, { timeoutMs: options?.timeoutMs });
   if (firstAttempt.available || firstAttempt.error === 'PHP_NOT_EXECUTING' || options?.noRetry) {
     return firstAttempt;
+  }
+
+  // Auto-refresh InfinityFree __test security cookie via hidden same-origin iframe, then retry transparently
+  if (firstAttempt.error === 'HTML_CHALLENGE_OR_ERROR' && firstAttempt.canAttemptCookieRefresh) {
+    await refreshInfinityFreeSecurityCookie();
+    const retryAfterRefresh = await executeApiFetch<T>(action, payload, { timeoutMs: options?.timeoutMs });
+    if (retryAfterRefresh.available || retryAfterRefresh.error !== 'HTML_CHALLENGE_OR_ERROR') {
+      return retryAfterRefresh;
+    }
+    await new Promise(resolve => setTimeout(resolve, 450));
+    return executeApiFetch<T>(action, payload, { timeoutMs: options?.timeoutMs });
   }
 
   // Retry once after a short delay to recover from transient InfinityFree / mobile network hiccups
