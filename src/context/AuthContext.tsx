@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { DeletedAccountArchiveItem, User, UserRole } from '../types';
+import { User, UserRole } from '../types';
 import { validateSudanPhone, normalizePhoneForLookup, normalizeNumerals } from '../utils/phoneValidation';
 import { validateEmail, normalizeEmail } from '../utils/emailValidation';
 import { safeStorage } from '../utils/safeStorage';
@@ -81,7 +81,6 @@ interface AuthContextType {
     reason: string
   ) => Promise<{ success: boolean; error?: string }>;
   allUsers: User[];
-  deletedAccountsArchive: DeletedAccountArchiveItem[];
   setAllUsers: React.Dispatch<React.SetStateAction<User[]>>;
   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
@@ -136,15 +135,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return [DEFAULT_ADMIN];
   });
 
-  const [deletedAccountsArchive, setDeletedAccountsArchive] = useState<DeletedAccountArchiveItem[]>(() => {
-    try {
-      const parsed = safeStorage.getJSON<DeletedAccountArchiveItem[] | null>('mahara_deleted_archive', null);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
-
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     try {
       const savedId = safeStorage.getItem('mahara_current_user_id');
@@ -167,9 +157,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLatestBootstrap(data);
     if (Array.isArray(data.users)) {
       setAllUsers(data.users);
-    }
-    if (Array.isArray(data.deletedAccountsArchive)) {
-      setDeletedAccountsArchive(data.deletedAccountsArchive);
     }
     if (data.currentUser) {
       setCurrentUser(data.currentUser);
@@ -244,9 +231,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Only cache users locally when not in strict remote mode, or cache sanitized list
     if (!isRemoteApi) {
       safeStorage.setJSON('mahara_users', allUsers);
-      safeStorage.setJSON('mahara_deleted_archive', deletedAccountsArchive);
     }
-  }, [allUsers, deletedAccountsArchive, isRemoteApi]);
+  }, [allUsers, isRemoteApi]);
 
   useEffect(() => {
     if (currentUser) {
@@ -354,12 +340,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Local fallback (dev/preview without PHP only)
-    if (deletedAccountsArchive.some(a => normalizePhoneForLookup(a.phone) === cleanPhone)) {
-      return {
-        success: false,
-        error: 'لا يمكن التسجيل أو استخدام رقم الهاتف هذا لأنه مرتبط بحساب تم حذفه مسبقاً من منصة مهني',
-      };
-    }
     if (allUsers.some(u => u.phone === cleanPhone)) {
       return { success: false, error: 'رقم الهاتف مسجل بالفعل مسبقاً' };
     }
@@ -447,12 +427,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Local fallback (dev/preview without PHP only)
-    if (deletedAccountsArchive.some(a => normalizePhoneForLookup(a.phone) === cleanPhone)) {
-      return {
-        success: false,
-        error: 'لا يمكن التسجيل أو استخدام رقم الهاتف هذا لأنه مرتبط بحساب تم حذفه مسبقاً من منصة مهني',
-      };
-    }
     if (allUsers.some(u => u.phone === cleanPhone)) {
       return { success: false, error: 'رقم الهاتف مسجل بالفعل مسبقاً' };
     }
@@ -645,19 +619,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (
-      normalizedUpdates.phone &&
-      normalizedUpdates.phone !== currentUser.phone &&
-      deletedAccountsArchive.some(
-        a => normalizePhoneForLookup(a.phone) === normalizePhoneForLookup(normalizedUpdates.phone || '')
-      )
-    ) {
-      return {
-        success: false,
-        error: 'لا يمكن التسجيل أو استخدام رقم الهاتف هذا لأنه مرتبط بحساب تم حذفه مسبقاً من منصة مهني',
-      };
-    }
-
-    if (
       normalizedUpdates.email &&
       allUsers.some(
         u =>
@@ -770,24 +731,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error: language === 'ar' ? 'كلمة المرور غير صحيحة' : 'Incorrect password',
       };
     }
-
-    const archivedEntry: DeletedAccountArchiveItem = {
-      id: `del-${Date.now()}`,
-      originalUserId: currentUser.id,
-      name: currentUser.name,
-      phone: normalizePhoneForLookup(currentUser.phone),
-      email: currentUser.email || null,
-      role: currentUser.role,
-      city: currentUser.city || null,
-      neighborhood: currentUser.neighborhood || null,
-      tradeTitleAr: currentUser.tradeTitleAr || null,
-      nidUrl: currentUser.nidUrl || null,
-      nidNumber: currentUser.nidNumber || null,
-      nidImageHash: null,
-      deletedBy: 'self',
-      deletedAt: new Date().toISOString(),
-    };
-    setDeletedAccountsArchive(prev => [archivedEntry, ...prev]);
+    if ((currentUser.unpaidCancellationFeeSDG || 0) > 0 || (currentUser.pendingCommissionDueSDG || 0) > 0) {
+      return {
+        success: false,
+        error:
+          language === 'ar'
+            ? 'توجد مستحقات مالية أو عمولات أو غرامات إلغاء غير مسددة على الحساب. يرجى تسويتها قبل الحذف.'
+            : 'Unsettled commissions or cancellation penalties must be resolved before deleting your account.',
+      };
+    }
 
     clearBackgroundNotificationSession();
     setAuthToken(null);
@@ -963,30 +915,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const adminDeleteUser = async (id: string) => {
-    const targetUser = allUsers.find(u => u.id === id);
     const res = await maharaApi.adminDeleteUser(id);
     if (res.available) {
       setIsRemoteApi(true);
       if (!res.ok) return;
-      void refreshFromServer();
-    } else if (targetUser && targetUser.role !== 'admin') {
-      const archivedEntry: DeletedAccountArchiveItem = {
-        id: `del-${Date.now()}`,
-        originalUserId: targetUser.id,
-        name: targetUser.name,
-        phone: normalizePhoneForLookup(targetUser.phone),
-        email: targetUser.email || null,
-        role: targetUser.role,
-        city: targetUser.city || null,
-        neighborhood: targetUser.neighborhood || null,
-        tradeTitleAr: targetUser.tradeTitleAr || null,
-        nidUrl: targetUser.nidUrl || null,
-        nidNumber: targetUser.nidNumber || null,
-        nidImageHash: null,
-        deletedBy: 'admin',
-        deletedAt: new Date().toISOString(),
-      };
-      setDeletedAccountsArchive(prev => [archivedEntry, ...prev]);
     }
     setAllUsers(prev => prev.filter(u => u.id !== id));
     if (currentUser?.id === id) {
@@ -1163,7 +1095,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         adminRequestNidReupload,
         providerReuploadNid,
         allUsers,
-        deletedAccountsArchive,
         setAllUsers,
         setCurrentUser,
       }}

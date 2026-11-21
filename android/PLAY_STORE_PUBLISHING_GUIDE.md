@@ -7,7 +7,7 @@ Follow this two-phase roadmap to launch **first on Uptodown (Free, $0 registrati
 ---
 
 ## Step 1 (Required for Both Stores): Upload Updated Web Files to InfinityFree (`htdocs/`)
-Deploy your latest `dist/` build to `https://mehani.gt.tc` (keeping `htdocs/config.php` untouched) so your Privacy Policy, Account Deletion portal, and anti-fraud `deleted_accounts_archive` API are live:
+Deploy your latest `dist/` build to `https://mehani.gt.tc` (keeping `htdocs/config.php` untouched) so your Privacy Policy, Account Deletion portal, and updated backend `api.php` are live:
 - **Privacy Policy URL:** `https://mehani.gt.tc/privacy-policy.html`
 - **Account Deletion URL:** `https://mehani.gt.tc/delete-account.html`
 

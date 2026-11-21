@@ -1825,8 +1825,8 @@ export const ProfileSettingsScreen: React.FC = () => {
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   {language === 'ar'
-                    ? 'سيؤدي هذا الإجراء إلى حذف ملفك الشخصي وخدماتك وإشعاراتك نهائياً ولا يمكن التراجع عنه. تنبيه: لن يمكن إنشاء حساب جديد بنفس رقم الهاتف مستقبلاً، وتحتفظ الإدارة بأرشيف سري لنسخة الهوية لمنع إنشاء حسابات بديلة.'
-                    : 'This permanently deletes your profile, services, and notifications and cannot be undone. Note: Your phone number cannot be used to create a new account in the future, and admin retains an encrypted ID security copy to prevent duplicate ex-user accounts.'}
+                    ? 'سيؤدي هذا الإجراء إلى حذف ملفك الشخصي ورقم هاتفك ووثائقك وخدماتك وإشعاراتك نهائياً ولا يمكن التراجع عنه (يشترط إكمال الطلبات الجارية وتسوية أي عمولات أو غرامات أولاً)، ويمكنك لاحقاً إنشاء حساب جديد بشكل طبيعي.'
+                    : 'This permanently erases your profile, phone number, ID documents, services, and notifications (active bookings and unsettled commissions or penalties must be resolved first). You may create a new account normally in the future.'}
                 </p>
               </div>
             </div>

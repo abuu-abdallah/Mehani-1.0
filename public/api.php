@@ -258,97 +258,6 @@ function ensureRevokedTokensTable(PDO $pdo): void {
     }
 }
 
-function ensureDeletedAccountsArchiveTable(PDO $pdo): void {
-    static $checked = false;
-    if ($checked) return;
-    $checked = true;
-    try {
-        $pdo->exec('CREATE TABLE IF NOT EXISTS `deleted_accounts_archive` (
-            `id` VARCHAR(64) NOT NULL,
-            `original_user_id` VARCHAR(64) NOT NULL,
-            `name` VARCHAR(191) NOT NULL,
-            `phone` VARCHAR(32) NOT NULL,
-            `email` VARCHAR(191) NULL,
-            `role` ENUM("customer", "provider", "admin") NOT NULL DEFAULT "customer",
-            `city` VARCHAR(191) NULL,
-            `neighborhood` VARCHAR(191) NULL,
-            `trade_title_ar` VARCHAR(191) NULL,
-            `nid_url` LONGTEXT NULL,
-            `nid_number` VARCHAR(100) NULL,
-            `nid_image_hash` CHAR(64) NULL,
-            `deleted_by` ENUM("self", "admin") NOT NULL DEFAULT "self",
-            `deleted_at` VARCHAR(64) NOT NULL,
-            PRIMARY KEY (`id`),
-            KEY `idx_daa_phone` (`phone`),
-            KEY `idx_daa_nid_hash` (`nid_image_hash`),
-            KEY `idx_daa_deleted_at` (`deleted_at`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
-    } catch (Throwable $e) {
-        error_log('[Mehani API] ensureDeletedAccountsArchiveTable error: ' . $e->getMessage());
-    }
-}
-
-function assertPhoneNotDeletedArchive(PDO $pdo, string $rawPhone): void {
-    ensureDeletedAccountsArchiveTable($pdo);
-    $variants = buildSudanPhoneVariants($rawPhone);
-    if (!$variants) return;
-    $placeholders = implode(', ', array_fill(0, count($variants), '?'));
-    $sql = "SELECT id FROM deleted_accounts_archive WHERE TRIM(phone) IN ($placeholders) OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(TRIM(phone), ' ', ''), '-', ''), '+', ''), '(', ''), ')', '') IN ($placeholders) LIMIT 1";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(array_merge($variants, $variants));
-    if ($stmt->fetch()) {
-        sendJson([
-            'ok' => false,
-            'error' => 'لا يمكن التسجيل أو استخدام رقم الهاتف هذا لأنه مرتبط بحساب تم حذفه مسبقاً من منصة مهني',
-        ], 403);
-    }
-}
-
-function archiveUserBeforeDeletion(PDO $pdo, array $userRow, string $deletedBy = 'self'): void {
-    ensureDeletedAccountsArchiveTable($pdo);
-    $rawPhone = (string) ($userRow['phone'] ?? '');
-    $cleanPhone = normalizeSudanPhone($rawPhone) ?? trim($rawPhone);
-    $nidUrl = isset($userRow['nid_url']) ? (string) $userRow['nid_url'] : '';
-    $nidHash = $nidUrl !== '' ? hash('sha256', $nidUrl) : null;
-    $archiveId = 'del-' . round(microtime(true) * 1000) . '-' . bin2hex(random_bytes(3));
-    $stmt = $pdo->prepare('INSERT INTO `deleted_accounts_archive` (`id`, `original_user_id`, `name`, `phone`, `email`, `role`, `city`, `neighborhood`, `trade_title_ar`, `nid_url`, `nid_number`, `nid_image_hash`, `deleted_by`, `deleted_at`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    $stmt->execute([
-        $archiveId,
-        (string) ($userRow['id'] ?? ''),
-        (string) ($userRow['name'] ?? ''),
-        $cleanPhone,
-        !empty($userRow['email']) ? (string) $userRow['email'] : null,
-        (string) ($userRow['role'] ?? 'customer'),
-        isset($userRow['city']) ? (string) $userRow['city'] : null,
-        isset($userRow['neighborhood']) ? (string) $userRow['neighborhood'] : null,
-        isset($userRow['trade_title_ar']) ? (string) $userRow['trade_title_ar'] : null,
-        $nidUrl !== '' ? $nidUrl : null,
-        !empty($userRow['nid_number']) ? (string) $userRow['nid_number'] : null,
-        $nidHash,
-        $deletedBy === 'admin' ? 'admin' : 'self',
-        date('c'),
-    ]);
-}
-
-function hydrateDeletedAccountArchive(array $row): array {
-    return [
-        'id' => (string) $row['id'],
-        'originalUserId' => (string) $row['original_user_id'],
-        'name' => (string) $row['name'],
-        'phone' => (string) $row['phone'],
-        'email' => $row['email'] !== null ? (string) $row['email'] : null,
-        'role' => (string) $row['role'],
-        'city' => $row['city'] !== null ? (string) $row['city'] : null,
-        'neighborhood' => $row['neighborhood'] !== null ? (string) $row['neighborhood'] : null,
-        'tradeTitleAr' => $row['trade_title_ar'] !== null ? (string) $row['trade_title_ar'] : null,
-        'nidUrl' => $row['nid_url'] !== null ? (string) $row['nid_url'] : null,
-        'nidNumber' => $row['nid_number'] !== null ? (string) $row['nid_number'] : null,
-        'nidImageHash' => $row['nid_image_hash'] !== null ? (string) $row['nid_image_hash'] : null,
-        'deletedBy' => (string) ($row['deleted_by'] ?? 'self'),
-        'deletedAt' => (string) $row['deleted_at'],
-    ];
-}
-
 function createNotificationRecord(
     PDO $pdo,
     string $userId,
@@ -1288,13 +1197,6 @@ try {
                 $notifSummary = fetchUserNotificationsSummary($pdo, (string) $viewer['id'], 0);
             }
 
-            $deletedAccountsArchiveOut = [];
-            if ($viewer && ($viewer['role'] ?? '') === 'admin') {
-                ensureDeletedAccountsArchiveTable($pdo);
-                $archRows = $pdo->query('SELECT * FROM deleted_accounts_archive ORDER BY deleted_at DESC')->fetchAll();
-                $deletedAccountsArchiveOut = array_map('hydrateDeletedAccountArchive', $archRows);
-            }
-
             sendJson([
                 'ok' => true,
                 'serverNowMs' => (int) round(microtime(true) * 1000),
@@ -1308,7 +1210,6 @@ try {
                 'publicReviews' => $reviewRows,
                 'notifications' => $notifSummary['notifications'],
                 'unreadNotificationsCount' => $notifSummary['unreadCount'],
-                'deletedAccountsArchive' => $deletedAccountsArchiveOut,
             ]);
         }
 
@@ -1433,17 +1334,20 @@ try {
                 ], 409);
             }
 
-            $unpaidPenalty = (int) ($targetUser['unpaid_cancellation_fee_sdg'] ?? 0);
+            $activePenaltyStmt = $pdo->prepare("SELECT COALESCE(SUM(cancellation_fee_penalty_sdg), 0) FROM service_requests WHERE client_id = ? AND status IN ('pending', 'accepted', 'in_progress') AND cancellation_fee_penalty_sdg > 0");
+            $activePenaltyStmt->execute([$userId]);
+            $activeRequestPenalty = (int) $activePenaltyStmt->fetchColumn();
+
+            $unpaidPenalty = (int) ($targetUser['unpaid_cancellation_fee_sdg'] ?? 0) + $activeRequestPenalty;
             $pendingComm = (int) ($targetUser['pending_commission_due_sdg'] ?? 0);
             if ($unpaidPenalty > 0 || $pendingComm > 0) {
                 sendJson([
                     'ok' => false,
-                    'error' => 'توجد مستحقات مالية أو عمولات غير مسددة على الحساب. يرجى تسويتها أو التواصل مع الدعم (+249 991 877 454) قبل الحذف.',
+                    'error' => 'توجد مستحقات مالية أو عمولات أو غرامات إلغاء غير مسددة على الحساب. يرجى تسويتها أو التواصل مع الدعم (+249 991 877 454) قبل الحذف.',
                 ], 409);
             }
 
             try {
-                ensureDeletedAccountsArchiveTable($pdo);
                 ensureNotificationsTable($pdo);
                 ensurePasswordResetsTable($pdo);
                 if ($token) {
@@ -1460,7 +1364,6 @@ try {
                     }
                 }
 
-                archiveUserBeforeDeletion($pdo, $targetUser, 'self');
                 $pdo->prepare('DELETE FROM notifications WHERE user_id = ?')->execute([$userId]);
                 $pdo->prepare('DELETE FROM password_resets WHERE user_id = ?')->execute([$userId]);
                 $pdo->prepare('DELETE FROM service_requests WHERE client_id = ? OR provider_id = ?')->execute([$userId, $userId]);
@@ -1497,8 +1400,6 @@ try {
             if ($name === '' || $password === '') {
                 sendJson(['ok' => false, 'error' => 'يرجى تعبئة جميع الحقول المطلوبة'], 400);
             }
-
-            assertPhoneNotDeletedArchive($pdo, $cleanPhone);
 
             $check = $pdo->prepare('SELECT id FROM users WHERE phone = ? LIMIT 1');
             $check->execute([$cleanPhone]);
@@ -1547,8 +1448,6 @@ try {
             if ($name === '' || $password === '' || $nidUrl === '') {
                 sendJson(['ok' => false, 'error' => 'يرجى إكمال بيانات الحساب وإرفاق صورة الرقم الوطني أو جواز السفر'], 400);
             }
-
-            assertPhoneNotDeletedArchive($pdo, $cleanPhone);
 
             $check = $pdo->prepare('SELECT id FROM users WHERE phone = ? LIMIT 1');
             $check->execute([$cleanPhone]);
@@ -1735,9 +1634,6 @@ try {
             }
             if (isset($body['phone']) && trim((string) $body['phone']) !== '') {
                 $cleanPhone = validateSudanPhoneOrFail((string) $body['phone']);
-                if ($cleanPhone !== ($authUser['phone'] ?? '')) {
-                    assertPhoneNotDeletedArchive($pdo, $cleanPhone);
-                }
                 $dup = $pdo->prepare('SELECT id FROM users WHERE phone = ? AND id != ? LIMIT 1');
                 $dup->execute([$cleanPhone, $uid]);
                 if ($dup->fetch()) {
@@ -2432,7 +2328,6 @@ try {
             requireAdmin($pdo, $config);
             ensureUtf8mb4TextColumns($pdo);
             $cleanPhone = validateSudanPhoneOrFail((string) ($body['phone'] ?? ''));
-            assertPhoneNotDeletedArchive($pdo, $cleanPhone);
             $dup = $pdo->prepare('SELECT id FROM users WHERE phone = ? LIMIT 1');
             $dup->execute([$cleanPhone]);
             if ($dup->fetch()) sendJson(['ok' => false, 'error' => 'رقم الهاتف مسجل بالفعل مسبقاً'], 409);
@@ -2510,7 +2405,6 @@ try {
             }
             if (!empty($updates['phone'])) {
                 $cleanPhone = validateSudanPhoneOrFail((string) $updates['phone']);
-                assertPhoneNotDeletedArchive($pdo, $cleanPhone);
                 $dupPhone = $pdo->prepare('SELECT id FROM users WHERE phone = ? AND id != ? LIMIT 1');
                 $dupPhone->execute([$cleanPhone, $id]);
                 if ($dupPhone->fetch()) {
@@ -2627,13 +2521,6 @@ try {
         case 'admin_delete_user': {
             requireAdmin($pdo, $config);
             $id = (string) ($body['id'] ?? '');
-            $uStmt = $pdo->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
-            $uStmt->execute([$id]);
-            $targetRow = $uStmt->fetch();
-            if ($targetRow && ($targetRow['role'] ?? '') !== 'admin') {
-                ensureDeletedAccountsArchiveTable($pdo);
-                archiveUserBeforeDeletion($pdo, $targetRow, 'admin');
-            }
             $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
             sendJson(['ok' => true]);
         }

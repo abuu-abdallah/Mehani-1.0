@@ -9,7 +9,6 @@ import {
   Edit, 
   Trash2, 
   ShieldCheck, 
-  ShieldAlert, 
   CheckCircle2, 
   X, 
   Filter, 
@@ -42,7 +41,7 @@ import {
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
-import { User, DeletedAccountArchiveItem, ServiceCategory, ServiceRequest, UserRole, ServiceStatus, ThursdayCommissionDeposit, ServiceSuggestion } from '../../types';
+import { User, ServiceCategory, ServiceRequest, UserRole, ServiceStatus, ThursdayCommissionDeposit, ServiceSuggestion } from '../../types';
 import { CategoryIcon } from '../common/CategoryIcon';
 import { SUDAN_STATES_CITIES } from '../../data/mockData';
 import { validateSudanPhone, detectSudanOperator } from '../../utils/phoneValidation';
@@ -58,7 +57,6 @@ export const AdminDashboardScreen: React.FC = () => {
   const { 
     currentUser, 
     allUsers, 
-    deletedAccountsArchive,
     adminAddUser, 
     adminUpdateUser, 
     adminDeleteUser, 
@@ -93,8 +91,6 @@ export const AdminDashboardScreen: React.FC = () => {
   const [fineActionFeedback, setFineActionFeedback] = useState<string | null>(null);
 
   // Search & Filter States for Users
-  const [usersViewMode, setUsersViewMode] = useState<'active_list' | 'deleted_archive'>('active_list');
-  const [archiveSearch, setArchiveSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState<'all' | 'customer' | 'provider' | 'admin'>('all');
   const [userStatusFilter, setUserStatusFilter] = useState<'all' | 'active' | 'deactivated' | 'pending_nid' | 'has_fine'>('all');
@@ -173,9 +169,6 @@ export const AdminDashboardScreen: React.FC = () => {
   // Lightbox / Proof inspection modals
   const [inspectDeposit, setInspectDeposit] = useState<ThursdayCommissionDeposit | null>(null);
   const [inspectNidUser, setInspectNidUser] = useState<User | null>(null);
-  const [inspectArchiveItem, setInspectArchiveItem] = useState<DeletedAccountArchiveItem | null>(null);
-  const [selectedCompareArchiveId, setSelectedCompareArchiveId] = useState<string | null>(null);
-  const [archiveCompareSearch, setArchiveCompareSearch] = useState('');
   const [showNidReuploadPrompt, setShowNidReuploadPrompt] = useState(false);
   const [nidReuploadReasonText, setNidReuploadReasonText] = useState('');
 
@@ -255,69 +248,6 @@ export const AdminDashboardScreen: React.FC = () => {
       return true;
     });
   }, [allUsers, userRoleFilter, userStatusFilter, userSearch, activeRequestFinesByUserId]);
-
-  const filteredDeletedArchive = useMemo(() => {
-    const q = archiveSearch.toLowerCase().trim();
-    return (deletedAccountsArchive || []).filter((item) => {
-      if (!q) return true;
-      return (
-        item.name.toLowerCase().includes(q) ||
-        item.phone.includes(q) ||
-        (item.email || '').toLowerCase().includes(q) ||
-        (item.nidNumber || '').toLowerCase().includes(q) ||
-        (item.tradeTitleAr || '').toLowerCase().includes(q)
-      );
-    });
-  }, [deletedAccountsArchive, archiveSearch]);
-
-  const deletedProvidersWithNid = useMemo(() => {
-    return (deletedAccountsArchive || []).filter((item) => Boolean(item.nidUrl));
-  }, [deletedAccountsArchive]);
-
-  const nidComparisonMatches = useMemo(() => {
-    if (!inspectNidUser) return [];
-    const userNidNum = (inspectNidUser.nidNumber || '').trim().toLowerCase();
-    const isGenericNidNum =
-      !userNidNum ||
-      userNidNum === 'نسخة مستند مرفقة' ||
-      userNidNum === 'مستند هوية محدث' ||
-      userNidNum === 'صورة مستند محدثة';
-    const userEmail = (inspectNidUser.email || '').trim().toLowerCase();
-    return (deletedAccountsArchive || []).filter((item) => {
-      if (item.nidUrl && inspectNidUser.nidUrl && item.nidUrl === inspectNidUser.nidUrl) {
-        return true;
-      }
-      if (!isGenericNidNum && item.nidNumber && item.nidNumber.trim().toLowerCase() === userNidNum) {
-        return true;
-      }
-      if (userEmail && item.email && item.email.trim().toLowerCase() === userEmail) {
-        return true;
-      }
-      return false;
-    });
-  }, [inspectNidUser, deletedAccountsArchive]);
-
-  const filteredCompareArchive = useMemo(() => {
-    const q = archiveCompareSearch.toLowerCase().trim();
-    const list = deletedProvidersWithNid;
-    if (!q) return list;
-    return list.filter(
-      (item) =>
-        item.name.toLowerCase().includes(q) ||
-        item.phone.includes(q) ||
-        (item.nidNumber || '').toLowerCase().includes(q)
-    );
-  }, [deletedProvidersWithNid, archiveCompareSearch]);
-
-  const activeCompareArchiveItem = useMemo(() => {
-    if (selectedCompareArchiveId) {
-      const found = deletedProvidersWithNid.find((i) => i.id === selectedCompareArchiveId);
-      if (found) return found;
-    }
-    const autoWithNid = nidComparisonMatches.find((i) => Boolean(i.nidUrl));
-    if (autoWithNid) return autoWithNid;
-    return deletedProvidersWithNid[0] || null;
-  }, [selectedCompareArchiveId, deletedProvidersWithNid, nidComparisonMatches]);
 
   // Filtered Categories
   const filteredCategories = useMemo(() => {
@@ -1177,156 +1107,6 @@ export const AdminDashboardScreen: React.FC = () => {
             </div>
           )}
 
-          {/* Sub-view Switcher: Active Users vs Deleted Accounts Archive */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <button
-              type="button"
-              onClick={() => setUsersViewMode('active_list')}
-              className={`min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-                usersViewMode === 'active_list'
-                  ? 'bg-slate-900 dark:bg-teal-700 text-white shadow-2xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              <Users className="w-4 h-4 shrink-0" />
-              <span>{language === 'ar' ? `المستخدمون الحاليون (${allUsers.length})` : `Active Users (${allUsers.length})`}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setUsersViewMode('deleted_archive')}
-              className={`min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2 ${
-                usersViewMode === 'deleted_archive'
-                  ? 'bg-rose-700 text-white shadow-2xs'
-                  : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-950/60'
-              }`}
-            >
-              <ShieldAlert className="w-4 h-4 shrink-0" />
-              <span>
-                {language === 'ar'
-                  ? `أرشيف المحذوفين والأرقام المحظورة (${deletedAccountsArchive.length})`
-                  : `Deleted Archive & Blocked Phones (${deletedAccountsArchive.length})`}
-              </span>
-            </button>
-          </div>
-
-          {usersViewMode === 'deleted_archive' ? (
-            <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs text-rose-950 dark:text-rose-200 space-y-1">
-                <span className="font-extrabold flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
-                  <span>
-                    {language === 'ar'
-                      ? 'الحماية الدائمة من إعادة التسجيل (أرقام الهواتف المحظورة ومستندات الهوية المؤرشفة)'
-                      : 'Permanent Anti-Re-Registration Blocklist & Archived ID Copies'}
-                  </span>
-                </span>
-                <p className="text-[11px] text-rose-800 dark:text-rose-300 leading-relaxed">
-                  {language === 'ar'
-                    ? 'يُمنع تلقائياً إنشاء أي حساب جديد بأي رقم هاتف موجود في هذا السجل. كما يتم الاحتفاظ بنسخ الرقم الوطني أو جواز السفر لمقدمي الخدمة لمقارنتها مع الطلبات الجديدة.'
-                    : 'Any phone number listed below is permanently blocked from registering a new account. Archived ID/Passport copies allow admins to visually compare new provider applicants.'}
-                </p>
-              </div>
-
-              <div className="relative flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-                <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 ms-3 shrink-0" />
-                <input
-                  type="text"
-                  value={archiveSearch}
-                  onChange={(e) => setArchiveSearch(e.target.value)}
-                  placeholder={language === 'ar' ? 'ابحث في أرشيف المحذوفين بالاسم، رقم الهاتف المحظور، أو الرقم الوطني...' : 'Search deleted archive by name, blocked phone, or NID...'}
-                  className="w-full px-3 py-2.5 bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
-                />
-              </div>
-
-              {filteredDeletedArchive.length === 0 ? (
-                <div className="py-10 text-center text-xs text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                  {language === 'ar' ? 'لا توجد حسابات محذوفة في الأرشيف حتى الآن.' : 'No deleted accounts archived yet.'}
-                </div>
-              ) : (
-                <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800">
-                  <table className="w-full text-start text-xs">
-                    <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
-                      <tr>
-                        <th className="p-3 text-start">{language === 'ar' ? 'المستخدم السابق' : 'Ex-User'}</th>
-                        <th className="p-3 text-start">{language === 'ar' ? 'الدور والحرفة' : 'Role & Trade'}</th>
-                        <th className="p-3 text-start">{language === 'ar' ? 'الهاتف المحظور' : 'Blocked Phone'}</th>
-                        <th className="p-3 text-start">{language === 'ar' ? 'تاريخ الحذف' : 'Deleted At'}</th>
-                        <th className="p-3 text-end">{language === 'ar' ? 'نسخة الهوية / الجواز' : 'Archived ID / Passport'}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {filteredDeletedArchive.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="p-3">
-                            <span className="font-bold text-slate-900 dark:text-slate-100 block">{item.name}</span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                              {item.city || '—'}{item.neighborhood ? ` · ${item.neighborhood}` : ''}
-                            </span>
-                            {item.email && (
-                              <span className="text-[10px] text-slate-400 block" dir="ltr">{item.email}</span>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] border ${
-                              item.role === 'provider'
-                                ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border-teal-200 dark:border-teal-800/70'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                            }`}>
-                              {item.role === 'provider' ? t('totalProviders') : t('totalCustomers')}
-                            </span>
-                            {item.tradeTitleAr && (
-                              <span className="block text-[11px] text-slate-600 dark:text-slate-400 mt-1">{item.tradeTitleAr}</span>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            <div className="font-mono font-bold text-rose-700 dark:text-rose-300" dir="ltr">{item.phone}</div>
-                            <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-[9px] font-bold">
-                              {language === 'ar' ? 'محظور من التسجيل مجدداً' : 'Permanently Blocked'}
-                            </span>
-                          </td>
-                          <td className="p-3 text-slate-600 dark:text-slate-400">
-                            <div className="font-mono text-[11px]">
-                              {new Date(item.deletedAt).toLocaleDateString(language === 'ar' ? 'ar-SD' : 'en-US')}
-                            </div>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                              {item.deletedBy === 'admin'
-                                ? (language === 'ar' ? 'بواسطة الإدارة' : 'By Admin')
-                                : (language === 'ar' ? 'حذف ذاتي' : 'Self-deleted')}
-                            </span>
-                          </td>
-                          <td className="p-3 text-end">
-                            {item.nidUrl ? (
-                              <div className="inline-flex items-center gap-2">
-                                <img
-                                  src={item.nidUrl}
-                                  alt={item.name}
-                                  className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700"
-                                  referrerPolicy="no-referrer"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setInspectArchiveItem(item)}
-                                  className="px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 font-bold text-[11px] cursor-pointer whitespace-nowrap"
-                                >
-                                  {language === 'ar' ? 'عرض المستند' : 'View Document'}
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                {language === 'ar' ? 'لا يوجد مستند' : 'No document'}
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
           {/* Search & Filters */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div className="relative flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -1520,8 +1300,6 @@ export const AdminDashboardScreen: React.FC = () => {
                                 <button
                                   onClick={() => {
                                     setInspectNidUser(user);
-                                    setSelectedCompareArchiveId(null);
-                                    setArchiveCompareSearch('');
                                     setShowNidReuploadPrompt(false);
                                     setNidReuploadReasonText('');
                                   }}
@@ -1608,8 +1386,6 @@ export const AdminDashboardScreen: React.FC = () => {
               </tbody>
             </table>
           </div>
-            </>
-          )}
         </div>
       )}
 
@@ -3219,7 +2995,7 @@ export const AdminDashboardScreen: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL 4: PRIVATE NID INSPECTION & EX-USER COMPARISON (FOR ADMIN ONLY) */}
+      {/* MODAL 4: PRIVATE NID INSPECTION (FOR ADMIN ONLY) */}
       {inspectNidUser && (
         <div 
           onClick={() => setInspectNidUser(null)}
@@ -3227,7 +3003,7 @@ export const AdminDashboardScreen: React.FC = () => {
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className={`w-full ${deletedProvidersWithNid.length > 0 ? 'max-w-3xl' : 'max-w-lg'} bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-3xl shadow-2xl p-6 space-y-4 my-6`}
+            className="w-full max-w-lg bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-3xl shadow-2xl p-6 space-y-4 my-6"
           >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
@@ -3284,171 +3060,20 @@ export const AdminDashboardScreen: React.FC = () => {
                 </div>
               )}
 
-              {/* Auto-Match Alert against Ex-Users Archive */}
-              {nidComparisonMatches.length > 0 && (
-                <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-950 dark:text-rose-100 space-y-1">
-                  <div className="flex items-center gap-2 font-extrabold text-rose-800 dark:text-rose-300">
-                    <ShieldAlert className="w-4 h-4 shrink-0" />
-                    <span>
-                      {language === 'ar'
-                        ? `تحذير أمني: تطابق مع ${nidComparisonMatches.length} حساب محذوف مسبقاً!`
-                        : `Security Alert: Matches ${nidComparisonMatches.length} deleted ex-user account(s)!`}
-                    </span>
+              <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 max-h-[50vh] flex items-center justify-center">
+                {inspectNidUser.nidUrl ? (
+                  <img
+                    src={inspectNidUser.nidUrl}
+                    alt="National ID"
+                    className="w-full h-full object-contain max-h-[45vh]"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="p-8 text-center text-slate-400 dark:text-slate-500">
+                    {language === 'ar' ? 'لم يتم إرفاق ملف الرقم الوطني أو جواز السفر' : 'No ID / Passport document attached'}
                   </div>
-                  <p className="text-[11px] text-rose-800 dark:text-rose-300 leading-relaxed">
-                    {language === 'ar'
-                      ? `المستند أو البيانات تتطابق مع الحساب السابق: ${nidComparisonMatches.map(m => `${m.name} (${m.phone})`).join('، ')}. راجع المقارنة أدناه قبل التفعيل.`
-                      : `Document or identifier matches archived ex-user: ${nidComparisonMatches.map(m => `${m.name} (${m.phone})`).join(', ')}. Review comparison below before approving.`}
-                  </p>
-                </div>
-              )}
-
-              {/* Side-by-Side Document Viewer (Applicant vs Archived Ex-Users) */}
-              {deletedProvidersWithNid.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* Applicant Document */}
-                    <div className="rounded-2xl border border-teal-200 dark:border-teal-800/70 bg-slate-50 dark:bg-slate-950 p-3 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-extrabold text-teal-800 dark:text-teal-300">
-                          {language === 'ar' ? 'مستند المتقدم الحالي' : 'Current Applicant ID'}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400" dir="ltr">
-                          {inspectNidUser.phone}
-                        </span>
-                      </div>
-                      <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 h-56 flex items-center justify-center">
-                        {inspectNidUser.nidUrl ? (
-                          <img
-                            src={inspectNidUser.nidUrl}
-                            alt="Applicant National ID"
-                            className="w-full h-full object-contain"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <span className="text-slate-400 dark:text-slate-500">
-                            {language === 'ar' ? 'لم يتم إرفاق صورة مستند' : 'No document attached'}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center justify-between">
-                        <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{inspectNidUser.name}</span>
-                        <span className="font-mono">{inspectNidUser.nidNumber || '—'}</span>
-                      </div>
-                    </div>
-
-                    {/* Archived Ex-User Document for Visual Comparison */}
-                    <div className="rounded-2xl border border-rose-200 dark:border-rose-800/70 bg-rose-50/30 dark:bg-rose-950/20 p-3 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-extrabold text-rose-800 dark:text-rose-300">
-                          {language === 'ar' ? 'مستند مستخدم محذوف (للمقارنة)' : 'Archived Ex-User ID (Compare)'}
-                        </span>
-                        {activeCompareArchiveItem && (
-                          <span className="text-[10px] font-mono text-rose-700 dark:text-rose-300" dir="ltr">
-                            {activeCompareArchiveItem.phone}
-                          </span>
-                        )}
-                      </div>
-                      <div className="rounded-xl overflow-hidden border border-rose-200 dark:border-rose-900/60 bg-slate-100 dark:bg-slate-900 h-56 flex items-center justify-center">
-                        {activeCompareArchiveItem?.nidUrl ? (
-                          <img
-                            src={activeCompareArchiveItem.nidUrl}
-                            alt={activeCompareArchiveItem.name}
-                            className="w-full h-full object-contain"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <span className="text-slate-400 dark:text-slate-500">
-                            {language === 'ar' ? 'اختر مستخدماً محذوفاً للمقارنة' : 'Select ex-user to compare'}
-                          </span>
-                        )}
-                      </div>
-                      {activeCompareArchiveItem && (
-                        <div className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center justify-between gap-2">
-                          <span className="font-bold text-rose-900 dark:text-rose-200 truncate">
-                            {activeCompareArchiveItem.name}
-                          </span>
-                          <span className="font-mono shrink-0">
-                            {activeCompareArchiveItem.nidNumber || '—'} · {new Date(activeCompareArchiveItem.deletedAt).toLocaleDateString('ar-SD')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Ex-User Archive Picker Strip */}
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-200">
-                        {language === 'ar'
-                          ? `قائمة هويات الحسابات المحذوفة (${deletedProvidersWithNid.length}) — اضغط للمقارنة:`
-                          : `Archived Ex-User IDs (${deletedProvidersWithNid.length}) — Click to compare:`}
-                      </span>
-                      <div className="relative flex items-center bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 sm:w-56">
-                        <Search className="w-3.5 h-3.5 text-slate-400 ms-2 shrink-0" />
-                        <input
-                          type="text"
-                          value={archiveCompareSearch}
-                          onChange={(e) => setArchiveCompareSearch(e.target.value)}
-                          placeholder={language === 'ar' ? 'بحث في المحذوفين...' : 'Filter ex-users...'}
-                          className="w-full px-2 py-1 text-[11px] bg-transparent text-slate-900 dark:text-slate-100 focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {filteredCompareArchive.map((ex) => {
-                        const isSelected = activeCompareArchiveItem?.id === ex.id;
-                        const isAutoMatch = nidComparisonMatches.some((m) => m.id === ex.id);
-                        return (
-                          <button
-                            key={ex.id}
-                            type="button"
-                            onClick={() => setSelectedCompareArchiveId(ex.id)}
-                            className={`flex items-center gap-2 p-1.5 pe-2.5 rounded-xl border text-start shrink-0 transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                                : isAutoMatch
-                                ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200 border-rose-300 dark:border-rose-700'
-                                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400'
-                            }`}
-                          >
-                            {ex.nidUrl && (
-                              <img
-                                src={ex.nidUrl}
-                                alt={ex.name}
-                                className="w-8 h-8 rounded-lg object-cover shrink-0 border border-black/10"
-                                referrerPolicy="no-referrer"
-                              />
-                            )}
-                            <div className="text-[10px] leading-tight">
-                              <span className="font-bold block max-w-[110px] truncate">{ex.name}</span>
-                              <span className={`font-mono block ${isSelected ? 'text-rose-100' : 'text-slate-400 dark:text-slate-500'}`} dir="ltr">
-                                {ex.phone}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 max-h-[50vh] flex items-center justify-center">
-                  {inspectNidUser.nidUrl ? (
-                    <img
-                      src={inspectNidUser.nidUrl}
-                      alt="National ID"
-                      className="w-full h-full object-contain max-h-[45vh]"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="p-8 text-center text-slate-400 dark:text-slate-500">
-                      {language === 'ar' ? 'لم يتم إرفاق ملف الرقم الوطني أو جواز السفر' : 'No ID / Passport document attached'}
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
 
               <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 text-teal-900 dark:text-teal-200 text-[11px] flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-teal-700 dark:text-teal-400 shrink-0" />
@@ -3590,26 +3215,6 @@ export const AdminDashboardScreen: React.FC = () => {
                       <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>{language === 'ar' ? 'طلب إعادة رفع الهوية' : 'Request Re-upload'}</span>
                     </button>
-
-                    {deletedProvidersWithNid.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const reason = 'تم رفض الطلب لتطابق وثيقة الهوية/جواز السفر مع حساب محذوف مسبقاً (يُمنع إنشاء حساب بديل في مهني)';
-                          await adminUpdateUser(inspectNidUser.id, {
-                            isActive: false,
-                            deactivatedReason: reason,
-                          });
-                          setInspectNidUser((prev) =>
-                            prev ? { ...prev, isActive: false, deactivatedReason: reason } : null
-                          );
-                        }}
-                        className="py-2.5 px-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <ShieldAlert className="w-4 h-4" />
-                        <span>{language === 'ar' ? 'رفض (حساب محذوف مكرر)' : 'Reject (Duplicate Ex-User)'}</span>
-                      </button>
-                    )}
                   </>
                 ) : (
                   <button
@@ -3636,82 +3241,6 @@ export const AdminDashboardScreen: React.FC = () => {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 4B: ARCHIVED EX-USER DOCUMENT PREVIEW */}
-      {inspectArchiveItem && (
-        <div
-          onClick={() => setInspectArchiveItem(null)}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-3xl shadow-2xl p-6 space-y-4 my-6"
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-rose-600 dark:text-rose-400" />
-                <div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100">
-                    {language === 'ar' ? 'أرشيف وثيقة حساب محذوف' : 'Archived Deleted Account ID'}
-                  </h3>
-                  <span className="text-[11px] text-rose-700 dark:text-rose-400 font-semibold block">
-                    {inspectArchiveItem.name} · <span dir="ltr">{inspectArchiveItem.phone}</span>
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setInspectArchiveItem(null)}
-                className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 max-h-[55vh] flex items-center justify-center">
-              {inspectArchiveItem.nidUrl ? (
-                <img
-                  src={inspectArchiveItem.nidUrl}
-                  alt={inspectArchiveItem.name}
-                  className="w-full h-full object-contain max-h-[50vh]"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="p-8 text-xs text-slate-400 dark:text-slate-500">
-                  {language === 'ar' ? 'لا توجد صورة مستند محفوظة' : 'No document image archived'}
-                </div>
-              )}
-            </div>
-
-            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs grid grid-cols-2 gap-2">
-              <div>
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">
-                  {language === 'ar' ? 'رقم الهوية / الجواز:' : 'ID / Passport No:'}
-                </span>
-                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
-                  {inspectArchiveItem.nidNumber || '—'}
-                </span>
-              </div>
-              <div className="text-end">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">
-                  {language === 'ar' ? 'تاريخ الحذف:' : 'Deleted At:'}
-                </span>
-                <span className="font-mono font-bold text-slate-900 dark:text-slate-100">
-                  {new Date(inspectArchiveItem.deletedAt).toLocaleString(language === 'ar' ? 'ar-SD' : 'en-US')}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setInspectArchiveItem(null)}
-              className="w-full min-h-[44px] py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs cursor-pointer transition-colors"
-            >
-              {language === 'ar' ? 'إغلاق' : 'Close'}
-            </button>
           </div>
         </div>
       )}

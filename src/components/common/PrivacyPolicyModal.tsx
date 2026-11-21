@@ -95,12 +95,12 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({ isOpen, 
             <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-1" />
             <div>
               <h4 className="font-extrabold text-slate-900 dark:text-white mb-1">
-                {isAr ? '4. حذف الحساب ومنع إعادة التسجيل' : '4. Account Deletion & Re-Registration Prevention'}
+                {isAr ? '4. حذف الحساب واستعادة الحق في التسجيل' : '4. Account Deletion & Re-Registration'}
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 {isAr
-                  ? 'يمكنك حذف حسابك في أي وقت من إعدادات الملف الشخصي أو عبر الرابط العام. تُمسح بياناتك ونشاطك فوراً، مع الاحتفاظ برقم الهاتف لمنع استخدامه مجدداً وحفظ نسخة سرية من وثيقة الهوية لمقدمي الخدمة لمراجعتها إدارياً ومنع الحسابات البديلة.'
-                  : 'You can delete your account anytime from Profile Settings or our web portal. Profile and activity are erased immediately, while your phone number is permanently blocked from future sign-ups and provider ID copies stay in an admin-only anti-fraud archive.'}
+                  ? 'يمكنك حذف حسابك في أي وقت من إعدادات الملف الشخصي أو عبر الرابط العام بعد إكمال الطلبات الجارية وتسوية أي عمولات أو غرامات مستحقة. تُمسح جميع بياناتك ووثائقك نهائياً ويمكنك التسجيل مجدداً بشكل طبيعي.'
+                  : 'You can delete your account anytime from Profile Settings or our web portal once active bookings and unsettled commissions or penalties are resolved. All personal data and documents are permanently erased and you may create a new account normally.'}
               </p>
             </div>
           </div>

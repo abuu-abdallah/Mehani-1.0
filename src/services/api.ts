@@ -1,6 +1,5 @@
 import {
   AppNotificationItem,
-  DeletedAccountArchiveItem,
   PortfolioItem,
   ProviderCustomService,
   ServiceCategory,
@@ -37,7 +36,6 @@ export interface BootstrapResponse {
   publicReviews: PublicReviewRecord[];
   notifications?: AppNotificationItem[];
   unreadNotificationsCount?: number;
-  deletedAccountsArchive?: DeletedAccountArchiveItem[];
 }
 
 export type ApiCallResult<T> =
