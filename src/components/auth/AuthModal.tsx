@@ -30,6 +30,7 @@ import { validateSudanPhone, detectSudanOperator } from '../../utils/phoneValida
 import { validateEmail } from '../../utils/emailValidation';
 import { compressImage } from '../../utils/imageCompression';
 import { BrandLogo } from '../common/BrandLogo';
+import { PrivacyPolicyModal } from '../common/PrivacyPolicyModal';
 
 export const AuthModal: React.FC = () => {
   const { t, language, dir } = useLanguage();
@@ -94,6 +95,7 @@ export const AuthModal: React.FC = () => {
   const [showResetConfirmPassword, setShowResetConfirmPassword] = useState<boolean>(false);
   const [showRegPassword, setShowRegPassword] = useState<boolean>(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState<boolean>(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false);
 
   React.useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -1427,8 +1429,8 @@ export const AuthModal: React.FC = () => {
           </form>
         )}
 
-        {/* Modal Footer: Continue as Guest option */}
-        <div className="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+        {/* Modal Footer: Continue as Guest & Privacy Policy */}
+        <div className="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
           <button
             type="button"
             onClick={() => {
@@ -1440,14 +1442,24 @@ export const AuthModal: React.FC = () => {
             {t('continueAsGuest')}
           </button>
 
-          <span className="text-[11px] text-slate-400 dark:text-slate-500">
-            {language === 'ar' ? 'تصفح فوري بدون قيود' : 'Instant guest browsing'}
-          </span>
+          <button
+            type="button"
+            onClick={() => setShowPrivacyModal(true)}
+            className="inline-flex items-center gap-1 text-teal-700 dark:text-teal-400 hover:underline font-semibold text-[11px] cursor-pointer"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>{t('privacyPolicy')}</span>
+          </button>
         </div>
       </>
     )}
 
       </div>
+
+      <PrivacyPolicyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
     </div>
   );
 };

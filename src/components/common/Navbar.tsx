@@ -117,8 +117,8 @@ export const Navbar: React.FC = () => {
                 </span>
               </span>
             ) : (
-              <span className="text-slate-400 whitespace-nowrap">
-                {language === 'ar' ? 'تصفح خدمات وحرفيي السودان' : 'Browse Sudanese Trades'}
+              <span className="text-teal-300/90 font-semibold whitespace-nowrap truncate max-w-[300px]">
+                {t('appTagline')}
               </span>
             )}
           </div>

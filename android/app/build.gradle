@@ -1,5 +1,21 @@
 apply plugin: 'com.android.application'
 
+def resolveVersionCode = {
+    def prop = project.findProperty('ANDROID_VERSION_CODE') ?: System.getenv('ANDROID_VERSION_CODE')
+    return prop ? prop.toInteger() : 2
+}
+
+def resolveVersionName = {
+    def prop = project.findProperty('ANDROID_VERSION_NAME') ?: System.getenv('ANDROID_VERSION_NAME')
+    return prop ?: "1.1.0"
+}
+
+def uploadStoreFilePath = project.findProperty('MEHANI_UPLOAD_STORE_FILE') ?: System.getenv('MEHANI_UPLOAD_STORE_FILE')
+def uploadStorePassword = project.findProperty('MEHANI_UPLOAD_STORE_PASSWORD') ?: System.getenv('MEHANI_UPLOAD_STORE_PASSWORD')
+def uploadKeyAlias = project.findProperty('MEHANI_UPLOAD_KEY_ALIAS') ?: System.getenv('MEHANI_UPLOAD_KEY_ALIAS')
+def uploadKeyPassword = project.findProperty('MEHANI_UPLOAD_KEY_PASSWORD') ?: System.getenv('MEHANI_UPLOAD_KEY_PASSWORD')
+def hasReleaseSigning = uploadStoreFilePath && file(uploadStoreFilePath).exists() && uploadStorePassword && uploadKeyAlias && uploadKeyPassword
+
 android {
     namespace = "com.mehani.sudan"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +23,8 @@ android {
         applicationId "com.mehani.sudan"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode resolveVersionCode()
+        versionName resolveVersionName()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +32,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(uploadStoreFilePath)
+                storePassword uploadStorePassword
+                keyAlias uploadKeyAlias
+                keyPassword uploadKeyPassword
+                v1SigningEnabled true
+                v2SigningEnabled true
+            }
+        }
+    }
     buildTypes {
         release {
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

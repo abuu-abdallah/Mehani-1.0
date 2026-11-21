@@ -1,7 +1,7 @@
 export const translations = {
   ar: {
     appName: 'مهني',
-    appTagline: 'سوق الحرفيين والمهن الحرة في السودان',
+    appTagline: 'أيّ شغلة وليها زولها.. ومِهَني بجيب ليك زولها',
     welcomeBack: 'مرحباً بك مجدداً',
     guestUser: 'زائر',
     login: 'تسجيل الدخول',
@@ -187,10 +187,13 @@ export const translations = {
     darkMode: 'الوضع الليلي',
     switchToDark: 'التبديل للوضع الليلي',
     switchToLight: 'التبديل للوضع النهاري',
+    privacyPolicy: 'سياسة الخصوصية',
+    deleteAccount: 'حذف الحساب نهائياً',
+    privacyAndAccount: 'الخصوصية وإدارة الحساب',
   },
   en: {
     appName: 'Mehani',
-    appTagline: 'Sudan Freelance Trades & Services Platform',
+    appTagline: 'Every job has its pro.. and Mehani brings them to you',
     welcomeBack: 'Welcome back',
     guestUser: 'Guest',
     login: 'Sign In',
@@ -376,5 +379,8 @@ export const translations = {
     darkMode: 'Dark',
     switchToDark: 'Switch to Dark Mode',
     switchToLight: 'Switch to Light Mode',
+    privacyPolicy: 'Privacy Policy',
+    deleteAccount: 'Delete Account Permanently',
+    privacyAndAccount: 'Privacy & Account',
   }
 };

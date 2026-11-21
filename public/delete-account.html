@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حذف الحساب | Delete Account — مهني Mehani</title>
+  <link rel="icon" type="image/png" href="/pwa-192x192.png" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --input-bg: #ffffff;
+      --danger: #e11d48;
+      --danger-soft: #fff1f2;
+      --danger-border: #fecdd3;
+      --success: #047857;
+      --success-soft: #ecfdf5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #020617;
+        --card: #0f172a;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --border: #1e293b;
+        --input-bg: #1e293b;
+        --danger: #fb7185;
+        --danger-soft: #4c0519;
+        --danger-border: #881337;
+        --success: #34d399;
+        --success-soft: #064e3b;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Cairo", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    header {
+      background: #0f172a;
+      color: #ffffff;
+      border-bottom: 1px solid #1e293b;
+      padding: 14px 16px;
+    }
+    .header-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 17px;
+    }
+    .brand img {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .lang-btn, .home-link {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f8fafc;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    main {
+      max-width: 720px;
+      margin: 24px auto 56px;
+      padding: 0 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.04);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 900;
+    }
+    p, li { font-size: 14px; color: var(--muted); }
+    strong { color: var(--text); }
+    .warning-box {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: var(--danger-soft);
+      border: 1px solid var(--danger-border);
+      font-size: 13px;
+    }
+    .warning-box ul { margin: 6px 0 0; padding-inline-start: 18px; }
+    .form-group { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      margin: 14px 0 18px;
+      cursor: pointer;
+    }
+    .checkbox-row input { margin-top: 4px; width: 16px; height: 16px; }
+    button.submit-btn {
+      width: 100%;
+      min-height: 46px;
+      border: 0;
+      border-radius: 12px;
+      background: #e11d48;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    button.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status-msg {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+    }
+    .status-msg.error {
+      display: block;
+      background: var(--danger-soft);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+    }
+    .status-msg.success {
+      display: block;
+      background: var(--success-soft);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    .links-row {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .links-row a { color: #0d9488; font-weight: 700; text-decoration: none; }
+    [data-lang="en"] { display: none; }
+    html[lang="en"] [data-lang="ar"] { display: none; }
+    html[lang="en"] [data-lang="en"] { display: block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <a class="brand" href="/">
+        <img src="/pwa-192x192.png" alt="Mehani" />
+        <span data-lang="ar">مهني · حذف الحساب</span>
+        <span data-lang="en">Mehani · Account Deletion</span>
+      </a>
+      <div style="display:flex;gap:8px;">
+        <button class="lang-btn" type="button" onclick="toggleLang()">
+          <span data-lang="ar">English</span>
+          <span data-lang="en">عربي</span>
+        </button>
+        <a class="home-link" href="/privacy-policy.html">
+          <span data-lang="ar">سياسة الخصوصية</span>
+          <span data-lang="en">Privacy Policy</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div data-lang="ar">
+        <h1>طلب الحذف النهائي لحساب مهني</h1>
+        <p>
+          يمكنك استخدام هذه الصفحة لحذف حسابك في منصة وتطبيق <strong>مهني (Mehani)</strong> نهائياً حتى في حال حذف التطبيق من هاتفك، أو من داخل التطبيق عبر:
+          <strong>الملف الشخصي ← الخصوصية وإدارة الحساب ← حذف الحساب نهائياً</strong>.
+        </p>
+
+        <div class="warning-box">
+          <strong>البيانات التي سيتم حذفها نهائياً وبشكل فوري:</strong>
+          <ul>
+            <li>الملف الشخصي العام، الاسم في القوائم، البريد الإلكتروني، المدينة والحي، والصورة الشخصية.</li>
+            <li>معرض الأعمال، الخدمات المخصصة، سجل الطلبات، الإشعارات ورموز الاستعادة المرتبطة بالحساب.</li>
+          </ul>
+          <p style="margin:8px 0 0;">
+            <strong>تنبيه الأمان ومنع التلاعب:</strong> يتم الاحتفاظ بـ<strong>رقم الهاتف</strong> لمنع إنشاء أي حساب مستقبلي بنفس الرقم نهائياً، كما تحتفظ الإدارة بأرشيف سري خاص <strong>بصورة الرقم الوطني / جواز السفر</strong> (لمقدمي الخدمة) للمقارنة ومنع أصحاب الحسابات المحذوفة من إنشاء حسابات بديلة.
+          </p>
+          <p style="margin:6px 0 0;">
+            <em>ملاحظة: يجب إكمال أو إلغاء أي طلبات خدمة جارية وتسوية أي عمولات أو غرامات مستحقة قبل الحذف.</em>
+          </p>
+        </div>
+      </div>
+
+      <div data-lang="en" dir="ltr">
+        <h1>Permanent Mehani Account Deletion</h1>
+        <p>
+          Use this form to permanently delete your <strong>Mehani</strong> account and personal data directly from the web, or delete it inside the app via:
+          <strong>Profile → Privacy &amp; Account → Delete Account Permanently</strong>.
+        </p>
+
+        <div class="warning-box">
+          <strong>Data that will be permanently erased:</strong>
+          <ul>
+            <li>Your active profile, display info, email address, city/neighborhood, and avatar.</li>
+            <li>Custom services, portfolio items, bookings, notification inbox history, and active sessions.</li>
+          </ul>
+          <p style="margin:8px 0 0;">
+            <strong>Anti-Fraud Retention Notice:</strong> Your <strong>phone number</strong> is permanently blocked from registering any future Mehani account, and for service providers a confidential copy of your <strong>National ID / Passport</strong> remains in an admin-only archive to compare against new applicants and prevent duplicate ex-user accounts.
+          </p>
+          <p style="margin:6px 0 0;">
+            <em>Note: Any active in-progress bookings or unsettled commissions/penalties must be resolved first.</em>
+          </p>
+        </div>
+      </div>
+
+      <form id="deleteForm" onsubmit="handleDelete(event)">
+        <div class="form-group">
+          <label for="identifier">
+            <span data-lang="ar">رقم الهاتف أو البريد الإلكتروني المسجل *</span>
+            <span data-lang="en">Registered Phone Number or Email *</span>
+          </label>
+          <input id="identifier" type="text" dir="ltr" required placeholder="0912345678 / name@example.com" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <span data-lang="ar">كلمة المرور الحالية *</span>
+            <span data-lang="en">Current Password *</span>
+          </label>
+          <input id="password" type="password" dir="ltr" required placeholder="••••••••" />
+        </div>
+
+        <label class="checkbox-row">
+          <input id="confirmCheck" type="checkbox" required />
+          <span>
+            <span data-lang="ar">أدرك أن حذف الحساب نهائي ولا يمكن التراجع عنه، وسيتم مسح بياناتي من مهني.</span>
+            <span data-lang="en">I understand that deleting my account is permanent and cannot be undone.</span>
+          </span>
+        </label>
+
+        <button id="submitBtn" class="submit-btn" type="submit">
+          <span data-lang="ar">تأكيد وحذف الحساب نهائياً</span>
+          <span data-lang="en">Confirm &amp; Permanently Delete Account</span>
+        </button>
+
+        <div id="statusBox" class="status-msg" role="alert"></div>
+      </form>
+
+      <div class="links-row">
+        <a href="/">
+          <span data-lang="ar">← العودة إلى منصة مهني</span>
+          <span data-lang="en">← Return to Mehani</span>
+        </a>
+        <span style="color:var(--muted);">
+          <span data-lang="ar">للمساعدة: ahmedmostafaomer02@gmail.com | +249 991 877 454</span>
+          <span data-lang="en">Support: ahmedmostafaomer02@gmail.com | +249 991 877 454</span>
+        </span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function toggleLang() {
+      var html = document.documentElement;
+      if (html.lang === 'ar') {
+        html.lang = 'en';
+        html.dir = 'ltr';
+      } else {
+        html.lang = 'ar';
+        html.dir = 'rtl';
+      }
+    }
+    if (new URLSearchParams(window.location.search).get('lang') === 'en') {
+      toggleLang();
+    }
+
+    async function handleDelete(e) {
+      e.preventDefault();
+      var isEn = document.documentElement.lang === 'en';
+      var identifier = document.getElementById('identifier').value.trim();
+      var password = document.getElementById('password').value;
+      var checked = document.getElementById('confirmCheck').checked;
+      var btn = document.getElementById('submitBtn');
+      var statusBox = document.getElementById('statusBox');
+
+      statusBox.className = 'status-msg';
+      statusBox.textContent = '';
+
+      if (!identifier || !password || !checked) {
+        statusBox.className = 'status-msg error';
+        statusBox.textContent = isEn
+          ? 'Please enter your phone/email, password, and confirm permanent deletion.'
+          : 'يرجى إدخال رقم الهاتف أو البريد، كلمة المرور، والموافقة على الحذف النهائي.';
+        return;
+      }
+
+      btn.disabled = true;
+      try {
+        var response = await fetch('/api.php?action=delete_own_account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ identifier: identifier, password: password })
+        });
+        var raw = await response.text();
+        var data = null;
+        try {
+          data = JSON.parse(raw);
+        } catch (err) {
+          data = null;
+        }
+
+        if (!data) {
+          statusBox.className = 'status-msg error';
+          statusBox.textContent = isEn
+            ? 'Please reload this page and submit again so the server security check completes.'
+            : 'يرجى تحديث الصفحة والمحاولة مرة أخرى لإتمام فحص الحماية من الخادم.';
+          return;
+        }
+
+        if (!data.ok) {
+          statusBox.className = 'status-msg error';
+          statusBox.textContent = data.error || (isEn ? 'Failed to delete account.' : 'تعذر حذف الحساب.');
+          return;
+        }
+
+        try {
+          localStorage.removeItem('mahara_auth_token');
+          localStorage.removeItem('mahara_current_user_id');
+          localStorage.removeItem('mahara_session_authenticated');
+        } catch (err) {}
+
+        statusBox.className = 'status-msg success';
+        statusBox.textContent = isEn
+          ? 'Your Mehani account and associated personal data have been permanently deleted.'
+          : 'تم حذف حسابك وجميع بياناتك الشخصية في مهني نهائياً وبنجاح.';
+        document.getElementById('deleteForm').reset();
+      } catch (err) {
+        statusBox.className = 'status-msg error';
+        statusBox.textContent = isEn
+          ? 'Network error. Please check your internet connection and try again.'
+          : 'تعذر الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

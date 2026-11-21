@@ -173,3 +173,19 @@ export interface AppNotificationItem {
   readAt?: string | null;
 }
 
+export interface DeletedAccountArchiveItem {
+  id: string;
+  originalUserId: string;
+  name: string;
+  phone: string;
+  email?: string | null;
+  role: UserRole;
+  city?: string | null;
+  neighborhood?: string | null;
+  tradeTitleAr?: string | null;
+  nidUrl?: string | null;
+  nidNumber?: string | null;
+  nidImageHash?: string | null;
+  deletedBy: 'self' | 'admin';
+  deletedAt: string;
+}

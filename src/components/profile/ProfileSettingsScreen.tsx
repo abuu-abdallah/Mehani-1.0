@@ -44,6 +44,7 @@ import { validateSudanPhone, detectSudanOperator } from '../../utils/phoneValida
 import { validateEmail, normalizeEmail } from '../../utils/emailValidation';
 import { compressImage } from '../../utils/imageCompression';
 import { PRESET_AVATARS } from '../../config/avatars';
+import { PrivacyPolicyModal } from '../common/PrivacyPolicyModal';
 
 export const ProfileSettingsScreen: React.FC = () => {
   const { t, language, dir, toggleLanguage } = useLanguage();
@@ -51,6 +52,7 @@ export const ProfileSettingsScreen: React.FC = () => {
     currentUser, 
     updateProfile, 
     logout, 
+    deleteAccount,
     isLoggingOut,
     switchUserRole,
     providerReuploadNid,
@@ -96,6 +98,12 @@ export const ProfileSettingsScreen: React.FC = () => {
   const [isUpdatingMainCat, setIsUpdatingMainCat] = useState<string | null>(null);
   const [mainCatSuccessMsg, setMainCatSuccessMsg] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState<string | null>(null);
 
   // Provider Custom Services & Specific Pricing State
   const [customServiceName, setCustomServiceName] = useState('');
@@ -1736,7 +1744,22 @@ export const ProfileSettingsScreen: React.FC = () => {
           </div>
         </div>
 
-        <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+        {/* Privacy Policy & Account Deletion Controls */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+          <button
+            type="button"
+            onClick={() => setShowPrivacyModal(true)}
+            className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+              <span>{t('privacyPolicy')}</span>
+            </span>
+            <span className="text-[11px] font-medium text-teal-700 dark:text-teal-400">
+              {language === 'ar' ? 'عرض السياسة' : 'View'}
+            </span>
+          </button>
+
           <button
             type="button"
             disabled={isLoggingOut}
@@ -1751,8 +1774,163 @@ export const ProfileSettingsScreen: React.FC = () => {
               {language === 'ar' ? 'خروج آمن' : 'Sign out'}
             </span>
           </button>
+
+          {currentUser.role !== 'admin' && (
+            <button
+              type="button"
+              onClick={() => {
+                setDeletePassword('');
+                setDeleteConfirmed(false);
+                setDeleteAccountError(null);
+                setShowDeleteAccountModal(true);
+              }}
+              className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-800 flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <Trash2 className="w-4 h-4" />
+                <span>{t('deleteAccount')}</span>
+              </span>
+              <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                {language === 'ar' ? 'مسح كامل للبيانات' : 'Erase all data'}
+              </span>
+            </button>
+          )}
         </div>
       </div>
+
+      <PrivacyPolicyModal
+        isOpen={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
+
+      {/* Modal: Self-Service Permanent Account Deletion */}
+      {showDeleteAccountModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/65 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={() => {
+            if (!isDeletingAccount) setShowDeleteAccountModal(false);
+          }}
+        >
+          <div
+            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                  {language === 'ar' ? 'تأكيد حذف الحساب نهائياً' : 'Confirm Permanent Account Deletion'}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {language === 'ar'
+                    ? 'سيؤدي هذا الإجراء إلى حذف ملفك الشخصي وخدماتك وإشعاراتك نهائياً ولا يمكن التراجع عنه. تنبيه: لن يمكن إنشاء حساب جديد بنفس رقم الهاتف مستقبلاً، وتحتفظ الإدارة بأرشيف سري لنسخة الهوية لمنع إنشاء حسابات بديلة.'
+                    : 'This permanently deletes your profile, services, and notifications and cannot be undone. Note: Your phone number cannot be used to create a new account in the future, and admin retains an encrypted ID security copy to prevent duplicate ex-user accounts.'}
+                </p>
+              </div>
+            </div>
+
+            {deleteAccountError && (
+              <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-200 text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                <span>{deleteAccountError}</span>
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setDeleteAccountError(null);
+                if (!deletePassword) {
+                  setDeleteAccountError(
+                    language === 'ar' ? 'يرجى إدخال كلمة المرور الحالية' : 'Please enter your current password'
+                  );
+                  return;
+                }
+                if (!deleteConfirmed) {
+                  setDeleteAccountError(
+                    language === 'ar' ? 'يرجى تأكيد الموافقة على الحذف النهائي' : 'Please check the confirmation box'
+                  );
+                  return;
+                }
+                setIsDeletingAccount(true);
+                try {
+                  const res = await deleteAccount(deletePassword);
+                  if (!res.success) {
+                    setDeleteAccountError(
+                      res.error || (language === 'ar' ? 'تعذر حذف الحساب' : 'Failed to delete account')
+                    );
+                    return;
+                  }
+                  setShowDeleteAccountModal(false);
+                  setActiveTab('home');
+                } finally {
+                  setIsDeletingAccount(false);
+                }
+              }}
+              className="space-y-3"
+            >
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  {language === 'ar' ? 'أدخل كلمة المرور الحالية للتأكيد *' : 'Enter Current Password to Confirm *'}
+                </label>
+                <input
+                  type="password"
+                  dir="ltr"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-3 py-2.5 text-xs text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none"
+                />
+              </div>
+
+              <label className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={deleteConfirmed}
+                  onChange={(e) => setDeleteConfirmed(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded accent-rose-600"
+                />
+                <span>
+                  {language === 'ar'
+                    ? 'أفهم أن جميع بياناتي وحسابي في مهني سيتم حذفها نهائياً.'
+                    : 'I understand my Mehani account and personal data will be permanently deleted.'}
+                </span>
+              </label>
+
+              <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={isDeletingAccount}
+                  onClick={() => setShowDeleteAccountModal(false)}
+                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer transition-colors disabled:opacity-50"
+                >
+                  {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isDeletingAccount}
+                  className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {isDeletingAccount ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>{language === 'ar' ? 'جاري الحذف...' : 'Deleting...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      <span>{language === 'ar' ? 'حذف الحساب نهائياً' : 'Delete Permanently'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Graceful Logout Confirmation */}
       {showLogoutConfirm && (

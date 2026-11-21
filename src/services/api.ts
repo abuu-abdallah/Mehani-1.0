@@ -1,5 +1,6 @@
 import {
   AppNotificationItem,
+  DeletedAccountArchiveItem,
   PortfolioItem,
   ProviderCustomService,
   ServiceCategory,
@@ -36,6 +37,7 @@ export interface BootstrapResponse {
   publicReviews: PublicReviewRecord[];
   notifications?: AppNotificationItem[];
   unreadNotificationsCount?: number;
+  deletedAccountsArchive?: DeletedAccountArchiveItem[];
 }
 
 export type ApiCallResult<T> =
@@ -402,6 +404,9 @@ export const maharaApi = {
 
   logout: () =>
     callApi<{ ok: true; loggedOut: boolean }>('auth_logout', {}, { noRetry: true, timeoutMs: 1500 }),
+
+  deleteOwnAccount: (password: string) =>
+    callApi<{ ok: true; deleted: boolean }>('delete_own_account', { password }, { noRetry: true }),
 
   registerCustomer: (data: {
     name: string;

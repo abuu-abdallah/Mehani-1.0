@@ -1,15 +1,24 @@
-name: Build Mehani Android APK
+name: Build Mehani Android APK & Play Store AAB
 
 on:
   workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'App versionName (e.g. 1.1.0)'
+        required: false
+        default: '1.1.0'
+      version_code:
+        description: 'Optional integer versionCode override (defaults to 100 + github.run_number)'
+        required: false
+        default: ''
   push:
     branches:
       - main
       - master
 
 jobs:
-  build-android-apk:
-    name: Build Android APK
+  build-android:
+    name: Build Android APK & Signed Play Store AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -48,15 +57,33 @@ jobs:
             "$SDKMANAGER" --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-36" "build-tools;35.0.0" || true
           fi
 
+      - name: Resolve Android versionCode & versionName
+        run: |
+          INPUT_CODE="${{ github.event.inputs.version_code }}"
+          INPUT_NAME="${{ github.event.inputs.version_name }}"
+          if [ -n "$INPUT_CODE" ]; then
+            VER_CODE="$INPUT_CODE"
+          else
+            VER_CODE=$((100 + GITHUB_RUN_NUMBER))
+          fi
+          if [ -n "$INPUT_NAME" ]; then
+            VER_NAME="$INPUT_NAME"
+          else
+            VER_NAME="1.1.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "ANDROID_VERSION_CODE=$VER_CODE" >> "$GITHUB_ENV"
+          echo "ANDROID_VERSION_NAME=$VER_NAME" >> "$GITHUB_ENV"
+          echo "Using versionCode=$VER_CODE, versionName=$VER_NAME"
+
       - name: Grant execute permission for Gradle wrapper
         working-directory: android
         run: chmod +x gradlew
 
-      - name: Build Debug APK (installable on Android)
+      - name: Build Debug APK (for direct device testing)
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Prepare APK artifact
+      - name: Prepare Debug APK artifact
         run: |
           mkdir -p apk-output
           cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/mehani-sudan.apk
@@ -67,3 +94,56 @@ jobs:
           name: mehani-sudan-apk
           path: apk-output/mehani-sudan.apk
           retention-days: 30
+
+      - name: Decode Upload Keystore (when Release Signing secrets are configured)
+        id: keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$STORE_PASS" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASS" ]; then
+            echo "$KEYSTORE_B64" | base64 --decode > /tmp/mehani-upload.jks
+            echo "MEHANI_UPLOAD_STORE_FILE=/tmp/mehani-upload.jks" >> "$GITHUB_ENV"
+            echo "has_signing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release signing secrets not yet configured; skipping signed Uptodown APK & Play Store AAB builds."
+            echo "has_signing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Signed Uptodown Release APK & Play Store Release AAB
+        if: steps.keystore.outputs.has_signing == 'true'
+        working-directory: android
+        env:
+          MEHANI_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          MEHANI_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          MEHANI_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Prepare Signed Release Artifacts (Uptodown APK + Play AAB)
+        if: steps.keystore.outputs.has_signing == 'true'
+        run: |
+          mkdir -p apk-release-output aab-output
+          cp android/app/build/outputs/apk/release/app-release.apk apk-release-output/mehani-sudan-uptodown-release.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab aab-output/mehani-sudan-play-release.aab
+
+      - name: Upload Signed Uptodown Release APK
+        if: steps.keystore.outputs.has_signing == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mehani-sudan-uptodown-release-apk
+          path: apk-release-output/mehani-sudan-uptodown-release.apk
+          retention-days: 30
+
+      - name: Upload Signed Play Store AAB
+        if: steps.keystore.outputs.has_signing == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mehani-sudan-play-release-aab
+          path: aab-output/mehani-sudan-play-release.aab
+          retention-days: 30
+
+      - name: Clean up temporary keystore
+        if: always()
+        run: rm -f /tmp/mehani-upload.jks

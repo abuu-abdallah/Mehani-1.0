@@ -5,7 +5,7 @@
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "^(api\.php|sw\.js|registerSW\.js|manifest\.json|manifest\.webmanifest|index\.html)$">
+  <FilesMatch "^(api\.php|sw\.js|registerSW\.js|manifest\.json|manifest\.webmanifest|index\.html|privacy-policy\.html|delete-account\.html)$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
   </FilesMatch>
 </IfModule>

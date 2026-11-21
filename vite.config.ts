@@ -26,7 +26,7 @@ export default defineConfig(() => {
           name: 'Mehani | مهني',
           short_name: 'مهني',
           description:
-            'منصة مهني - ربط العملاء بالحرفيين وأصحاب المهن الحرة في السودان | Mehani Sudan Trades & Services Marketplace',
+            'مهني: أيّ شغلة وليها زولها.. ومِهَني بجيب ليك زولها | Every job has its pro.. and Mehani brings them to you',
           lang: 'ar',
           dir: 'rtl',
           theme_color: '#0f172a',
@@ -60,7 +60,7 @@ export default defineConfig(() => {
         workbox: {
           globPatterns: ['**/*.{js,css,ico,png,jpg,svg,woff,woff2}'],
           navigateFallback: null,
-          navigateFallbackDenylist: [/^\/api\.php/, /^\/\.well-known\//],
+          navigateFallbackDenylist: [/^\/api\.php/, /^\/\.well-known\//, /^\/privacy-policy\.html/, /^\/delete-account\.html/],
           runtimeCaching: [
             {
               urlPattern: /\/api\.php(\?.*)?$/i,

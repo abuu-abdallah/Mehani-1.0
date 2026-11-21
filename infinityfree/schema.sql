@@ -224,6 +224,28 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   CONSTRAINT `fk_notif_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 11. Deleted Accounts Archive (Permanent phone reuse ban + Ex-User NID/Passport admin comparison)
+CREATE TABLE IF NOT EXISTS `deleted_accounts_archive` (
+  `id` VARCHAR(64) NOT NULL,
+  `original_user_id` VARCHAR(64) NOT NULL,
+  `name` VARCHAR(191) NOT NULL,
+  `phone` VARCHAR(32) NOT NULL,
+  `email` VARCHAR(191) NULL,
+  `role` ENUM('customer', 'provider', 'admin') NOT NULL DEFAULT 'customer',
+  `city` VARCHAR(191) NULL,
+  `neighborhood` VARCHAR(191) NULL,
+  `trade_title_ar` VARCHAR(191) NULL,
+  `nid_url` LONGTEXT NULL,
+  `nid_number` VARCHAR(100) NULL,
+  `nid_image_hash` CHAR(64) NULL,
+  `deleted_by` ENUM('self', 'admin') NOT NULL DEFAULT 'self',
+  `deleted_at` VARCHAR(64) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_daa_phone` (`phone`),
+  KEY `idx_daa_nid_hash` (`nid_image_hash`),
+  KEY `idx_daa_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================================
 -- SEED DATA: Official Categories & Default Admin Account
 -- ============================================================================

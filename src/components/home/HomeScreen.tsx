@@ -170,6 +170,9 @@ export const HomeScreen: React.FC = () => {
 
           {/* Center Main Punchline */}
           <div className="relative z-10 max-w-2xl space-y-3.5 my-auto py-4">
+            <p className="text-sm sm:text-base md:text-lg font-extrabold text-amber-300 tracking-wide">
+              « {t('appTagline')} »
+            </p>
             <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.2] text-white">
               {language === 'ar' ? (
                 <>
