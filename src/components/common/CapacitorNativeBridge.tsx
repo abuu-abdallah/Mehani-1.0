@@ -9,6 +9,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getAuthToken } from '../../services/api';
 import { safeStorage } from '../../utils/safeStorage';
+import { isUserActivelyTypingOrComposing } from '../../utils/imeInputGuard';
 import { useAppNotifications } from '../../hooks/useAppNotifications';
 import {
   clearBackgroundNotificationSession,
@@ -126,7 +127,9 @@ export const CapacitorNativeBridge: React.FC = () => {
 
     const appStateListenerPromise = CapApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
-        void refreshRef.current();
+        if (!isUserActivelyTypingOrComposing()) {
+          void refreshRef.current();
+        }
         if (Capacitor.getPlatform() === 'android') {
           void consumePendingNotificationTab().then((tab) => {
             if (tab) navigateToTab(tab);

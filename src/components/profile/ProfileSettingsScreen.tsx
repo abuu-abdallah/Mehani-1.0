@@ -45,6 +45,7 @@ import { validateEmail, normalizeEmail } from '../../utils/emailValidation';
 import { compressImage } from '../../utils/imageCompression';
 import { PRESET_AVATARS } from '../../config/avatars';
 import { PrivacyPolicyModal } from '../common/PrivacyPolicyModal';
+import { isUserActivelyTypingOrComposing } from '../../utils/imeInputGuard';
 
 export const ProfileSettingsScreen: React.FC = () => {
   const { t, language, dir, toggleLanguage } = useLanguage();
@@ -189,7 +190,7 @@ export const ProfileSettingsScreen: React.FC = () => {
       return;
     }
     const isDifferentUser = lastSyncedUserIdRef.current !== currentUser.id;
-    if (isDifferentUser || !hasUnsavedEditsRef.current) {
+    if (isDifferentUser || (!hasUnsavedEditsRef.current && !isUserActivelyTypingOrComposing())) {
       lastSyncedUserIdRef.current = currentUser.id;
       hasUnsavedEditsRef.current = false;
       setName(currentUser.name || '');

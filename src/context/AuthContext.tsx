@@ -3,6 +3,7 @@ import { User, UserRole } from '../types';
 import { validateSudanPhone, normalizePhoneForLookup, normalizeNumerals } from '../utils/phoneValidation';
 import { validateEmail, normalizeEmail } from '../utils/emailValidation';
 import { safeStorage } from '../utils/safeStorage';
+import { isUserActivelyTypingOrComposing } from '../utils/imeInputGuard';
 import {
   BootstrapResponse,
   canUseLocalFallback,
@@ -153,13 +154,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return safeStorage.getItem('mahara_is_guest') === 'true';
   });
 
+  const lastBootstrapJsonRef = useRef<string | null>(null);
+
   const applyBootstrapSnapshot = useCallback((data: BootstrapResponse) => {
+    const stablePayload = {
+      currentUser: data.currentUser ?? null,
+      users: data.users ?? [],
+      categories: data.categories ?? [],
+      requests: data.requests ?? [],
+      deposits: data.deposits ?? [],
+      serviceSuggestions: data.serviceSuggestions ?? [],
+      activeCountsByProvider: data.activeCountsByProvider ?? {},
+      publicReviews: data.publicReviews ?? [],
+      notifications: data.notifications ?? [],
+      unreadNotificationsCount: data.unreadNotificationsCount ?? 0,
+    };
+    const nextFingerprint = JSON.stringify(stablePayload);
+    if (lastBootstrapJsonRef.current === nextFingerprint) {
+      return;
+    }
+    lastBootstrapJsonRef.current = nextFingerprint;
+
     setLatestBootstrap(data);
     if (Array.isArray(data.users)) {
-      setAllUsers(data.users);
+      const nextUsers = data.users;
+      const nextUsersJson = JSON.stringify(nextUsers);
+      setAllUsers((prev) => (JSON.stringify(prev) === nextUsersJson ? prev : nextUsers));
     }
     if (data.currentUser) {
-      setCurrentUser(data.currentUser);
+      const nextUser = data.currentUser;
+      const nextUserJson = JSON.stringify(nextUser);
+      setCurrentUser((prev) => (prev && JSON.stringify(prev) === nextUserJson ? prev : nextUser));
       setIsGuest(false);
     } else if (getAuthToken()) {
       // Token expired or invalid on server -> clear stale token & prompt sign in
@@ -197,6 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const safePoll = async () => {
       if (isPollingRef.current) return;
+      if (isUserActivelyTypingOrComposing()) return;
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
       isPollingRef.current = true;
@@ -660,6 +686,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     } finally {
+      lastBootstrapJsonRef.current = null;
       setAuthToken(null);
       setCurrentUser(null);
       setIsGuest(false);
@@ -703,6 +730,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       clearBackgroundNotificationSession();
+      lastBootstrapJsonRef.current = null;
       setAuthToken(null);
       setAllUsers(prev => prev.filter(u => u.id !== currentUser.id));
       setCurrentUser(null);

@@ -503,6 +503,31 @@ function ensureUtf8mb4TextColumns(PDO $pdo): void {
             'client_review_comment' => ['TEXT', true, null],
             'cancel_reason' => ['TEXT', true, null],
         ],
+        'provider_custom_services' => [
+            'name_ar' => ['VARCHAR(191)', false, null],
+            'name_en' => ['VARCHAR(191)', true, null],
+        ],
+        'provider_portfolio' => [
+            'title_ar' => ['VARCHAR(191)', false, null],
+            'title_en' => ['VARCHAR(191)', false, null],
+            'description_ar' => ['TEXT', true, null],
+            'description_en' => ['TEXT', true, null],
+        ],
+        'service_suggestions' => [
+            'provider_name' => ['VARCHAR(191)', false, null],
+            'name_ar' => ['VARCHAR(191)', false, null],
+            'name_en' => ['VARCHAR(191)', false, null],
+            'description_ar' => ['TEXT', false, null],
+            'description_en' => ['TEXT', false, null],
+            'rejection_reason' => ['TEXT', true, null],
+        ],
+        'categories' => [
+            'name_ar' => ['VARCHAR(191)', false, null],
+            'name_en' => ['VARCHAR(191)', false, null],
+            'description_ar' => ['TEXT', false, null],
+            'description_en' => ['TEXT', false, null],
+            'popular_locations_json' => ['TEXT', false, null],
+        ],
     ];
 
     foreach ($tableSpecs as $table => $columns) {
@@ -1784,6 +1809,7 @@ try {
 
         case 'add_portfolio': {
             $authUser = requireAuth($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $providerId = (string) ($body['providerId'] ?? $authUser['id']);
             if ($providerId !== $authUser['id'] && $authUser['role'] !== 'admin') {
                 sendJson(['ok' => false, 'error' => 'غير مصرح'], 403);
@@ -1869,6 +1895,7 @@ try {
 
         case 'add_custom_service': {
             $authUser = requireAuth($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $providerId = (string) ($body['providerId'] ?? $authUser['id']);
             if ($providerId !== $authUser['id'] && $authUser['role'] !== 'admin') {
                 sendJson(['ok' => false, 'error' => 'غير مصرح'], 403);
@@ -1893,6 +1920,7 @@ try {
 
         case 'update_custom_service': {
             $authUser = requireAuth($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $providerId = (string) ($body['providerId'] ?? $authUser['id']);
             $serviceId = (string) ($body['serviceId'] ?? '');
             if ($providerId !== $authUser['id'] && $authUser['role'] !== 'admin') {
@@ -2286,6 +2314,7 @@ try {
 
         case 'suggest_service': {
             $authUser = requireAuth($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $nameAr = trim((string) ($body['nameAr'] ?? ''));
             if ($nameAr === '') sendJson(['ok' => false, 'error' => 'اسم الحرفة أو الخدمة بالعربية مطلوب'], 400);
 
@@ -2597,6 +2626,7 @@ try {
 
         case 'add_category': {
             requireAdmin($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $newId = 'cat-' . round(microtime(true) * 1000);
             $pdo->prepare('INSERT INTO categories (id, name_ar, name_en, icon_name, description_ar, description_en, average_rate_sdg, popular_locations_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
                 ->execute([
@@ -2614,6 +2644,7 @@ try {
 
         case 'update_category': {
             requireAdmin($pdo, $config);
+            ensureUtf8mb4TextColumns($pdo);
             $id = (string) ($body['id'] ?? '');
             $updates = is_array($body['updates'] ?? null) ? $body['updates'] : $body;
             $fields = [];
